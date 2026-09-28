@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { FlyingCards } from './components/game/FlyingCards';
 import { Toaster } from './components/ui/Toaster';
 import { BottlePage } from './pages/BottlePage';
-import { ComingSoonPage } from './pages/ComingSoonPage';
+import { CouplesPage } from './pages/CouplesPage';
 import { HubPage } from './pages/HubPage';
 import { LandingPage } from './pages/LandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -19,7 +19,7 @@ export function App() {
           <Route path="/uno" element={<LandingPage />} />
           <Route path="/wheel" element={<WheelPage />} />
           <Route path="/bottle" element={<BottlePage />} />
-          <Route path="/couples" element={<ComingSoonPage title="Couples Truth or Dare" />} />
+          <Route path="/couples" element={<CouplesPage />} />
           <Route path="/room/:code" element={<RoomPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

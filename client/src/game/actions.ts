@@ -1,4 +1,4 @@
-import type { BottlePartySettings, CardColor, RoomSettings } from '@shared';
+import type { BottlePartySettings, CardColor, CouplesKind, CouplesLevel, RoomSettings } from '@shared';
 import { request, type ClientErrorCode, type RequestResult } from '../socket/socket';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
@@ -51,6 +51,15 @@ export const startGame = () => send(() => request('game:start', {}));
 export const updateBottleSettings = (patch: Partial<BottlePartySettings>) => send(() => request('bottle:settings', patch));
 export const spinBottle = () =>
   send(() => request('bottle:spin', { turnId: useGameStore.getState().state?.party?.turnId ?? -1 }));
+
+const partyTurnId = (): number => useGameStore.getState().state?.party?.turnId ?? -1;
+
+export const couplesChoose = (kind: CouplesKind) => send(() => request('couples:choose', { kind, turnId: partyTurnId() }));
+export const couplesPass = () => send(() => request('couples:pass', { turnId: partyTurnId() }));
+export const couplesDone = () => send(() => request('couples:done', { turnId: partyTurnId() }));
+export const couplesSetLevel = (level: CouplesLevel) => send(() => request('couples:level', { level }), { allowWhileBusy: true });
+export const couplesAddCard = (level: CouplesLevel, kind: CouplesKind, text: string) =>
+  send(() => request('couples:addCard', { level, kind, text }));
 export const nextRound = () => send(() => request('game:nextRound', {}));
 export const rematch = () => send(() => request('game:rematch', {}));
 export const updateSettings = (patch: Partial<RoomSettings>) => send(() => request('room:settings', patch));

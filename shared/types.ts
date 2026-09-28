@@ -51,6 +51,24 @@ export interface BottleView {
   settings: BottlePartySettings;
 }
 
+export type CouplesLevel = 'sweet' | 'flirty' | 'spicy';
+export type CouplesKind = 'truth' | 'dare';
+
+export interface CouplesCard {
+  level: CouplesLevel;
+  kind: CouplesKind;
+  text: string;
+}
+
+/** Everything both partners are allowed to know about an online Couples session. Fully public to the two of them. */
+export interface CouplesView {
+  /** Each partner's own chosen comfort level. The game plays at the lower of the two. */
+  levels: Record<string, CouplesLevel>;
+  currentPartnerId: string;
+  turnId: number;
+  card: CouplesCard | null;
+}
+
 export interface PublicPlayer {
   id: string;
   nickname: string;
@@ -144,5 +162,5 @@ export interface ClientState {
   hand: Card[];
   events: GameEvent[];
   /** Non-UNO game state (Spin the Bottle, Couples), or null in a UNO room. */
-  party: BottleView | null;
+  party: BottleView | CouplesView | null;
 }

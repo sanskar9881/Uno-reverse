@@ -1,4 +1,4 @@
-import type { BottlePartySettings, CardColor, ClientState, GameType, RoomSettings } from './types';
+import type { BottlePartySettings, CardColor, ClientState, CouplesCard, CouplesKind, CouplesLevel, GameType, RoomSettings } from './types';
 
 export type ErrorCode =
   | 'INVALID_PAYLOAD'
@@ -69,6 +69,11 @@ export interface ClientToServerEvents {
   'game:rematch': (payload: EmptyPayload, ack: Ack) => void;
   'bottle:settings': (payload: Partial<BottlePartySettings>, ack: Ack) => void;
   'bottle:spin': (payload: { turnId: number }, ack: Ack) => void;
+  'couples:choose': (payload: { kind: CouplesKind; turnId: number }, ack: Ack<{ card: CouplesCard }>) => void;
+  'couples:pass': (payload: { turnId: number }, ack: Ack<{ card: CouplesCard }>) => void;
+  'couples:done': (payload: { turnId: number }, ack: Ack) => void;
+  'couples:level': (payload: { level: CouplesLevel }, ack: Ack) => void;
+  'couples:addCard': (payload: { level: CouplesLevel; kind: CouplesKind; text: string }, ack: Ack) => void;
 }
 
 export type SessionEndReason = 'kicked' | 'replaced' | 'roomClosed';

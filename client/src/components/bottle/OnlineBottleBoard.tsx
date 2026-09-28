@@ -1,4 +1,4 @@
-import { AVATARS, type ClientState } from '@shared';
+import { AVATARS, type BottleView, type ClientState } from '@shared';
 import { useEffect, useRef, useState } from 'react';
 import { spinBottle } from '../../game/actions';
 import { useOnlineBottleRotation } from '../../game/bottle/useOnlineBottleRotation';
@@ -11,7 +11,8 @@ import { BottleSvg } from './BottleSvg';
 import { BottleResultSheet } from './ResultSheet';
 
 export function OnlineBottleBoard({ state, onLeave }: { state: ClientState; onLeave: () => void }) {
-  const party = state.party!;
+  // Rendered only when state.room.gameType === 'bottle'.
+  const party = state.party as BottleView;
   const busy = useGameStore((s) => s.busy);
   const byId = new Map(state.room.players.map((p) => [p.id, p]));
   const turnOrder = party.turnOrder.filter((id) => byId.has(id));

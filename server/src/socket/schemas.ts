@@ -71,4 +71,11 @@ export const schemas = {
       clockwiseTurns: z.boolean().optional(),
     })
     .refine((s) => s.pack !== undefined || s.canLandOnSelf !== undefined || s.clockwiseTurns !== undefined),
+  couplesChoose: z.object({ kind: z.enum(['truth', 'dare']), turnId: turnIdSchema }),
+  couplesLevel: z.object({ level: z.enum(['sweet', 'flirty', 'spicy']) }),
+  couplesCard: z.object({
+    level: z.enum(['sweet', 'flirty', 'spicy']),
+    kind: z.enum(['truth', 'dare']),
+    text: z.string().trim().min(1).max(200),
+  }),
 };

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import type { ClientState, JoinResult } from '@shared';
+import type { BottleView, ClientState, JoinResult } from '@shared';
 import type { RoomManagerOptions } from '../src/rooms/RoomManager';
 import type { TestClient } from './helpers/testClient';
 import { profile, startTestServer, type TestServer } from './helpers/testServer';
@@ -44,7 +44,8 @@ async function start(table: Table): Promise<void> {
   await Promise.all(table.players.map((p) => p.waitFor((s) => s.room.status === 'playing' && s.party !== null)));
 }
 
-const current = (s: ClientState) => s.party?.spinnerId;
+const bottleParty = (s: ClientState) => s.party as BottleView | null;
+const current = (s: ClientState) => bottleParty(s)?.spinnerId;
 
 describe('spin the bottle online', () => {
   it('creates a bottle room with the right game type and player cap', async () => {
@@ -57,7 +58,7 @@ describe('spin the bottle online', () => {
     await start(table);
     const spinnerId = current(table.players[0].state);
     const notSpinner = table.players.find((p) => p.id !== spinnerId)!;
-    const res = await notSpinner.send('bottle:spin', { turnId: notSpinner.state.party!.turnId });
+    const res = await notSpinner.send('bottle:spin', { turnId: bottleParty(notSpinner.state)!.turnId });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe('NOT_YOUR_TURN');
   });
@@ -66,7 +67,7 @@ describe('spin the bottle online', () => {
     const table = await bottleLobby(2);
     await start(table);
     const spinner = table.players.find((p) => p.id === current(table.players[0].state))!;
-    const res = await spinner.send('bottle:spin', { turnId: spinner.state.party!.turnId + 5 });
+    const res = await spinner.send('bottle:spin', { turnId: bottleParty(spinner.state)!.turnId + 5 });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe('STALE_ACTION');
   });
@@ -77,25 +78,27 @@ describe('spin the bottle online', () => {
     const state0 = table.players[0].state;
     const spinnerId = current(state0)!;
     const spinner = table.players.find((p) => p.id === spinnerId)!;
-    const turnId = state0.party!.turnId;
+    const turnId = bottleParty(state0)!.turnId;
 
     await spinner.ok('bottle:spin', { turnId });
-    await Promise.all(table.players.map((p) => p.waitFor((s) => s.party?.spin !== null)));
-    const spinState = table.players[0].state.party!;
+    await Promise.all(table.players.map((p) => p.waitFor((s) => bottleParty(s)?.spin !== null)));
+    const spinState = bottleParty(table.players[0].state)!;
     expect(spinState.spin).not.toBeNull();
     expect(spinState.spin!.targetId).not.toBe(spinnerId);
     expect(state0.room.players.some((p) => p.id === spinState.spin!.targetId)).toBe(true);
 
     // Every client sees the same spin (same id and target) at once.
     for (const p of table.players) {
-      expect(p.state.party!.spin!.id).toBe(spinState.spin!.id);
-      expect(p.state.party!.spin!.targetId).toBe(spinState.spin!.targetId);
+      expect(bottleParty(p.state)!.spin!.id).toBe(spinState.spin!.id);
+      expect(bottleParty(p.state)!.spin!.targetId).toBe(spinState.spin!.targetId);
     }
 
     const targetId = spinState.spin!.targetId;
-    await Promise.all(table.players.map((p) => p.waitFor((s) => s.party?.spin === null && s.party.turnId > turnId)));
+    await Promise.all(
+      table.players.map((p) => p.waitFor((s) => bottleParty(s)?.spin === null && bottleParty(s)!.turnId > turnId)),
+    );
     expect(current(table.players[0].state)).toBe(targetId);
-    expect(table.players[0].state.party!.prompt).not.toBeNull();
+    expect(bottleParty(table.players[0].state)!.prompt).not.toBeNull();
   });
 
   it('nobody can spin while a spin is already running', async () => {
@@ -103,10 +106,10 @@ describe('spin the bottle online', () => {
     await start(table);
     const state0 = table.players[0].state;
     const spinner = table.players.find((p) => p.id === current(state0))!;
-    await spinner.ok('bottle:spin', { turnId: state0.party!.turnId });
-    await Promise.all(table.players.map((p) => p.waitFor((s) => s.party?.spin !== null)));
+    await spinner.ok('bottle:spin', { turnId: bottleParty(state0)!.turnId });
+    await Promise.all(table.players.map((p) => p.waitFor((s) => bottleParty(s)?.spin !== null)));
 
-    const res = await spinner.send('bottle:spin', { turnId: spinner.state.party!.turnId });
+    const res = await spinner.send('bottle:spin', { turnId: bottleParty(spinner.state)!.turnId });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe('INVALID_STATE');
   });

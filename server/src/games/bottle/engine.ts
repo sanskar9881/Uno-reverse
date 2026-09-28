@@ -18,6 +18,7 @@ export interface BottleSpin {
  * bookkeeping (which prompts have been drawn this session) and never reaches clients.
  */
 export interface BottleState {
+  kind: 'bottle';
   turnOrder: string[];
   spinnerId: string;
   turnId: number;
@@ -32,6 +33,7 @@ export function createBottleState(playerIds: string[], settings: BottlePartySett
     throw new GameError('NOT_ENOUGH_PLAYERS', 'You need at least 2 players to spin the bottle.');
   }
   return {
+    kind: 'bottle',
     turnOrder: [...playerIds],
     spinnerId: playerIds[0],
     turnId: 0,

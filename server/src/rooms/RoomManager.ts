@@ -7,6 +7,9 @@ import {
   type BottlePartySettings,
   type Card,
   type CardColor,
+  type CouplesCard,
+  type CouplesKind,
+  type CouplesLevel,
   type GameEvent,
   type GameType,
   type JoinResult,
@@ -24,6 +27,15 @@ import {
   skipToNextSpinner,
   startSpin,
 } from '../games/bottle/engine';
+import {
+  addCustomCard,
+  chooseCard,
+  createCouplesState,
+  finishTurn,
+  passCard,
+  setLevel,
+  type CouplesState,
+} from '../games/couples/engine';
 import { MemoryStatsService } from '../services/stats/MemoryStatsService';
 import type { StatsService } from '../services/stats/StatsService';
 import { newPlayerId, newToken, safeEqual } from '../utils/ids';
@@ -222,7 +234,7 @@ export class RoomManager {
     this.sessions.set(socketId, { code, playerId: player.id });
     this.clearGraceTimer(code, player.id);
     if (room.hostId === player.id) this.clearHostTimer(code);
-    if (room.party) this.syncBottleTurnTimer(room);
+    if (room.party?.kind === 'bottle') this.syncBottleTurnTimer(room);
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(
@@ -258,7 +270,7 @@ export class RoomManager {
       // Don't make the table wait a full turn for someone who just left.
       if (room.turnEndsAt - this.now() > this.disconnectedTurnMs) this.scheduleTurnTimer(room, this.disconnectedTurnMs);
     }
-    if (room.party) this.syncBottleTurnTimer(room);
+    if (room.party?.kind === 'bottle') this.syncBottleTurnTimer(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, [{ type: 'playerDisconnected', playerId: player.id, nickname: player.nickname }]);
   }
@@ -292,7 +304,8 @@ export class RoomManager {
     if (room.status !== 'lobby') throw new GameError('INVALID_STATE', 'The game has already started.');
     this.assertCanStart(room);
     if (room.gameType === 'uno') this.beginRound(room);
-    else this.beginBottle(room);
+    else if (room.gameType === 'bottle') this.beginBottle(room);
+    else this.beginCouples(room);
   }
 
   nextRound(socketId: string): void {
@@ -331,7 +344,9 @@ export class RoomManager {
 
   bottleSpin(socketId: string, turnId: number): void {
     const { room, player } = this.requireSession(socketId);
-    if (room.status !== 'playing' || !room.party) throw new GameError('INVALID_STATE', 'No game is being played right now.');
+    if (room.status !== 'playing' || !room.party || room.party.kind !== 'bottle') {
+      throw new GameError('INVALID_STATE', 'No game is being played right now.');
+    }
     const connected = room.players.filter((p) => p.connected).map((p) => p.id);
     const spin = startSpin(room.party, player.id, turnId, connected, this.rng, this.now(), this.bottleSpinDurationMs);
     this.clearBottleTurnTimer(room.code);
@@ -352,6 +367,70 @@ export class RoomManager {
     this.syncBottleTurnTimer(room);
   }
 
+  private beginCouples(room: Room): void {
+    const ids = room.players.map((p) => p.id) as [string, string];
+    room.party = createCouplesState(ids);
+    room.status = 'playing';
+    this.touch(room);
+    this.store.save(room);
+    logger.info('Couples session started', { room: room.code });
+    this.notifier.roomUpdated(room, []);
+  }
+
+  private requireCouples(room: Room): CouplesState {
+    if (room.status !== 'playing' || !room.party || room.party.kind !== 'couples') {
+      throw new GameError('INVALID_STATE', 'No session is being played right now.');
+    }
+    return room.party;
+  }
+
+  couplesChoose(socketId: string, kind: CouplesKind, turnId: number): CouplesCard {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireCouples(room);
+    const card = chooseCard(party, player.id, kind, turnId, this.rng);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    return card;
+  }
+
+  couplesPass(socketId: string, turnId: number): CouplesCard {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireCouples(room);
+    const card = passCard(party, player.id, turnId, this.rng);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    return card;
+  }
+
+  couplesFinishTurn(socketId: string, turnId: number): void {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireCouples(room);
+    finishTurn(party, player.id, turnId);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  couplesSetLevel(socketId: string, level: CouplesLevel): void {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireCouples(room);
+    setLevel(party, player.id, level);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  couplesAddCard(socketId: string, level: CouplesLevel, kind: CouplesKind, text: string): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireCouples(room);
+    addCustomCard(party, level, kind, text);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
   private scheduleSpinTimer(code: string, spinId: string, durationMs: number): void {
     // A small buffer keeps the server from landing before every client has finished animating.
     const timer = setTimeout(() => this.safely(() => this.onSpinLanded(code, spinId)), durationMs + 150);
@@ -363,7 +442,7 @@ export class RoomManager {
     this.spinTimers.delete(code);
     const room = this.store.get(code);
     const party = room?.party;
-    if (!room || !party || party.spin?.id !== spinId) return;
+    if (!room || !party || party.kind !== 'bottle' || party.spin?.id !== spinId) return;
     landSpin(party, this.rng);
     this.touch(room);
     this.store.save(room);
@@ -375,7 +454,7 @@ export class RoomManager {
   private syncBottleTurnTimer(room: Room): void {
     this.clearBottleTurnTimer(room.code);
     const party = room.party;
-    if (!party || party.spin) return;
+    if (!party || party.kind !== 'bottle' || party.spin) return;
     const spinner = room.players.find((p) => p.id === party.spinnerId);
     if (!spinner || spinner.connected) return;
     const code = room.code;
@@ -393,7 +472,9 @@ export class RoomManager {
     this.bottleTurnTimers.delete(code);
     const room = this.store.get(code);
     const party = room?.party;
-    if (!room || !party || party.spin || party.spinnerId !== spinnerId || party.turnId !== turnId) return;
+    if (!room || !party || party.kind !== 'bottle' || party.spin || party.spinnerId !== spinnerId || party.turnId !== turnId) {
+      return;
+    }
     const spinner = room.players.find((p) => p.id === spinnerId);
     if (spinner?.connected) return;
     skipToNextSpinner(party);
@@ -651,7 +732,7 @@ export class RoomManager {
       if (wasActive && game.finished) this.finishRound(room, events);
       else if (wasActive && game.turnId !== previousTurn) this.scheduleTurnTimer(room);
     }
-    if (room.party) {
+    if (room.party?.kind === 'bottle') {
       removeBottlePlayer(room.party, playerId);
       this.syncBottleTurnTimer(room);
     }

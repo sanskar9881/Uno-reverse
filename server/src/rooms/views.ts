@@ -1,7 +1,13 @@
 import type { ClientState, GameEvent, PublicPlayer, RoomView } from '@shared';
 import { buildGameView } from '../game/views';
 import { buildBottleView } from '../games/bottle/engine';
+import { buildCouplesView } from '../games/couples/engine';
 import type { Room } from './types';
+
+function buildPartyView(room: Room) {
+  if (!room.party) return null;
+  return room.party.kind === 'bottle' ? buildBottleView(room.party) : buildCouplesView(room.party);
+}
 
 export function buildRoomView(room: Room): RoomView {
   const players: PublicPlayer[] = room.players.map((p) => ({
@@ -38,6 +44,6 @@ export function buildClientState(room: Room, viewerId: string, events: GameEvent
       : null,
     hand: game?.hands[viewerId] ? game.hands[viewerId].map((c) => ({ ...c })) : [],
     events,
-    party: room.party ? buildBottleView(room.party) : null,
+    party: buildPartyView(room),
   };
 }
