@@ -67,6 +67,7 @@ export function Hand({ cards, playable, myTurn, selectedId, onCardClick, onCardD
       role="group"
       aria-label={`Your hand, ${n} cards`}
     >
+      <div className={cn('hand-spotlight', myTurn && 'is-active')} aria-hidden />
       <AnimatePresence initial={false}>
         {width > 0 &&
           sorted.map((card, i) => {
@@ -113,7 +114,7 @@ export function Hand({ cards, playable, myTurn, selectedId, onCardClick, onCardD
                     'w-full transition-[filter,box-shadow] duration-200',
                     myTurn && !isPlayable && 'is-dim',
                     isPlayable && 'shadow-[0_0_0_3px_rgb(255_255_255/0.85),0_10px_24px_rgb(8_4_24/0.6)]',
-                    selected && '!shadow-[0_0_0_4px_#FFC53D,0_16px_34px_rgb(8_4_24/0.7)]',
+                    selected && '!shadow-[0_0_0_4px_#FFC53D,0_16px_34px_rgb(8_4_24/0.7)] is-selected',
                   )}
                 />
                 {selected && (

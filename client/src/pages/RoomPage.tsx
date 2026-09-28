@@ -77,7 +77,7 @@ export function RoomPage() {
   const doLeave = async () => {
     setConfirmLeave(false);
     await leaveRoom();
-    navigate('/');
+    navigate('/uno');
   };
   const onLeave = () => (state?.room.status === 'playing' ? setConfirmLeave(true) : void doLeave());
 
@@ -101,7 +101,7 @@ export function RoomPage() {
   const goHome = () => {
     clearSession();
     useGameStore.getState().reset();
-    navigate('/');
+    navigate('/uno');
   };
 
   if (!validCode) {
@@ -215,7 +215,7 @@ export function RoomPage() {
         </p>
       )}
       <ConnectionBadge />
-      <Link to="/" className="text-sm font-semibold text-muted hover:text-ink">
+      <Link to="/uno" className="text-sm font-semibold text-muted hover:text-ink">
         Back to the start
       </Link>
     </Panel>

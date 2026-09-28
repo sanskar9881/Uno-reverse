@@ -95,6 +95,15 @@ export function LandingPage() {
 
   return (
     <main className="relative flex min-h-full flex-col items-center px-4 pb-10 pt-6 sm:pt-10">
+      <Link
+        to="/"
+        aria-label="Back to the hub"
+        className="absolute left-3 top-3 grid h-10 w-10 place-items-center rounded-xl text-muted hover:bg-white/10 hover:text-ink"
+      >
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M15 5l-7 7 7 7" />
+        </svg>
+      </Link>
       <div className="absolute right-3 top-3">
         <SoundToggle />
       </div>

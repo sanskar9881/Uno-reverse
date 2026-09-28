@@ -68,6 +68,7 @@ export function CardFace({ card, className, style }: CardFaceProps) {
       <div className="uno-card__corner uno-card__corner--br">
         <CornerGlyph card={card} />
       </div>
+      <div className="uno-card__sheen" />
     </div>
   );
 }
@@ -76,12 +77,14 @@ export function CardBack({ className, style }: { className?: string; style?: CSS
   return (
     <div className={cn('uno-card uno-card--back', className)} style={style} aria-hidden>
       <div className="uno-card__frame" />
+      <div className="uno-card__emblem-ring" />
       <div className="uno-card__emblem">
         <span className="bg-card-red" />
         <span className="bg-card-yellow" />
         <span className="bg-card-blue" />
         <span className="bg-card-green" />
       </div>
+      <div className="uno-card__sheen" />
     </div>
   );
 }

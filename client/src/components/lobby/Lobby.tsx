@@ -16,6 +16,7 @@ import { inviteMessage, roomLink } from '../../utils/format';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
+import { SegmentedControl } from '../ui/SegmentedControl';
 import { SoundToggle } from '../ui/SoundToggle';
 
 const TILE_COLORS = ['bg-card-red', 'bg-card-yellow', 'bg-card-green', 'bg-card-blue', 'bg-card-red', 'bg-card-yellow'];
@@ -41,47 +42,6 @@ function RoomCode({ code }: { code: string }) {
           {char}
         </motion.span>
       ))}
-    </div>
-  );
-}
-
-function Segmented<T extends number>({
-  label,
-  options,
-  value,
-  onChange,
-  format,
-  disabled,
-}: {
-  label: string;
-  options: readonly T[];
-  value: T;
-  onChange: (v: T) => void;
-  format: (v: T) => string;
-  disabled: boolean;
-}) {
-  return (
-    <div role="radiogroup" aria-label={label} className="flex flex-col gap-1.5">
-      <span className="text-sm font-semibold text-muted">{label}</span>
-      <div className="grid grid-flow-col gap-1 rounded-2xl bg-night p-1 ring-1 ring-line">
-        {options.map((option) => (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            aria-checked={value === option}
-            disabled={disabled}
-            onClick={() => value !== option && onChange(option)}
-            className={cn(
-              'h-9 rounded-xl px-2 text-sm font-bold transition-colors',
-              value === option ? 'bg-card-yellow text-night' : 'text-muted enabled:hover:bg-white/10 enabled:hover:text-ink',
-              disabled && value !== option && 'opacity-50',
-            )}
-          >
-            {format(option)}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -200,7 +160,7 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
       </section>
 
       <section className="mt-6 grid gap-4 rounded-3xl bg-night-2/70 p-5 ring-1 ring-line sm:grid-cols-2">
-        <Segmented
+        <SegmentedControl
           label="Time per turn"
           options={TURN_SECONDS_OPTIONS}
           value={room.settings.turnSeconds}
@@ -208,7 +168,7 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
           format={(v) => `${v}s`}
           disabled={!isHost || busy}
         />
-        <Segmented
+        <SegmentedControl
           label="Match ends at"
           options={TARGET_SCORE_OPTIONS}
           value={room.settings.targetScore}

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -22,12 +22,26 @@ const SIZES = {
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: keyof typeof SIZES;
+  loading?: boolean;
+  icon?: ReactNode;
 }
 
-export function Button({ variant = 'primary', size = 'md', className, type = 'button', ...rest }: ButtonProps) {
+export function Button({
+  variant = 'primary',
+  size = 'md',
+  className,
+  type = 'button',
+  loading,
+  icon,
+  disabled,
+  children,
+  ...rest
+}: ButtonProps) {
   return (
     <button
       type={type}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={cn(
         'inline-flex select-none items-center justify-center gap-2 font-bold transition-[transform,filter,background-color,box-shadow] duration-100 disabled:opacity-45 disabled:shadow-none disabled:active:translate-y-0',
         VARIANTS[variant],
@@ -35,6 +49,13 @@ export function Button({ variant = 'primary', size = 'md', className, type = 'bu
         className,
       )}
       {...rest}
-    />
+    >
+      {loading ? (
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+      ) : (
+        icon
+      )}
+      {children}
+    </button>
   );
 }

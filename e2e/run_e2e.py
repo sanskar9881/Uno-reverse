@@ -50,7 +50,7 @@ class Player:
         self.name, self.ctx, self.page = name, ctx, page
 
     @classmethod
-    async def open(cls, browser: Browser, name, viewport=DESKTOP, path="/", mobile=False, ctx=None):
+    async def open(cls, browser: Browser, name, viewport=DESKTOP, path="/uno", mobile=False, ctx=None):
         if ctx is None:
             ctx = await browser.new_context(
                 viewport=viewport, is_mobile=mobile, has_touch=mobile, device_scale_factor=2 if mobile else 1
@@ -294,14 +294,14 @@ async def two_player_rounds(browser: Browser):
     # Riya leaves mid-round: Sanskar wins by default.
     await riya.page.get_by_role("button", name="Leave", exact=True).click()
     await riya.page.get_by_role("button", name="Leave game").click()
-    await riya.page.wait_for_url(BASE + "/")
+    await riya.page.wait_for_url(BASE + "/uno")
     await host.wait('s.room.status === "roundOver" && s.room.lastRound.reason === "forfeit"')
     await expect(host.page.get_by_role("heading", name="You win by default")).to_be_visible()
     await host.shot("13-forfeit", settle=500)
 
     # Stats (in-memory without MongoDB) show on the landing page.
     await host.page.get_by_role("button", name="Leave room").click()
-    await host.page.wait_for_url(BASE + "/")
+    await host.page.wait_for_url(BASE + "/uno")
     await host.page.reload()
     await expect(host.page.get_by_role("heading", name="Your record")).to_be_visible()
     await expect(host.page.get_by_role("heading", name="Most wins")).to_be_visible()
@@ -324,7 +324,7 @@ async def lobby_and_tabs(browser: Browser):
 
     # The host leaves the lobby: the next player becomes host right away.
     await first.page.get_by_role("button", name="Leave room").click()
-    await first.page.wait_for_url(BASE + "/")
+    await first.page.wait_for_url(BASE + "/uno")
     await expect(second.page.get_by_role("button", name="Start Game")).to_be_visible()
     await expect(second.page.get_by_text("You're the host now")).to_be_visible()
 
