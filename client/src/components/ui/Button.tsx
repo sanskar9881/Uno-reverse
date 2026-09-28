@@ -1,0 +1,40 @@
+import type { ButtonHTMLAttributes } from 'react';
+import { cn } from '../../utils/cn';
+
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+
+const VARIANTS: Record<Variant, string> = {
+  primary:
+    'bg-card-yellow text-night shadow-[0_4px_0_#b8861a] hover:brightness-105 active:translate-y-[3px] active:shadow-[0_1px_0_#b8861a]',
+  secondary:
+    'bg-white/10 text-ink shadow-[0_4px_0_rgb(0_0_0/0.35)] hover:bg-white/15 active:translate-y-[3px] active:shadow-[0_1px_0_rgb(0_0_0/0.35)]',
+  ghost: 'bg-transparent text-muted hover:text-ink hover:bg-white/5',
+  danger:
+    'bg-card-red text-white shadow-[0_4px_0_#a52a30] hover:brightness-105 active:translate-y-[3px] active:shadow-[0_1px_0_#a52a30]',
+};
+
+const SIZES = {
+  sm: 'h-9 px-3.5 text-sm rounded-xl',
+  md: 'h-11 px-5 text-base rounded-2xl',
+  lg: 'h-14 px-7 text-lg rounded-2xl',
+};
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: Variant;
+  size?: keyof typeof SIZES;
+}
+
+export function Button({ variant = 'primary', size = 'md', className, type = 'button', ...rest }: ButtonProps) {
+  return (
+    <button
+      type={type}
+      className={cn(
+        'inline-flex select-none items-center justify-center gap-2 font-bold transition-[transform,filter,background-color,box-shadow] duration-100 disabled:opacity-45 disabled:shadow-none disabled:active:translate-y-0',
+        VARIANTS[variant],
+        SIZES[size],
+        className,
+      )}
+      {...rest}
+    />
+  );
+}

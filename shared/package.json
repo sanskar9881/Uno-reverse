@@ -1,0 +1,6 @@
+{
+  "name": "@uno-party/shared",
+  "private": true,
+  "type": "module",
+  "description": "Types, constants and rules shared by the client and the server (imported as @shared)"
+}

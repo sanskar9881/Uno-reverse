@@ -1,0 +1,66 @@
+import { z } from 'zod';
+import {
+  AVATARS,
+  CARD_COLORS,
+  NICKNAME_MAX_LENGTH,
+  NICKNAME_MIN_LENGTH,
+  NICKNAME_PATTERN,
+  ROOM_CODE_REGEX,
+  TARGET_SCORE_OPTIONS,
+  TURN_SECONDS_OPTIONS,
+  UUID_REGEX,
+  normalizeNickname,
+} from '@shared';
+
+/**
+ * Every client payload is parsed here before it reaches game logic.
+ * Unknown keys are stripped; anything malformed is rejected with INVALID_PAYLOAD.
+ */
+
+export const nicknameSchema = z
+  .string()
+  .max(64)
+  .transform(normalizeNickname)
+  .pipe(z.string().min(NICKNAME_MIN_LENGTH).max(NICKNAME_MAX_LENGTH).regex(NICKNAME_PATTERN));
+
+export const roomCodeSchema = z
+  .string()
+  .max(16)
+  .transform((s) => s.trim().toUpperCase())
+  .pipe(z.string().regex(ROOM_CODE_REGEX));
+
+const idSchema = z.string().regex(/^[a-z0-9-]{1,32}$/i);
+const turnIdSchema = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
+
+const profileSchema = z.object({
+  nickname: nicknameSchema,
+  avatar: z
+    .number()
+    .int()
+    .min(0)
+    .max(AVATARS.length - 1),
+  profileId: z.string().regex(UUID_REGEX).optional(),
+});
+
+export const schemas = {
+  create: profileSchema,
+  join: profileSchema.extend({ roomCode: roomCodeSchema }),
+  rejoin: z.object({ roomCode: roomCodeSchema, token: z.string().regex(/^[a-f0-9]{48}$/) }),
+  empty: z.object({}),
+  settings: z
+    .object({
+      turnSeconds: z
+        .number()
+        .refine((v) => (TURN_SECONDS_OPTIONS as readonly number[]).includes(v))
+        .optional(),
+      targetScore: z
+        .number()
+        .refine((v) => (TARGET_SCORE_OPTIONS as readonly number[]).includes(v))
+        .optional(),
+    })
+    .refine((s) => s.turnSeconds !== undefined || s.targetScore !== undefined),
+  kick: z.object({ playerId: idSchema }),
+  play: z.object({ turnId: turnIdSchema, cardId: idSchema, chosenColor: z.enum(CARD_COLORS).optional() }),
+  turn: z.object({ turnId: turnIdSchema }),
+  catch: z.object({ targetId: idSchema }),
+};

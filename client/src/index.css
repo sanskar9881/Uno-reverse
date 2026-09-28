@@ -1,0 +1,319 @@
+@import "tailwindcss";
+
+@theme {
+  --color-night: #151028;
+  --color-night-2: #1c1537;
+  --color-felt: #2a1f4e;
+  --color-felt-deep: #1e1638;
+  --color-ink: #f6f1ff;
+  --color-muted: #a89cc8;
+  --color-line: rgb(246 241 255 / 0.12);
+  --color-card-red: #f2474d;
+  --color-card-yellow: #ffc53d;
+  --color-card-green: #22c58b;
+  --color-card-blue: #3d8bff;
+  --color-card-wild: #17122b;
+
+  --font-display: "Bagel Fat One", "Baloo 2 Variable", system-ui, sans-serif;
+  --font-sans: "Baloo 2 Variable", "Baloo 2", ui-rounded, system-ui, sans-serif;
+
+  --animate-pulse-soft: pulse-soft 1.4s ease-in-out infinite;
+  --animate-wiggle: wiggle 0.9s ease-in-out infinite;
+
+  @keyframes pulse-soft {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgb(255 197 61 / 0.55);
+    }
+    50% {
+      transform: scale(1.04);
+      box-shadow: 0 0 0 10px rgb(255 197 61 / 0);
+    }
+  }
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-4deg);
+    }
+    75% {
+      transform: rotate(4deg);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 700px at 50% -10%, rgb(125 90 220 / 0.22), transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, rgb(61 139 255 / 0.1), transparent 60%),
+      var(--color-night);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  ::selection {
+    background: rgb(255 197 61 / 0.35);
+  }
+
+  :focus-visible {
+    outline: 3px solid #ffc53d;
+    outline-offset: 2px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------------------------ table */
+
+  .felt {
+    background:
+      radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0.07), transparent 65%),
+      repeating-radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.018) 0 2px, transparent 2px 5px),
+      linear-gradient(180deg, var(--color-felt), var(--color-felt-deep));
+    box-shadow:
+      inset 0 2px 0 rgb(255 255 255 / 0.06),
+      inset 0 -30px 60px rgb(0 0 0 / 0.25),
+      0 30px 80px rgb(8 4 24 / 0.55);
+  }
+
+  /* ------------------------------------------------------------------ cards
+     Original design: full-bleed color, a thin inner frame, and a white rounded
+     diamond holding the symbol. Sizes scale with the card via container units. */
+
+  .uno-card {
+    --c: var(--color-card-wild);
+    container-type: inline-size;
+    position: relative;
+    aspect-ratio: 5 / 7;
+    /* % radii: container units on the container itself would resolve against its parent */
+    border-radius: 12% / 8.571%;
+    background: linear-gradient(
+      155deg,
+      color-mix(in oklab, var(--c) 72%, white) 0%,
+      var(--c) 42%,
+      color-mix(in oklab, var(--c) 78%, black) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      inset 0 0 0 1px rgb(0 0 0 / 0.18),
+      0 6px 14px rgb(8 4 24 / 0.45);
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .uno-card--red {
+    --c: var(--color-card-red);
+  }
+  .uno-card--yellow {
+    --c: var(--color-card-yellow);
+  }
+  .uno-card--green {
+    --c: var(--color-card-green);
+  }
+  .uno-card--blue {
+    --c: var(--color-card-blue);
+  }
+  .uno-card--wild {
+    --c: #2b2250;
+    background:
+      radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.12), transparent 55%),
+      linear-gradient(155deg, #3a2f66 0%, #1d1638 55%, #120d24 100%);
+  }
+
+  .uno-card__frame {
+    position: absolute;
+    inset: 5.5cqw;
+    border-radius: 8cqw;
+    border: 1.6cqw solid rgb(255 255 255 / 0.55);
+  }
+
+  .uno-card__diamond {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 56cqw;
+    height: 56cqw;
+    margin: -28cqw 0 0 -28cqw;
+    border-radius: 14cqw;
+    transform: rotate(45deg);
+    background: #fffaf2;
+    box-shadow:
+      inset 0 -2cqw 0 rgb(0 0 0 / 0.08),
+      0 1.5cqw 3cqw rgb(0 0 0 / 0.22);
+  }
+
+  .uno-card--wild .uno-card__diamond {
+    background: conic-gradient(
+      from 0deg,
+      var(--color-card-red) 0 25%,
+      var(--color-card-yellow) 0 50%,
+      var(--color-card-green) 0 75%,
+      var(--color-card-blue) 0 100%
+    );
+    box-shadow:
+      inset 0 0 0 1.6cqw rgb(255 255 255 / 0.9),
+      0 1.5cqw 3cqw rgb(0 0 0 / 0.35);
+  }
+
+  .uno-card__glyph {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: color-mix(in oklab, var(--c) 88%, black);
+    font-family: var(--font-display);
+    line-height: 1;
+  }
+
+  .uno-card__glyph--number {
+    font-size: 46cqw;
+    padding-top: 2cqw;
+  }
+
+  .uno-card__glyph--text {
+    font-size: 30cqw;
+    letter-spacing: -0.04em;
+    padding-top: 1cqw;
+  }
+
+  .uno-card--wild .uno-card__glyph {
+    color: #fff;
+    -webkit-text-stroke: 1.2cqw #1d1638;
+    paint-order: stroke fill;
+  }
+
+  .uno-card__glyph svg {
+    width: 40cqw;
+    height: 40cqw;
+  }
+
+  .uno-card__corner {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 17cqw;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 0 0.8cqw 0 rgb(0 0 0 / 0.25);
+  }
+
+  .uno-card__corner svg {
+    width: 15cqw;
+    height: 15cqw;
+    filter: drop-shadow(0 0.8cqw 0 rgb(0 0 0 / 0.25));
+  }
+
+  .uno-card__corner--tl {
+    left: 10cqw;
+    top: 8cqw;
+  }
+
+  .uno-card__corner--br {
+    right: 10cqw;
+    bottom: 8cqw;
+    transform: rotate(180deg);
+  }
+
+  .uno-card__mini-diamond {
+    display: block;
+    width: 11cqw;
+    height: 11cqw;
+    margin: 2cqw;
+    border-radius: 2.5cqw;
+    transform: rotate(45deg);
+    background: conic-gradient(
+      var(--color-card-red) 0 25%,
+      var(--color-card-yellow) 0 50%,
+      var(--color-card-green) 0 75%,
+      var(--color-card-blue) 0 100%
+    );
+    box-shadow: 0 0 0 1cqw #fff;
+  }
+
+  .underline-glyph {
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.08em;
+  }
+
+  /* Card back: ink field with a diagonal weave and a four-color emblem. */
+  .uno-card--back {
+    background:
+      repeating-linear-gradient(45deg, rgb(255 255 255 / 0.04) 0 3%, transparent 3% 6%),
+      radial-gradient(circle at 50% 45%, #3b2d72, #1a1333 70%);
+  }
+
+  /* Unplayable on your turn: desaturate instead of darkening (dark yellow turns muddy). */
+  .uno-card.is-dim {
+    filter: grayscale(0.65) brightness(0.72);
+  }
+
+  .uno-card__emblem {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 40cqw;
+    height: 40cqw;
+    margin: -20cqw 0 0 -20cqw;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3cqw;
+    transform: rotate(45deg);
+  }
+
+  .uno-card__emblem span {
+    border-radius: 4cqw;
+    box-shadow: inset 0 -1.2cqw 0 rgb(0 0 0 / 0.18);
+  }
+}
+
+@layer utilities {
+  /* ------------------------------------------------------------------ misc */
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
