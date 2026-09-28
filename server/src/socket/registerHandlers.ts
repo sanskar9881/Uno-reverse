@@ -81,7 +81,7 @@ export function registerSocketHandlers(io: TypedServer, manager: RoomManager, op
       );
     }
 
-    on('room:create', schemas.create, buckets.create, (p) => manager.create(socket.id, p), ipCreate);
+    on('room:create', schemas.create, buckets.create, (p) => manager.create(socket.id, p, p.gameType), ipCreate);
     on('room:join', schemas.join, buckets.join, (p) => manager.join(socket.id, p.roomCode, p), ipJoin);
     on('room:rejoin', schemas.rejoin, buckets.join, (p) => manager.rejoin(socket.id, p.roomCode, p.token), ipJoin);
     on('room:leave', schemas.empty, buckets.room, () => manager.leave(socket.id));
@@ -95,6 +95,8 @@ export function registerSocketHandlers(io: TypedServer, manager: RoomManager, op
     on('game:pass', schemas.turn, buckets.game, (p) => manager.pass(socket.id, p.turnId));
     on('game:uno', schemas.empty, buckets.game, () => manager.callUno(socket.id));
     on('game:catch', schemas.catch, buckets.game, (p) => manager.catchUno(socket.id, p.targetId));
+    on('bottle:settings', schemas.bottleSettings, buckets.room, (p) => manager.updateBottleSettings(socket.id, p));
+    on('bottle:spin', schemas.turn, buckets.game, (p) => manager.bottleSpin(socket.id, p.turnId));
 
     socket.on('disconnect', () => {
       try {

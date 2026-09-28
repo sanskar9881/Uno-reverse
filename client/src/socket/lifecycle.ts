@@ -1,4 +1,4 @@
-import type { JoinResult } from '@shared';
+import type { GameType, JoinResult } from '@shared';
 import { reactToState } from '../game/feedback';
 import { playSound, setMuted, unlockAudio } from '../game/sounds';
 import { useGameStore } from '../store/gameStore';
@@ -64,7 +64,8 @@ async function claimSeat(run: () => Promise<RequestResult<JoinResult>>): Promise
   return res;
 }
 
-export const createRoom = (profile: Profile) => claimSeat(() => request('room:create', profilePayload(profile), 10_000));
+export const createRoom = (profile: Profile, gameType?: GameType) =>
+  claimSeat(() => request('room:create', { ...profilePayload(profile), gameType }, 10_000));
 
 export const joinRoom = (roomCode: string, profile: Profile) =>
   claimSeat(() => request('room:join', { ...profilePayload(profile), roomCode }, 10_000));

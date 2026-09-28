@@ -1,10 +1,14 @@
 import {
+  BOTTLE_SPIN_DURATION_MS,
   DEFAULT_SETTINGS,
   MAX_PLAYERS,
+  MAX_PLAYERS_BY_GAME,
   MIN_PLAYERS,
+  type BottlePartySettings,
   type Card,
   type CardColor,
   type GameEvent,
+  type GameType,
   type JoinResult,
   type ProfilePayload,
   type RoomSettings,
@@ -13,6 +17,13 @@ import {
 import { secureRng, type Rng } from '../game/deck';
 import { GameEngine, type GameState } from '../game/engine';
 import { GameError } from '../game/errors';
+import {
+  createBottleState,
+  landSpin,
+  removePlayer as removeBottlePlayer,
+  skipToNextSpinner,
+  startSpin,
+} from '../games/bottle/engine';
 import { MemoryStatsService } from '../services/stats/MemoryStatsService';
 import type { StatsService } from '../services/stats/StatsService';
 import { newPlayerId, newToken, safeEqual } from '../utils/ids';
@@ -20,6 +31,8 @@ import { logger } from '../utils/logger';
 import { InMemoryRoomStore, type RoomStore } from './RoomStore';
 import { uniqueRoomCode } from './roomCode';
 import type { PlayerRecord, Room } from './types';
+
+const DEFAULT_PARTY_SETTINGS: BottlePartySettings = { pack: 'party', canLandOnSelf: false, clockwiseTurns: false };
 
 /** Transport-agnostic output. The Socket.IO layer implements this; tests use a fake. */
 export interface RoomNotifier {
@@ -47,6 +60,8 @@ export interface RoomManagerOptions {
   minTimeAfterDrawMs?: number;
   /** Overrides settings.turnSeconds (tests). */
   turnDurationOverrideMs?: number;
+  /** Overrides BOTTLE_SPIN_DURATION_MS (tests). */
+  bottleSpinDurationMs?: readonly [number, number];
   maxRooms?: number;
   roomIdleMs?: number;
   sweepIntervalMs?: number;
@@ -75,6 +90,10 @@ export class RoomManager {
   private readonly turnTimers = new Map<string, NodeJS.Timeout>();
   private readonly graceTimers = new Map<string, NodeJS.Timeout>();
   private readonly hostTimers = new Map<string, NodeJS.Timeout>();
+  /** Fires when a bottle spin's duration elapses, so the server (not the client) decides when it lands. */
+  private readonly spinTimers = new Map<string, NodeJS.Timeout>();
+  /** Fires when a bottle spinner has been disconnected too long, passing their turn along. */
+  private readonly bottleTurnTimers = new Map<string, NodeJS.Timeout>();
   private readonly sweepTimer: NodeJS.Timeout;
 
   private readonly stats: StatsService;
@@ -88,6 +107,7 @@ export class RoomManager {
   private readonly disconnectedTurnMs: number;
   private readonly minTimeAfterDrawMs: number;
   private readonly turnDurationOverrideMs?: number;
+  private readonly bottleSpinDurationMs: readonly [number, number];
   private readonly maxRooms: number;
   private readonly roomIdleMs: number;
   private readonly now: () => number;
@@ -107,6 +127,7 @@ export class RoomManager {
     this.disconnectedTurnMs = options.disconnectedTurnMs ?? 10_000;
     this.minTimeAfterDrawMs = options.minTimeAfterDrawMs ?? 5_000;
     this.turnDurationOverrideMs = options.turnDurationOverrideMs;
+    this.bottleSpinDurationMs = options.bottleSpinDurationMs ?? BOTTLE_SPIN_DURATION_MS;
     this.maxRooms = options.maxRooms ?? 5_000;
     this.roomIdleMs = options.roomIdleMs ?? 2 * 60 * 60 * 1000;
     this.now = options.now ?? Date.now;
@@ -116,7 +137,7 @@ export class RoomManager {
 
   // ------------------------------------------------------------------ membership
 
-  create(socketId: string, profile: ProfilePayload): JoinResult {
+  create(socketId: string, profile: ProfilePayload, gameType: GameType = 'uno'): JoinResult {
     if (this.store.size >= this.maxRooms) {
       throw new GameError('SERVER_BUSY', 'The server is full right now. Please try again in a minute.');
     }
@@ -126,10 +147,13 @@ export class RoomManager {
     const room: Room = {
       code: uniqueRoomCode((code) => this.store.has(code)),
       hostId: player.id,
+      gameType,
       players: [player],
       settings: { ...DEFAULT_SETTINGS },
       status: 'lobby',
       game: null,
+      partySettings: { ...DEFAULT_PARTY_SETTINGS },
+      party: null,
       scores: { [player.id]: 0 },
       roundNumber: 0,
       lastRound: null,
@@ -158,7 +182,8 @@ export class RoomManager {
     if (room.status === 'playing') {
       throw new GameError('GAME_IN_PROGRESS', 'A round is being played in that room. Try again when it ends.');
     }
-    if (room.players.length >= MAX_PLAYERS) throw new GameError('ROOM_FULL', `That room is full (${MAX_PLAYERS} players max).`);
+    const maxPlayers = MAX_PLAYERS_BY_GAME[room.gameType];
+    if (room.players.length >= maxPlayers) throw new GameError('ROOM_FULL', `That room is full (${maxPlayers} players max).`);
     const wanted = profile.nickname.toLocaleLowerCase();
     if (room.players.some((p) => p.nickname.toLocaleLowerCase() === wanted)) {
       throw new GameError('NAME_TAKEN', `Someone in that room is already called ${profile.nickname}. Pick another nickname.`);
@@ -197,6 +222,7 @@ export class RoomManager {
     this.sessions.set(socketId, { code, playerId: player.id });
     this.clearGraceTimer(code, player.id);
     if (room.hostId === player.id) this.clearHostTimer(code);
+    if (room.party) this.syncBottleTurnTimer(room);
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(
@@ -232,6 +258,7 @@ export class RoomManager {
       // Don't make the table wait a full turn for someone who just left.
       if (room.turnEndsAt - this.now() > this.disconnectedTurnMs) this.scheduleTurnTimer(room, this.disconnectedTurnMs);
     }
+    if (room.party) this.syncBottleTurnTimer(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, [{ type: 'playerDisconnected', playerId: player.id, nickname: player.nickname }]);
   }
@@ -264,7 +291,8 @@ export class RoomManager {
     this.requireHost(room, player);
     if (room.status !== 'lobby') throw new GameError('INVALID_STATE', 'The game has already started.');
     this.assertCanStart(room);
-    this.beginRound(room);
+    if (room.gameType === 'uno') this.beginRound(room);
+    else this.beginBottle(room);
   }
 
   nextRound(socketId: string): void {
@@ -287,6 +315,104 @@ export class RoomManager {
     room.roundNumber = 0;
     room.starterSeed = this.rng(MAX_PLAYERS);
     this.beginRound(room);
+  }
+
+  // ------------------------------------------------------------------ spin the bottle
+
+  updateBottleSettings(socketId: string, patch: Partial<BottlePartySettings>): void {
+    const { room, player } = this.requireSession(socketId);
+    this.requireHost(room, player);
+    if (room.status !== 'lobby') throw new GameError('INVALID_STATE', "Settings can't change once the game has started.");
+    room.partySettings = { ...room.partySettings, ...patch };
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  bottleSpin(socketId: string, turnId: number): void {
+    const { room, player } = this.requireSession(socketId);
+    if (room.status !== 'playing' || !room.party) throw new GameError('INVALID_STATE', 'No game is being played right now.');
+    const connected = room.players.filter((p) => p.connected).map((p) => p.id);
+    const spin = startSpin(room.party, player.id, turnId, connected, this.rng, this.now(), this.bottleSpinDurationMs);
+    this.clearBottleTurnTimer(room.code);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    this.scheduleSpinTimer(room.code, spin.id, spin.durationMs);
+  }
+
+  private beginBottle(room: Room): void {
+    const ids = room.players.map((p) => p.id);
+    room.party = createBottleState(ids, room.partySettings);
+    room.status = 'playing';
+    this.touch(room);
+    this.store.save(room);
+    logger.info('Bottle started', { room: room.code, players: ids.length });
+    this.notifier.roomUpdated(room, []);
+    this.syncBottleTurnTimer(room);
+  }
+
+  private scheduleSpinTimer(code: string, spinId: string, durationMs: number): void {
+    // A small buffer keeps the server from landing before every client has finished animating.
+    const timer = setTimeout(() => this.safely(() => this.onSpinLanded(code, spinId)), durationMs + 150);
+    timer.unref();
+    this.spinTimers.set(code, timer);
+  }
+
+  private onSpinLanded(code: string, spinId: string): void {
+    this.spinTimers.delete(code);
+    const room = this.store.get(code);
+    const party = room?.party;
+    if (!room || !party || party.spin?.id !== spinId) return;
+    landSpin(party, this.rng);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    this.syncBottleTurnTimer(room);
+  }
+
+  /** Ensures a short auto-pass timer is running whenever the current spinner is disconnected. */
+  private syncBottleTurnTimer(room: Room): void {
+    this.clearBottleTurnTimer(room.code);
+    const party = room.party;
+    if (!party || party.spin) return;
+    const spinner = room.players.find((p) => p.id === party.spinnerId);
+    if (!spinner || spinner.connected) return;
+    const code = room.code;
+    const spinnerId = party.spinnerId;
+    const turnId = party.turnId;
+    const timer = setTimeout(
+      () => this.safely(() => this.onBottleDisconnectTimeout(code, spinnerId, turnId)),
+      this.disconnectedTurnMs,
+    );
+    timer.unref();
+    this.bottleTurnTimers.set(code, timer);
+  }
+
+  private onBottleDisconnectTimeout(code: string, spinnerId: string, turnId: number): void {
+    this.bottleTurnTimers.delete(code);
+    const room = this.store.get(code);
+    const party = room?.party;
+    if (!room || !party || party.spin || party.spinnerId !== spinnerId || party.turnId !== turnId) return;
+    const spinner = room.players.find((p) => p.id === spinnerId);
+    if (spinner?.connected) return;
+    skipToNextSpinner(party);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    this.syncBottleTurnTimer(room);
+  }
+
+  private clearSpinTimer(code: string): void {
+    const timer = this.spinTimers.get(code);
+    if (timer) clearTimeout(timer);
+    this.spinTimers.delete(code);
+  }
+
+  private clearBottleTurnTimer(code: string): void {
+    const timer = this.bottleTurnTimers.get(code);
+    if (timer) clearTimeout(timer);
+    this.bottleTurnTimers.delete(code);
   }
 
   // ------------------------------------------------------------------ turns
@@ -353,12 +479,20 @@ export class RoomManager {
 
   dispose(): void {
     clearInterval(this.sweepTimer);
-    for (const timer of [...this.turnTimers.values(), ...this.graceTimers.values(), ...this.hostTimers.values()]) {
+    for (const timer of [
+      ...this.turnTimers.values(),
+      ...this.graceTimers.values(),
+      ...this.hostTimers.values(),
+      ...this.spinTimers.values(),
+      ...this.bottleTurnTimers.values(),
+    ]) {
       clearTimeout(timer);
     }
     this.turnTimers.clear();
     this.graceTimers.clear();
     this.hostTimers.clear();
+    this.spinTimers.clear();
+    this.bottleTurnTimers.clear();
   }
 
   // ------------------------------------------------------------------ internals
@@ -517,6 +651,10 @@ export class RoomManager {
       if (wasActive && game.finished) this.finishRound(room, events);
       else if (wasActive && game.turnId !== previousTurn) this.scheduleTurnTimer(room);
     }
+    if (room.party) {
+      removeBottlePlayer(room.party, playerId);
+      this.syncBottleTurnTimer(room);
+    }
 
     this.touch(room);
     this.store.save(room);
@@ -527,6 +665,8 @@ export class RoomManager {
     const room = this.store.get(code);
     this.clearTurnTimer(code);
     this.clearHostTimer(code);
+    this.clearSpinTimer(code);
+    this.clearBottleTurnTimer(code);
     for (const [key, timer] of this.graceTimers) {
       if (key.startsWith(`${code}:`)) {
         clearTimeout(timer);

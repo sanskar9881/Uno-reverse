@@ -1,13 +1,15 @@
 import { motion } from 'motion/react';
 import {
-  MAX_PLAYERS,
+  MAX_PLAYERS_BY_GAME,
   MIN_PLAYERS,
   TARGET_SCORE_OPTIONS,
   TURN_SECONDS_OPTIONS,
+  type BottlePartySettings,
+  type BottlePromptPack,
   type ClientState,
   type RoomSettings,
 } from '@shared';
-import { kickPlayer, startGame, updateSettings } from '../../game/actions';
+import { kickPlayer, startGame, updateBottleSettings, updateSettings } from '../../game/actions';
 import { useGameStore } from '../../store/gameStore';
 import { toast } from '../../store/toastStore';
 import { copyText } from '../../utils/clipboard';
@@ -66,6 +68,8 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
     }
   };
   const setSetting = (patch: Partial<RoomSettings>) => void updateSettings(patch);
+  const setBottleSetting = (patch: Partial<BottlePartySettings>) => void updateBottleSettings(patch);
+  const maxPlayers = MAX_PLAYERS_BY_GAME[room.gameType];
 
   return (
     <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 pb-8 pt-3">
@@ -102,11 +106,11 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="font-display text-xl">Players</h2>
           <span className="text-sm font-semibold text-muted tabular-nums">
-            {room.players.length} of {MAX_PLAYERS}
+            {room.players.length} of {maxPlayers}
           </span>
         </div>
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {Array.from({ length: MAX_PLAYERS }, (_, i) => {
+          {Array.from({ length: maxPlayers }, (_, i) => {
             const p = room.players[i];
             if (!p) {
               return (
@@ -159,25 +163,49 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
         </ul>
       </section>
 
-      <section className="mt-6 grid gap-4 rounded-3xl bg-night-2/70 p-5 ring-1 ring-line sm:grid-cols-2">
-        <SegmentedControl
-          label="Time per turn"
-          options={TURN_SECONDS_OPTIONS}
-          value={room.settings.turnSeconds}
-          onChange={(turnSeconds) => setSetting({ turnSeconds })}
-          format={(v) => `${v}s`}
-          disabled={!isHost || busy}
-        />
-        <SegmentedControl
-          label="Match ends at"
-          options={TARGET_SCORE_OPTIONS}
-          value={room.settings.targetScore}
-          onChange={(targetScore) => setSetting({ targetScore })}
-          format={(v) => (v === 0 ? 'Never' : `${v} pts`)}
-          disabled={!isHost || busy}
-        />
-        {!isHost && <p className="text-sm text-muted sm:col-span-2">Only the host can change these.</p>}
-      </section>
+      {room.gameType === 'uno' ? (
+        <section className="mt-6 grid gap-4 rounded-3xl bg-night-2/70 p-5 ring-1 ring-line sm:grid-cols-2">
+          <SegmentedControl
+            label="Time per turn"
+            options={TURN_SECONDS_OPTIONS}
+            value={room.settings.turnSeconds}
+            onChange={(turnSeconds) => setSetting({ turnSeconds })}
+            format={(v) => `${v}s`}
+            disabled={!isHost || busy}
+          />
+          <SegmentedControl
+            label="Match ends at"
+            options={TARGET_SCORE_OPTIONS}
+            value={room.settings.targetScore}
+            onChange={(targetScore) => setSetting({ targetScore })}
+            format={(v) => (v === 0 ? 'Never' : `${v} pts`)}
+            disabled={!isHost || busy}
+          />
+          {!isHost && <p className="text-sm text-muted sm:col-span-2">Only the host can change these.</p>}
+        </section>
+      ) : room.gameType === 'bottle' ? (
+        <section className="mt-6 flex flex-col gap-4 rounded-3xl bg-night-2/70 p-5 ring-1 ring-line">
+          <SegmentedControl
+            label="Prompt pack"
+            options={['off', 'party', 'flirty'] as const satisfies readonly BottlePromptPack[]}
+            value={room.partySettings.pack}
+            onChange={(pack) => setBottleSetting({ pack })}
+            format={(v) => (v === 'off' ? 'Off' : v === 'party' ? 'Party' : 'Flirty 18+')}
+            disabled={!isHost || busy}
+          />
+          <label className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-muted">Who spins next: whoever the bottle points to</span>
+            <input
+              type="checkbox"
+              checked={!room.partySettings.clockwiseTurns}
+              onChange={(e) => setBottleSetting({ clockwiseTurns: !e.target.checked })}
+              disabled={!isHost || busy}
+              className="h-5 w-5 accent-bottle-amber"
+            />
+          </label>
+          {!isHost && <p className="text-sm text-muted">Only the host can change these.</p>}
+        </section>
+      ) : null}
 
       <section className="mt-6 flex flex-col items-center gap-2">
         {isHost ? (
@@ -186,7 +214,11 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
               Start Game
             </Button>
             <p className="text-sm text-muted">
-              {canStart ? `Everyone gets 7 cards. ${connected} players ready.` : 'You need at least 2 players to start.'}
+              {canStart
+                ? room.gameType === 'uno'
+                  ? `Everyone gets 7 cards. ${connected} players ready.`
+                  : `${connected} players ready.`
+                : 'You need at least 2 players to start.'}
             </p>
           </>
         ) : (

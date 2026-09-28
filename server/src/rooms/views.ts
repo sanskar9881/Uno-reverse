@@ -1,5 +1,6 @@
 import type { ClientState, GameEvent, PublicPlayer, RoomView } from '@shared';
 import { buildGameView } from '../game/views';
+import { buildBottleView } from '../games/bottle/engine';
 import type { Room } from './types';
 
 export function buildRoomView(room: Room): RoomView {
@@ -15,8 +16,10 @@ export function buildRoomView(room: Room): RoomView {
   return {
     code: room.code,
     hostId: room.hostId,
+    gameType: room.gameType,
     status: room.status,
     settings: { ...room.settings },
+    partySettings: { ...room.partySettings },
     players,
     roundNumber: room.roundNumber,
     lastRound: room.lastRound,
@@ -35,5 +38,6 @@ export function buildClientState(room: Room, viewerId: string, events: GameEvent
       : null,
     hand: game?.hands[viewerId] ? game.hands[viewerId].map((c) => ({ ...c })) : [],
     events,
+    party: room.party ? buildBottleView(room.party) : null,
   };
 }

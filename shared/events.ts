@@ -1,4 +1,4 @@
-import type { CardColor, ClientState, RoomSettings } from './types';
+import type { BottlePartySettings, CardColor, ClientState, GameType, RoomSettings } from './types';
 
 export type ErrorCode =
   | 'INVALID_PAYLOAD'
@@ -46,10 +46,14 @@ export interface ProfilePayload {
   profileId?: string;
 }
 
+export interface CreateRoomPayload extends ProfilePayload {
+  gameType?: GameType;
+}
+
 export type EmptyPayload = Record<string, never>;
 
 export interface ClientToServerEvents {
-  'room:create': (payload: ProfilePayload, ack: Ack<JoinResult>) => void;
+  'room:create': (payload: CreateRoomPayload, ack: Ack<JoinResult>) => void;
   'room:join': (payload: ProfilePayload & { roomCode: string }, ack: Ack<JoinResult>) => void;
   'room:rejoin': (payload: { roomCode: string; token: string }, ack: Ack<{ roomCode: string; playerId: string }>) => void;
   'room:leave': (payload: EmptyPayload, ack: Ack) => void;
@@ -63,6 +67,8 @@ export interface ClientToServerEvents {
   'game:catch': (payload: { targetId: string }, ack: Ack) => void;
   'game:nextRound': (payload: EmptyPayload, ack: Ack) => void;
   'game:rematch': (payload: EmptyPayload, ack: Ack) => void;
+  'bottle:settings': (payload: Partial<BottlePartySettings>, ack: Ack) => void;
+  'bottle:spin': (payload: { turnId: number }, ack: Ack) => void;
 }
 
 export type SessionEndReason = 'kicked' | 'replaced' | 'roomClosed';

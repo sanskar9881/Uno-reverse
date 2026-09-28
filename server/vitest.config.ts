@@ -3,7 +3,10 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
-    alias: { '@shared': fileURLToPath(new URL('../shared/index.ts', import.meta.url)) },
+    alias: [
+      { find: /^@shared$/, replacement: fileURLToPath(new URL('../shared/index.ts', import.meta.url)) },
+      { find: /^@shared\//, replacement: `${fileURLToPath(new URL('../shared/', import.meta.url))}` },
+    ],
   },
   test: {
     include: ['tests/**/*.test.ts'],

@@ -1,4 +1,4 @@
-import type { CardColor, RoomSettings } from '@shared';
+import type { BottlePartySettings, CardColor, RoomSettings } from '@shared';
 import { request, type ClientErrorCode, type RequestResult } from '../socket/socket';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
@@ -48,6 +48,9 @@ export const catchPlayer = (targetId: string) =>
   });
 
 export const startGame = () => send(() => request('game:start', {}));
+export const updateBottleSettings = (patch: Partial<BottlePartySettings>) => send(() => request('bottle:settings', patch));
+export const spinBottle = () =>
+  send(() => request('bottle:spin', { turnId: useGameStore.getState().state?.party?.turnId ?? -1 }));
 export const nextRound = () => send(() => request('game:nextRound', {}));
 export const rematch = () => send(() => request('game:rematch', {}));
 export const updateSettings = (patch: Partial<RoomSettings>) => send(() => request('room:settings', patch));

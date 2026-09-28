@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   AVATARS,
   CARD_COLORS,
+  GAME_TYPES,
   NICKNAME_MAX_LENGTH,
   NICKNAME_MIN_LENGTH,
   NICKNAME_PATTERN,
@@ -43,7 +44,7 @@ const profileSchema = z.object({
 });
 
 export const schemas = {
-  create: profileSchema,
+  create: profileSchema.extend({ gameType: z.enum(GAME_TYPES).optional() }),
   join: profileSchema.extend({ roomCode: roomCodeSchema }),
   rejoin: z.object({ roomCode: roomCodeSchema, token: z.string().regex(/^[a-f0-9]{48}$/) }),
   empty: z.object({}),
@@ -63,4 +64,11 @@ export const schemas = {
   play: z.object({ turnId: turnIdSchema, cardId: idSchema, chosenColor: z.enum(CARD_COLORS).optional() }),
   turn: z.object({ turnId: turnIdSchema }),
   catch: z.object({ targetId: idSchema }),
+  bottleSettings: z
+    .object({
+      pack: z.enum(['off', 'party', 'flirty']).optional(),
+      canLandOnSelf: z.boolean().optional(),
+      clockwiseTurns: z.boolean().optional(),
+    })
+    .refine((s) => s.pack !== undefined || s.canLandOnSelf !== undefined || s.clockwiseTurns !== undefined),
 };

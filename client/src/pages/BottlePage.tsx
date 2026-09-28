@@ -1,5 +1,7 @@
+import { ROOM_CODE_LENGTH, ROOM_CODE_REGEX, nicknameProblem } from '@shared';
 import { promptPool, type BottlePromptPack } from '@shared/games/bottle/prompts';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { BOTTLE_MIN_PLAYERS } from '../game/bottle/logic';
 import { useBottleSpin } from '../game/bottle/useBottleSpin';
 import {
@@ -15,14 +17,102 @@ import {
 import { BottleSvg } from '../components/bottle/BottleSvg';
 import { PlayerSetup } from '../components/bottle/PlayerSetup';
 import { BottleResultSheet } from '../components/bottle/ResultSheet';
+import { ProfileFields } from '../components/lobby/ProfileFields';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { Surface } from '../components/ui/Surface';
 import { playSound } from '../game/sounds';
+import { createRoom, joinRoom } from '../socket/lifecycle';
+import { useGameStore } from '../store/gameStore';
+import { toast } from '../store/toastStore';
 
 const PACKS = ['off', 'party', 'flirty'] as const;
+
+function OnlineBottleEntry() {
+  const navigate = useNavigate();
+  const profile = useGameStore((s) => s.profile);
+  const [mode, setMode] = useState<'closed' | 'create' | 'join'>('closed');
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+
+  const profileOk = () => {
+    setShowErrors(true);
+    if (nicknameProblem(profile.nickname)) {
+      playSound('error');
+      return false;
+    }
+    return true;
+  };
+
+  const onCreate = async () => {
+    if (!profileOk() || busy) return;
+    setBusy(true);
+    const res = await createRoom(profile, 'bottle');
+    setBusy(false);
+    if (res.ok) navigate(`/room/${res.roomCode}`);
+    else toast(res.error.message, 'bad');
+  };
+
+  const onJoin = async () => {
+    if (!profileOk() || busy) return;
+    const clean = code.trim().toUpperCase();
+    if (!ROOM_CODE_REGEX.test(clean)) {
+      toast(`Room codes are ${ROOM_CODE_LENGTH} letters and numbers, like X7K92P.`, 'bad');
+      return;
+    }
+    setBusy(true);
+    const res = await joinRoom(clean, profile);
+    setBusy(false);
+    if (res.ok) navigate(`/room/${res.roomCode}`);
+    else toast(res.error.message, 'bad');
+  };
+
+  return (
+    <Surface className="p-5">
+      <h2 className="font-display text-xl">Play online instead</h2>
+      <p className="mt-1 text-sm text-muted">Everyone joins from their own phone or computer.</p>
+      {mode === 'closed' ? (
+        <div className="mt-4 flex gap-2">
+          <Button variant="secondary" onClick={() => setMode('create')}>
+            Create a room
+          </Button>
+          <Button variant="secondary" onClick={() => setMode('join')}>
+            Join with a code
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-col gap-4">
+          <ProfileFields showErrors={showErrors} onEnter={mode === 'create' ? onCreate : onJoin} />
+          {mode === 'join' && (
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ROOM_CODE_LENGTH))}
+              placeholder="X7K92P"
+              className="h-12 rounded-2xl bg-night px-4 text-center font-display text-xl tracking-[0.3em] text-ink ring-1 ring-line placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-bottle-amber"
+            />
+          )}
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setMode('closed')}>
+              Back
+            </Button>
+            {mode === 'create' ? (
+              <Button className="flex-1" loading={busy} onClick={() => void onCreate()}>
+                Create room
+              </Button>
+            ) : (
+              <Button className="flex-1" loading={busy} onClick={() => void onJoin()} disabled={code.length !== ROOM_CODE_LENGTH}>
+                Join room
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </Surface>
+  );
+}
 
 export function BottlePage() {
   const [players, setPlayers] = useState<BottlePlayer[]>([]);
@@ -93,6 +183,9 @@ export function BottlePage() {
     return (
       <main className="mx-auto flex min-h-full max-w-2xl flex-col px-4 pb-10 pt-2">
         <PageHeader title="Spin the Bottle" />
+        <div className="mb-4">
+          <OnlineBottleEntry />
+        </div>
         <PlayerSetup
           players={players}
           onChange={setPlayers}

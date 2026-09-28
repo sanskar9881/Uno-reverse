@@ -15,9 +15,40 @@ export interface Card {
 
 export type RoomStatus = 'lobby' | 'playing' | 'roundOver';
 
+export type GameType = 'uno' | 'bottle' | 'couples';
+
 export interface RoomSettings {
   turnSeconds: number;
   targetScore: number;
+}
+
+export type BottlePromptPack = 'off' | 'party' | 'flirty';
+
+export interface BottlePartySettings {
+  pack: BottlePromptPack;
+  canLandOnSelf: boolean;
+  clockwiseTurns: boolean;
+}
+
+export interface BottleSpinView {
+  id: string;
+  /** Player ids in seat order, snapshotted when the spin started. */
+  seatOrder: string[];
+  targetId: string;
+  /** Server epoch ms when the spin animation started. */
+  startedAt: number;
+  durationMs: number;
+}
+
+/** Everything a player is allowed to know about an online Spin the Bottle table. Fully public. */
+export interface BottleView {
+  turnOrder: string[];
+  spinnerId: string;
+  turnId: number;
+  spin: BottleSpinView | null;
+  /** The prompt drawn after the most recent spin landed, or null before any spin / when the pack is off. */
+  prompt: string | null;
+  settings: BottlePartySettings;
 }
 
 export interface PublicPlayer {
@@ -71,8 +102,11 @@ export interface RoundResult {
 export interface RoomView {
   code: string;
   hostId: string;
+  gameType: GameType;
   status: RoomStatus;
   settings: RoomSettings;
+  /** Lobby-editable options for a non-UNO game, e.g. the bottle's prompt pack. Unused by UNO rooms. */
+  partySettings: BottlePartySettings;
   players: PublicPlayer[];
   roundNumber: number;
   lastRound: RoundResult | null;
@@ -109,4 +143,6 @@ export interface ClientState {
   game: GameView | null;
   hand: Card[];
   events: GameEvent[];
+  /** Non-UNO game state (Spin the Bottle, Couples), or null in a UNO room. */
+  party: BottleView | null;
 }

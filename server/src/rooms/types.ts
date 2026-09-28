@@ -1,5 +1,6 @@
-import type { RoomSettings, RoomStatus, RoundResult } from '@shared';
+import type { BottlePartySettings, GameType, RoomSettings, RoomStatus, RoundResult } from '@shared';
 import type { GameState } from '../game/engine';
+import type { BottleState } from '../games/bottle/engine';
 
 /** Server-side player record. `token` and `profileId` never leave the server except to their owner. */
 export interface PlayerRecord {
@@ -22,11 +23,16 @@ export interface PlayerRecord {
 export interface Room {
   code: string;
   hostId: string;
+  gameType: GameType;
   /** Join order = seat order. */
   players: PlayerRecord[];
   settings: RoomSettings;
   status: RoomStatus;
   game: GameState | null;
+  /** Lobby-editable options for a non-UNO game, e.g. the bottle's prompt pack. Unused by UNO rooms. */
+  partySettings: BottlePartySettings;
+  /** Live state for a non-UNO game once it has started. Always null in a UNO room. */
+  party: BottleState | null;
   scores: Record<string, number>;
   roundNumber: number;
   lastRound: RoundResult | null;

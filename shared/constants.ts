@@ -6,6 +6,22 @@ export const HAND_SIZE = 7;
 export const TOTAL_CARDS = 108;
 export const UNO_PENALTY_CARDS = 2;
 
+export const GAME_TYPES = ['uno', 'bottle', 'couples'] as const;
+
+export const BOTTLE_MIN_PLAYERS = 2;
+export const BOTTLE_MAX_PLAYERS = 12;
+export const COUPLES_MAX_PLAYERS = 2;
+
+/** Max seats per room, by game. */
+export const MAX_PLAYERS_BY_GAME = {
+  uno: MAX_PLAYERS,
+  bottle: BOTTLE_MAX_PLAYERS,
+  couples: COUPLES_MAX_PLAYERS,
+} as const;
+
+/** [min, max] server-chosen spin duration in ms for the online bottle. */
+export const BOTTLE_SPIN_DURATION_MS: readonly [number, number] = [4000, 7000];
+
 export const ROOM_CODE_LENGTH = 6;
 /** Unambiguous characters only (no 0/O, 1/I) so codes are easy to read aloud. */
 export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
