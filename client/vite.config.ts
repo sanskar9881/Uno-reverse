@@ -10,6 +10,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // We register the service worker ourselves in src/pwa.ts (via the `virtual:pwa-register`
+      // module) so we can poll for updates on a long-lived tab; injecting a second registration
+      // here would race it.
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Party Night',
@@ -26,11 +30,42 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // The socket server and stats API live on a different origin/port and are never
-        // precached or intercepted; only the built app shell is, so the one-phone games
-        // (Name Wheel, one-phone Spin the Bottle, Together-mode Couples) work offline.
-        globPatterns: ['**/*.{js,css,html,woff,woff2,svg,png,ico}'],
+        // Fonts are deliberately left out of the precache (see the runtimeCaching entry below):
+        // @fontsource-variable ships every script's subset (Latin, Latin Extended, Vietnamese,
+        // Devanagari, ...) as separate woff2 files selected by unicode-range, and precaching
+        // them all would download subsets most installs never render. Only the app shell
+        // (JS/CSS/HTML/icons) is precached, which is enough for the one-phone games (Name
+        // Wheel, one-phone Spin the Bottle, Together-mode Couples) to work fully offline.
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         navigateFallback: '/index.html',
+        // Belt and suspenders: neither the API nor Socket.IO is same-origin as the client in
+        // any current deployment, so the service worker (scoped to its own origin) never sees
+        // these requests anyway. But navigateFallback matches by path, not origin, so this
+        // keeps it true even if the two are ever put behind one reverse-proxied domain.
+        navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io\//],
+        runtimeCaching: [
+          {
+            // Never cache the game server: a stale room list or a cached socket handshake
+            // response would be actively wrong, not just outdated.
+            urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith('/api/') || url.pathname.startsWith('/socket.io/'),
+            handler: 'NetworkOnly',
+          },
+          {
+            // Fonts are cached the first time they're actually used (e.g. the Devanagari
+            // subset only after a Hindi nickname renders), not precached, and then reused
+            // offline from then on. They're immutable (hashed filenames), so CacheFirst is safe.
+            urlPattern: ({ request }: { request: Request }) => request.destination === 'font',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fonts',
+              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],
