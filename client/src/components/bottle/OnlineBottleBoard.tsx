@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { spinBottle } from '../../game/actions';
 import { useOnlineBottleRotation } from '../../game/bottle/useOnlineBottleRotation';
 import type { BottlePlayer } from '../../game/bottle/storage';
+import { playSound } from '../../game/sounds';
 import { serverNow, useGameStore } from '../../store/gameStore';
 import { toast } from '../../store/toastStore';
 import { copyText } from '../../utils/clipboard';
@@ -36,6 +37,8 @@ export function OnlineBottleBoard({ state, onLeave }: { state: ClientState; onLe
     if (party.turnId !== seenTurnId.current && !party.spin) {
       seenTurnId.current = party.turnId;
       setResultOpen(true);
+      playSound('bottleLand');
+      navigator.vibrate?.(40);
     }
     seenTurnId.current = party.turnId;
   }, [party.turnId, party.spin]);

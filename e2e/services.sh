@@ -4,10 +4,13 @@
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 case "$1" in
   start)
+    # setsid (util-linux) isn't available on macOS; nohup alone is enough to survive this script exiting.
+    SETSID=""
+    command -v setsid > /dev/null 2>&1 && SETSID="setsid"
     cd "$ROOT/server" && PORT=3001 CONTROL_PORT=3099 DETERMINISTIC=1 GAME_GRACE_MS=8000 HOST_TRANSFER_MS=3000 \
       LOBBY_GRACE_MS=5000 DISCONNECTED_TURN_MS=3000 CLIENT_ORIGIN=http://localhost:4173 \
-      setsid nohup npx tsx tests/e2e/e2e-server.ts > /tmp/e2e-server.log 2>&1 < /dev/null &
-    cd "$ROOT/client" && setsid nohup npx vite preview --port 4173 --strictPort > /tmp/preview.log 2>&1 < /dev/null &
+      $SETSID nohup npx tsx tests/e2e/e2e-server.ts > /tmp/e2e-server.log 2>&1 < /dev/null &
+    cd "$ROOT/client" && $SETSID nohup npx vite preview --port 4173 --strictPort > /tmp/preview.log 2>&1 < /dev/null &
     sleep 5
     curl -sf http://localhost:3001/health > /dev/null && echo "server up" || echo "server DOWN"
     curl -sf http://localhost:4173/ > /dev/null && echo "client up" || echo "client DOWN"

@@ -15,7 +15,9 @@ export type SoundName =
   | 'error'
   | 'click'
   | 'wheelTick'
-  | 'wheelWin';
+  | 'wheelWin'
+  | 'bottleLand'
+  | 'couplesReveal';
 
 /** Map a sound to a file in /public/sounds to use it instead of the synth, e.g. play: '/sounds/play.mp3'. */
 export const SOUND_FILES: Partial<Record<SoundName, string>> = {};
@@ -124,6 +126,13 @@ const SYNTHS: Record<SoundName, (t: number) => void> = {
   wheelTick: (t) => tone(1800, t, 0.02, 'square', 0.1),
   wheelWin: (t) => {
     [660, 880, 1320].forEach((f, i) => tone(f, t + i * 0.09, 0.22, 'triangle', 0.22));
+  },
+  bottleLand: (t) => {
+    tone(440, t, 0.1, 'triangle', 0.2);
+    tone(660, t + 0.06, 0.18, 'triangle', 0.18);
+  },
+  couplesReveal: (t) => {
+    tone(494, t, 0.35, 'sine', 0.14, 740);
   },
 };
 

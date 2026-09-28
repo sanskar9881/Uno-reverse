@@ -349,6 +349,103 @@ async def lobby_and_tabs(browser: Browser):
     await neel.ctx.close()
 
 
+async def name_wheel_spin(browser: Browser):
+    """Name Wheel: add names, spin, and see a winner."""
+    p = await Player.open(browser, "Wheeler", path="/wheel")
+    await p.page.fill("#wheel-names", "Riya\nSanskar\nAmit\nZoya")
+    await p.page.wait_for_timeout(200)
+    await p.page.get_by_role("button", name="Spin", exact=True).click()
+    await p.page.wait_for_selector("text=The wheel says", timeout=15000)
+    await p.shot("16-wheel-result", settle=300)
+    await p.ctx.close()
+
+
+async def bottle_online_three_players(browser: Browser):
+    """Spin the Bottle online: three players see the same spin land on the same player."""
+    host = await Player.open(browser, "Sanskar", path="/bottle")
+    await host.page.get_by_role("button", name="Create a room").click()
+    await host.set_nickname("Sanskar")
+    await host.page.get_by_role("button", name="Create room").click()
+    await host.page.wait_for_url(re.compile(r"/room/[A-Z0-9]{6}$"))
+    code = host.page.url.rsplit("/", 1)[1]
+
+    riya = await Player.open(browser, "Riya", path=f"/room/{code}")
+    await riya.join_from_link(code)
+    amit = await Player.open(browser, "Amit", path=f"/room/{code}")
+    await amit.join_from_link(code)
+    players = (host, riya, amit)
+    for p in players:
+        await p.wait("s.room.players.length === 3")
+
+    await host.page.get_by_role("button", name="Start Game").click()
+    for p in players:
+        await p.page.wait_for_selector('svg[aria-label="Spin the bottle table"]', timeout=8000)
+    await host.shot("17-bottle-online-lobby-started", settle=300)
+
+    state = await host.state()
+    spinner_id = state["party"]["spinnerId"]
+    by_id = {await p.self_id(): p for p in players}
+    spinner = by_id[spinner_id]
+    await spinner.page.locator('svg[aria-label="Spin the bottle table"]').click()
+
+    for p in players:
+        await p.wait("s.party && s.party.spin === null && s.party.turnId === 1", timeout=8000)
+
+    targets = {(await p.state())["party"]["spinnerId"] for p in players}
+    assert len(targets) == 1, f"players disagree on who the bottle landed on: {targets}"
+    await host.shot("18-bottle-online-result", settle=300)
+    for p in players:
+        await p.ctx.close()
+
+
+async def couples_online_two_players(browser: Browser):
+    """Couples online: two partners draw the same card, and the lower-of-two consent rule holds."""
+    alex = await Player.open(browser, "Alex", path="/couples")
+    await alex.page.get_by_role("button", name="We're both 18+").click()
+    await alex.page.get_by_role("button", name="Start a room").click()
+    await alex.set_nickname("Alex")
+    await alex.page.get_by_role("button", name="Start room").click()
+    await alex.page.wait_for_url(re.compile(r"/room/[A-Z0-9]{6}$"))
+    code = alex.page.url.rsplit("/", 1)[1]
+
+    blair = await Player.open(browser, "Blair", path=f"/room/{code}")
+    await blair.join_from_link(code)
+    for p in (alex, blair):
+        await p.wait("s.room.players.length === 2")
+
+    await alex.page.get_by_role("button", name="Start Game").click()
+    # Blair is a separate browser context (a separate device), so their age gate is unconfirmed too.
+    await blair.page.wait_for_selector("text=This game is for adults.", timeout=5000)
+    await blair.page.get_by_role("button", name="We're both 18+").click()
+    for p in (alex, blair):
+        await p.wait("s.party !== null", timeout=8000)
+    await alex.shot("19-couples-online-lobby-started", settle=300)
+
+    state = await alex.state()
+    current_id = state["party"]["currentPartnerId"]
+    by_id = {await alex.self_id(): alex, await blair.self_id(): blair}
+    current, other = by_id[current_id], (blair if by_id[current_id] is alex else alex)
+
+    # Consent: the current partner sets Spicy, the other stays at the default Sweet. The
+    # card drawn must play at the lower of the two, i.e. Sweet, never Spicy.
+    await current.page.get_by_role("radio", name="Spicy").click()
+    await current.page.wait_for_timeout(200)
+    await current.page.get_by_role("button", name="Dare", exact=True).click()
+    for p in (alex, blair):
+        await p.wait("s.party && s.party.card !== null", timeout=5000)
+    a_card = (await alex.state())["party"]["card"]
+    b_card = (await blair.state())["party"]["card"]
+    assert a_card == b_card, f"partners saw different cards: {a_card} vs {b_card}"
+    assert a_card["level"] == "sweet", f"expected the lower level (sweet), got {a_card['level']}"
+    await current.shot("20-couples-online-card", settle=300)
+
+    await current.page.get_by_role("button", name="Done", exact=True).click()
+    for p in (alex, blair):
+        await p.wait("s.party && s.party.card === null && s.party.currentPartnerId !== " + json.dumps(current_id), timeout=5000)
+    for p in (alex, blair):
+        await p.ctx.close()
+
+
 async def main():
     async with async_playwright() as pw:
         browser = await pw.chromium.launch()
@@ -356,6 +453,9 @@ async def main():
         await check("4 players: create, join by link and code, every card type, reconnect, disconnect, mobile", four_player_game(browser))
         await check("2 players: UNO, catch, win, scoring, next round, forfeit, stats", two_player_rounds(browser))
         await check("lobby: tabs as players, host transfer, duplicate tab, bad codes", lobby_and_tabs(browser))
+        await check("name wheel: spin and see a result", name_wheel_spin(browser))
+        await check("spin the bottle online: three players see the same result", bottle_online_three_players(browser))
+        await check("couples online: two players draw cards, consent rule for levels holds", couples_online_two_players(browser))
         await browser.close()
 
     print()

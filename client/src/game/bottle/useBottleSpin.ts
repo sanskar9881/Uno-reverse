@@ -42,7 +42,10 @@ export function useBottleSpin() {
         frame.current = requestAnimationFrame(tick);
       } else {
         setSpinning(false);
-        if (opts.sound) playSound('wheelWin');
+        if (opts.sound) {
+          playSound('bottleLand');
+          navigator.vibrate?.(40);
+        }
         opts.onLand(target);
       }
     };

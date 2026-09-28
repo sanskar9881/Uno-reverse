@@ -1,7 +1,8 @@
 import type { CouplesCard } from '@shared';
 import { timerSecondsFor } from '@shared/games/couples/decks';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { playSound } from '../../game/sounds';
 
 const LEVEL_LABEL: Record<CouplesCard['level'], string> = { sweet: 'Sweet', flirty: 'Flirty', spicy: 'Spicy' };
 
@@ -19,9 +20,18 @@ function Countdown({ seconds }: { seconds: number }) {
   );
 }
 
-/** A tarot-styled card that flips to reveal a truth or dare. */
+/** A tarot-styled card that flips to reveal a truth or dare, with a sound, a light vibration and a gentle glow. */
 export function CardFlip({ card }: { card: CouplesCard | null }) {
   const timer = card ? timerSecondsFor(card.text) : null;
+  const lastRevealed = useRef<string | null>(null);
+  useEffect(() => {
+    if (card && card.text !== lastRevealed.current) {
+      playSound('couplesReveal');
+      navigator.vibrate?.(25);
+    }
+    lastRevealed.current = card?.text ?? null;
+  }, [card]);
+
   return (
     <div className="mx-auto w-full max-w-xs" style={{ perspective: 1200 }}>
       <AnimatePresence mode="wait" initial={false}>
@@ -37,6 +47,17 @@ export function CardFlip({ card }: { card: CouplesCard | null }) {
             border: '2px solid #f6c177',
           }}
         >
+          {card && (
+            <motion.div
+              key={`glow-${card.text}`}
+              className="pointer-events-none absolute -inset-4 rounded-[28px]"
+              initial={{ opacity: 0.9 }}
+              animate={{ opacity: 0 }}
+              transition={{ duration: 1.1, ease: 'easeOut' }}
+              style={{ boxShadow: '0 0 60px 20px rgb(246 193 119 / 0.5)' }}
+              aria-hidden
+            />
+          )}
           <div
             className="pointer-events-none absolute inset-3 rounded-[18px]"
             style={{ boxShadow: 'inset 0 0 0 1px rgb(246 193 119 / 0.5)' }}
