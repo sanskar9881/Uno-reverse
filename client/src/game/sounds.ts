@@ -13,7 +13,9 @@ export type SoundName =
   | 'victory'
   | 'catch'
   | 'error'
-  | 'click';
+  | 'click'
+  | 'wheelTick'
+  | 'wheelWin';
 
 /** Map a sound to a file in /public/sounds to use it instead of the synth, e.g. play: '/sounds/play.mp3'. */
 export const SOUND_FILES: Partial<Record<SoundName, string>> = {};
@@ -119,9 +121,14 @@ const SYNTHS: Record<SoundName, (t: number) => void> = {
   },
   error: (t) => tone(150, t, 0.14, 'square', 0.06, 120),
   click: (t) => tone(1100, t, 0.03, 'sine', 0.05),
+  wheelTick: (t) => tone(1800, t, 0.02, 'square', 0.1),
+  wheelWin: (t) => {
+    [660, 880, 1320].forEach((f, i) => tone(f, t + i * 0.09, 0.22, 'triangle', 0.22));
+  },
 };
 
-export function playSound(name: SoundName): void {
+/** `intensity` (0..1+) scales a tick's pitch and volume, e.g. faster while the wheel spins quickly. */
+export function playSound(name: SoundName, intensity = 1): void {
   if (muted || !ctx || !master || ctx.state !== 'running') return;
   const t = ctx.currentTime + 0.005;
   const buffer = buffers.get(name);
@@ -131,6 +138,10 @@ export function playSound(name: SoundName): void {
       src.buffer = buffer;
       src.connect(master);
       src.start(t);
+      return;
+    }
+    if (name === 'wheelTick') {
+      tone(1500 + 600 * intensity, t, 0.02, 'square', 0.05 + 0.08 * intensity);
       return;
     }
     SYNTHS[name](t);

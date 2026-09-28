@@ -7,7 +7,7 @@
     "install:all": "npm install && npm --prefix server install && npm --prefix client install",
     "dev": "concurrently -k -n server,client -c magenta,cyan \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
     "build": "npm --prefix server run build && npm --prefix client run build",
-    "test": "npm --prefix server test",
+    "test": "npm --prefix server test && npm --prefix client test",
     "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck",
     "e2e": "npm --prefix client run build && sh e2e/services.sh start && python3 e2e/run_e2e.py; sh e2e/services.sh stop"
   },

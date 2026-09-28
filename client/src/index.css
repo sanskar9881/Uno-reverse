@@ -59,6 +59,18 @@
     }
   }
 
+  @keyframes wheel-flick {
+    0% {
+      transform: rotate(0deg);
+    }
+    35% {
+      transform: rotate(14deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
   @keyframes drift {
     0%,
     100% {
@@ -143,6 +155,17 @@
 
   @media (prefers-reduced-motion: reduce) {
     .hub-glow {
+      animation: none;
+    }
+  }
+
+  .wheel-pointer {
+    transform-origin: 200px 30px;
+    animation: wheel-flick 0.18s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wheel-pointer {
       animation: none;
     }
   }
