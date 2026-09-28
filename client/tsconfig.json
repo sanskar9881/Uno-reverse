@@ -25,6 +25,9 @@
     "paths": {
       "@shared": [
         "../shared/index.ts"
+      ],
+      "@shared/*": [
+        "../shared/*"
       ]
     }
   },

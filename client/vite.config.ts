@@ -6,9 +6,10 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias: {
-      '@shared': fileURLToPath(new URL('../shared/index.ts', import.meta.url)),
-    },
+    alias: [
+      { find: /^@shared$/, replacement: fileURLToPath(new URL('../shared/index.ts', import.meta.url)) },
+      { find: /^@shared\//, replacement: `${fileURLToPath(new URL('../shared/', import.meta.url))}` },
+    ],
   },
   server: {
     host: true, // reachable from phones on the same Wi-Fi

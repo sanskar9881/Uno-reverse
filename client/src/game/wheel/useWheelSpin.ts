@@ -32,7 +32,9 @@ export function useWheelSpin() {
       const start = rotationRef.current;
       // A flick adds a touch more distance so a hard flick visibly spins harder.
       const extraFromFlick = initialSpeed ? Math.min(4, Math.abs(initialSpeed) / 60) : 0;
-      const end = start + targetRotation(index, segments, FULL_SPINS + extraFromFlick);
+      // targetRotation assumes the wheel starts at 0; drop `start`'s own leftover angle
+      // first so the pointer lands exactly on `index` instead of drifting after each spin.
+      const end = start - (start % 360) + targetRotation(index, segments, FULL_SPINS + extraFromFlick);
       const duration = REDUCED_MOTION() ? 400 : randomSpinDuration(opts.spinLength);
       const startTime = performance.now();
       let lastPeg = Math.floor(start / w);

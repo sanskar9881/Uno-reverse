@@ -2,6 +2,8 @@ export const WHEEL_MIN_NAMES = 2;
 export const WHEEL_MAX_NAMES = 100;
 export const WHEEL_SHARE_MAX_BYTES = 2000;
 
+import { randomIndex } from '../random';
+
 export type SpinLength = 'short' | 'normal' | 'long';
 
 /** [min, max] spin duration in ms for each length option. */
@@ -11,20 +13,7 @@ export const SPIN_DURATION_MS: Record<SpinLength, [number, number]> = {
   long: [7000, 10000],
 };
 
-/** A uniform random index in [0, n), using rejection sampling to avoid modulo bias. */
-export function randomIndex(n: number): number {
-  if (n <= 0) throw new Error('n must be positive');
-  if (n === 1) return 0;
-  const range = 0x100000000; // 2^32
-  const limit = range - (range % n);
-  const buf = new Uint32Array(1);
-  let x: number;
-  do {
-    crypto.getRandomValues(buf);
-    x = buf[0];
-  } while (x >= limit);
-  return x % n;
-}
+export { randomIndex };
 
 export function pickWinner(count: number): number {
   return randomIndex(count);
