@@ -30,11 +30,25 @@ export interface UnoServer {
   close(): Promise<void>;
 }
 
+type OriginCallback = (err: Error | null, allow?: boolean) => void;
+
+/** Allows anything in `allowed`, and warns once per rejection so a misconfigured CLIENT_ORIGIN is easy to spot. */
+export function checkOrigin(allowed: string[]): (origin: string | undefined, callback: OriginCallback) => void {
+  return (requestOrigin, callback) => {
+    if (!requestOrigin || allowed.includes(requestOrigin)) {
+      callback(null, true);
+      return;
+    }
+    logger.warn('Rejected a request from a disallowed origin', { origin: requestOrigin, allowed });
+    callback(null, false);
+  };
+}
+
 /** Builds the HTTP + Socket.IO server without listening, so tests can spin up isolated instances. */
 export function createUnoServer(options: UnoServerOptions = {}): UnoServer {
   const config: ServerConfig = { ...loadConfig(), ...options.config };
   const stats = options.stats ?? new MemoryStatsService();
-  const origin = config.clientOrigins.length > 0 ? config.clientOrigins : true;
+  const origin = config.clientOrigins.length > 0 ? checkOrigin(config.clientOrigins) : true;
 
   const app = express();
   app.disable('x-powered-by');

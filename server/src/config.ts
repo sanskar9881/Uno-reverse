@@ -7,10 +7,19 @@ export interface ServerConfig {
   isProduction: boolean;
 }
 
+/** Trims whitespace, strips wrapping quotes, and drops a trailing slash. */
+function normalizeOrigin(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^['"]+|['"]+$/g, '')
+    .trim()
+    .replace(/\/+$/, '');
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   const origins = (env.CLIENT_ORIGIN ?? '')
     .split(',')
-    .map((o) => o.trim().replace(/\/+$/, ''))
+    .map(normalizeOrigin)
     .filter(Boolean);
   const port = Number.parseInt(env.PORT ?? '', 10);
   return {
