@@ -553,13 +553,23 @@ describe('security and validation', () => {
     });
     await table.players[7].ok('room:leave');
     expect(await extra.send('room:join', { ...profile('HOST'), roomCode: table.code })).toMatchObject({
-      error: { code: 'NAME_TAKEN' },
+      error: { code: 'NAME_TAKEN', suggestion: 'HOST 2' },
     });
     expect(await extra.send('room:rejoin', { roomCode: table.code, token: 'a'.repeat(48) })).toMatchObject({
       error: { code: 'SESSION_EXPIRED' },
     });
     expect(await extra.send('game:uno')).toMatchObject({ error: { code: 'NOT_IN_ROOM' } });
     expect(await table.players[0].send('game:uno')).toMatchObject({ error: { code: 'INVALID_STATE' } });
+  });
+
+  it('suggests the next free name when the first suggestion is also taken', async () => {
+    const table = await lobby(2);
+    const second = await ts!.client();
+    await second.ok('room:join', { ...profile('Host 2'), roomCode: table.code });
+    const third = await ts!.client();
+    expect(await third.send('room:join', { ...profile('HOST'), roomCode: table.code })).toMatchObject({
+      error: { code: 'NAME_TAKEN', suggestion: 'HOST 3' },
+    });
   });
 
   it('never broadcasts tokens, and ignores extra fields that try to set scores', async () => {

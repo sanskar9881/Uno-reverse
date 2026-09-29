@@ -3,6 +3,8 @@ import { ProfileFields } from '../lobby/ProfileFields';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { Sheet } from '../ui/Sheet';
+import { SoundToggle } from '../ui/SoundToggle';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { useGameStore } from '../../store/gameStore';
 
 /** The nickname and avatar, tucked behind a small button in the hub's top bar. */
@@ -22,6 +24,16 @@ export function ProfileButton() {
       <Sheet open={open} onClose={() => setOpen(false)} label="Your profile">
         <h2 className="mb-4 font-display text-xl">Your profile</h2>
         <ProfileFields showErrors={false} />
+        <div className="mt-5 flex flex-col gap-2 border-t border-line pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-muted">Theme</span>
+            <ThemeToggle />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-muted">Sound</span>
+            <SoundToggle />
+          </div>
+        </div>
         <Button className="mt-5 w-full" onClick={() => setOpen(false)}>
           Done
         </Button>

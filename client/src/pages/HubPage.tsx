@@ -6,8 +6,6 @@ import { BottleIllustration, CouplesIllustration, UnoIllustration, WheelIllustra
 import { GameTile } from '../components/hub/GameTile';
 import { ProfileButton } from '../components/hub/ProfileButton';
 import { Button } from '../components/ui/Button';
-import { SoundToggle } from '../components/ui/SoundToggle';
-import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { playSound } from '../game/sounds';
 
 const GAMES = [
@@ -66,11 +64,7 @@ export function HubPage() {
       <div className="relative mx-auto flex min-h-full max-w-6xl flex-col px-4 pb-12 pt-4 sm:px-6">
         <header className="flex items-center justify-between">
           <span className="font-display text-2xl tracking-wide">{APP_NAME}</span>
-          <div className="flex items-center gap-1">
-            <SoundToggle />
-          <ThemeToggle />
-            <ProfileButton />
-          </div>
+          <ProfileButton />
         </header>
 
         <motion.p

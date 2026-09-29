@@ -13,6 +13,7 @@ import { createRoom, joinRoom } from '../socket/lifecycle';
 import { SERVER_URL } from '../socket/socket';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
+import type { Profile } from '../types';
 import { loadSession } from '../utils/storage';
 import { plural } from '../utils/format';
 
@@ -54,6 +55,8 @@ export function LandingPage() {
   const [busy, setBusy] = useState<'create' | 'join' | null>(null);
   const [showErrors, setShowErrors] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinSuggestion, setJoinSuggestion] = useState<string | null>(null);
+  const updateProfile = useGameStore((s) => s.updateProfile);
   const session = loadSession();
   const { mine, top } = useStats(profile.profileId, connection === 'connected');
 
@@ -75,23 +78,36 @@ export function LandingPage() {
     else toast(res.error.message, 'bad');
   };
 
-  const onJoin = async () => {
-    if (!profileOk() || busy) return;
+  const onJoin = async (overrideProfile?: Profile) => {
+    const activeProfile = overrideProfile ?? profile;
+    if (!overrideProfile) {
+      if (!profileOk() || busy) return;
+    } else if (busy) return;
     const clean = code.trim().toUpperCase();
     if (!ROOM_CODE_REGEX.test(clean)) {
       setJoinError(`Room codes are ${ROOM_CODE_LENGTH} letters and numbers, like X7K92P.`);
+      setJoinSuggestion(null);
       playSound('error');
       return;
     }
     setBusy('join');
     setJoinError(null);
-    const res = await joinRoom(clean, profile);
+    setJoinSuggestion(null);
+    const res = await joinRoom(clean, activeProfile);
     setBusy(null);
     if (res.ok) navigate(`/room/${res.roomCode}`);
     else {
       setJoinError(res.error.message);
+      setJoinSuggestion(res.error.suggestion ?? null);
       playSound('error');
     }
+  };
+
+  const useSuggestion = () => {
+    if (!joinSuggestion) return;
+    const next = { ...profile, nickname: joinSuggestion };
+    updateProfile({ nickname: joinSuggestion });
+    void onJoin(next);
   };
 
   return (
@@ -182,6 +198,15 @@ export function LandingPage() {
                 <p className={joinError ? 'text-sm text-card-red' : 'text-sm text-muted/70'} role={joinError ? 'alert' : undefined}>
                   {joinError ?? 'Ask the host for the 6-character code on their screen.'}
                 </p>
+                {joinSuggestion && (
+                  <button
+                    type="button"
+                    onClick={useSuggestion}
+                    className="self-start text-sm font-bold text-card-yellow underline hover:no-underline"
+                  >
+                    Use {joinSuggestion}
+                  </button>
+                )}
               </form>
             </motion.div>
           )}

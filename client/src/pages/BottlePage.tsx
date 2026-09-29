@@ -34,10 +34,13 @@ const PACKS = ['off', 'party', 'flirty'] as const;
 function OnlineBottleEntry() {
   const navigate = useNavigate();
   const profile = useGameStore((s) => s.profile);
+  const updateProfile = useGameStore((s) => s.updateProfile);
   const [mode, setMode] = useState<'closed' | 'create' | 'join'>('closed');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinSuggestion, setJoinSuggestion] = useState<string | null>(null);
 
   const profileOk = () => {
     setShowErrors(true);
@@ -57,18 +60,34 @@ function OnlineBottleEntry() {
     else toast(res.error.message, 'bad');
   };
 
-  const onJoin = async () => {
-    if (!profileOk() || busy) return;
+  const onJoin = async (overrideProfile?: typeof profile) => {
+    const activeProfile = overrideProfile ?? profile;
+    if (!overrideProfile) {
+      if (!profileOk() || busy) return;
+    } else if (busy) return;
     const clean = code.trim().toUpperCase();
     if (!ROOM_CODE_REGEX.test(clean)) {
       toast(`Room codes are ${ROOM_CODE_LENGTH} letters and numbers, like X7K92P.`, 'bad');
       return;
     }
     setBusy(true);
-    const res = await joinRoom(clean, profile);
+    setJoinError(null);
+    setJoinSuggestion(null);
+    const res = await joinRoom(clean, activeProfile);
     setBusy(false);
     if (res.ok) navigate(`/room/${res.roomCode}`);
-    else toast(res.error.message, 'bad');
+    else {
+      toast(res.error.message, 'bad');
+      setJoinError(res.error.message);
+      setJoinSuggestion(res.error.suggestion ?? null);
+    }
+  };
+
+  const useSuggestion = () => {
+    if (!joinSuggestion) return;
+    const next = { ...profile, nickname: joinSuggestion };
+    updateProfile({ nickname: joinSuggestion });
+    void onJoin(next);
   };
 
   return (
@@ -88,12 +107,28 @@ function OnlineBottleEntry() {
         <div className="mt-4 flex flex-col gap-4">
           <ProfileFields showErrors={showErrors} onEnter={mode === 'create' ? onCreate : onJoin} />
           {mode === 'join' && (
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ROOM_CODE_LENGTH))}
-              placeholder="X7K92P"
-              className="h-12 rounded-2xl bg-night px-4 text-center font-display text-xl tracking-[0.3em] text-ink ring-1 ring-line placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-bottle-amber"
-            />
+            <div>
+              <input
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ROOM_CODE_LENGTH))}
+                placeholder="X7K92P"
+                className="w-full h-12 rounded-2xl bg-night px-4 text-center font-display text-xl tracking-[0.3em] text-ink ring-1 ring-line placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-bottle-amber"
+              />
+              {joinError && (
+                <p className="mt-1.5 text-sm text-card-red" role="alert">
+                  {joinError}
+                </p>
+              )}
+              {joinSuggestion && (
+                <button
+                  type="button"
+                  onClick={useSuggestion}
+                  className="mt-1 text-sm font-bold text-bottle-amber underline hover:no-underline"
+                >
+                  Use {joinSuggestion}
+                </button>
+              )}
+            </div>
           )}
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => setMode('closed')}>

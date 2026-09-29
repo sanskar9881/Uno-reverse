@@ -28,7 +28,7 @@ type ResultOf<E extends EventName> =
 
 export type RequestResult<T extends object = object> =
   | ({ ok: true } & T)
-  | { ok: false; error: { code: ClientErrorCode; message: string } };
+  | { ok: false; error: { code: ClientErrorCode; message: string; suggestion?: string } };
 
 /** Emits an event and resolves with the server's acknowledgement (or a NETWORK error on timeout). */
 export function request<E extends EventName>(

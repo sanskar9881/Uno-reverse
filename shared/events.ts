@@ -29,6 +29,8 @@ export type ErrorCode =
 export interface ErrorPayload {
   code: ErrorCode;
   message: string;
+  /** A free name the client can offer with a one-tap retry, set only for NAME_TAKEN. */
+  suggestion?: string;
 }
 
 export type AckResponse<T extends object = object> = ({ ok: true } & T) | { ok: false; error: ErrorPayload };

@@ -54,3 +54,18 @@ export function nicknameProblem(raw: string): string | null {
   if (!NICKNAME_PATTERN.test(name)) return "Use letters, numbers, spaces and . _ - ' ! ? only.";
   return null;
 }
+
+/** True when two nicknames are the same once normalized and compared without regard to case. */
+export const sameNickname = (a: string, b: string): boolean =>
+  normalizeNickname(a).toLocaleLowerCase() === normalizeNickname(b).toLocaleLowerCase();
+
+/** The first "name 2", "name 3", ... (up to the nickname length limit) that `isTaken` reports as free. */
+export function suggestFreeName(base: string, isTaken: (name: string) => boolean): string {
+  const clean = normalizeNickname(base);
+  for (let n = 2; n < 1000; n++) {
+    const suffix = ` ${n}`;
+    const candidate = `${clean.slice(0, Math.max(1, NICKNAME_MAX_LENGTH - suffix.length))}${suffix}`;
+    if (!isTaken(candidate)) return candidate;
+  }
+  return clean;
+}

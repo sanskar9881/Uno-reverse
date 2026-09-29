@@ -16,6 +16,8 @@ import {
   type ProfilePayload,
   type RoomSettings,
   type SessionEndReason,
+  sameNickname,
+  suggestFreeName,
 } from '@shared';
 import { secureRng, type Rng } from '../game/deck';
 import { GameEngine, type GameState } from '../game/engine';
@@ -198,7 +200,12 @@ export class RoomManager {
     if (room.players.length >= maxPlayers) throw new GameError('ROOM_FULL', `That room is full (${maxPlayers} players max).`);
     const wanted = profile.nickname.toLocaleLowerCase();
     if (room.players.some((p) => p.nickname.toLocaleLowerCase() === wanted)) {
-      throw new GameError('NAME_TAKEN', `Someone in that room is already called ${profile.nickname}. Pick another nickname.`);
+      const suggestion = suggestFreeName(profile.nickname, (name) => room.players.some((p) => sameNickname(p.nickname, name)));
+      throw new GameError(
+        'NAME_TAKEN',
+        `Someone in that room is already called ${profile.nickname}. Pick another nickname.`,
+        suggestion,
+      );
     }
 
     this.detach(socketId);

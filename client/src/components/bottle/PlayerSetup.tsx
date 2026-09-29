@@ -5,6 +5,7 @@ import type { BottlePlayer, SavedGroup } from '../../game/bottle/storage';
 import { Button } from '../ui/Button';
 import { Surface } from '../ui/Surface';
 import { toast } from '../../store/toastStore';
+import { isDuplicateName } from '../../utils/names';
 
 interface PlayerSetupProps {
   players: BottlePlayer[];
@@ -19,13 +20,19 @@ interface PlayerSetupProps {
 export function PlayerSetup({ players, onChange, savedGroups, onSaveGroup, onLoadGroup, onDeleteGroup, onStart }: PlayerSetupProps) {
   const [name, setName] = useState('');
   const [groupName, setGroupName] = useState('');
+  const [duplicateError, setDuplicateError] = useState(false);
 
   const addPlayer = () => {
     const trimmed = name.trim();
     if (!trimmed || players.length >= BOTTLE_MAX_PLAYERS) return;
+    if (isDuplicateName(players.map((p) => p.name), trimmed)) {
+      setDuplicateError(true);
+      return;
+    }
     const emoji = AVATARS[players.length % AVATARS.length];
     onChange([...players, { name: trimmed, emoji }]);
     setName('');
+    setDuplicateError(false);
   };
 
   const cycleEmoji = (index: number) => {
@@ -67,15 +74,24 @@ export function PlayerSetup({ players, onChange, savedGroups, onSaveGroup, onLoa
         <div className="mt-3 flex gap-2">
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              setDuplicateError(false);
+            }}
             onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
             placeholder="Player name"
+            aria-invalid={duplicateError || undefined}
             className="h-11 min-w-0 flex-1 rounded-xl bg-night px-3.5 text-ink ring-1 ring-line placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-bottle-amber"
           />
           <Button variant="secondary" onClick={addPlayer} disabled={!name.trim() || players.length >= BOTTLE_MAX_PLAYERS}>
             Add
           </Button>
         </div>
+        {duplicateError && (
+          <p className="mt-1.5 text-sm text-card-red" role="alert">
+            Someone's already called {name.trim()}. Try another name.
+          </p>
+        )}
 
         <div className="mt-4 flex gap-2">
           <input

@@ -69,7 +69,7 @@ export function registerSocketHandlers(io: TypedServer, manager: RoomManager, op
             reply({ ok: true, ...(result ?? {}) });
           } catch (error) {
             if (error instanceof GameError) {
-              reply({ ok: false, error: { code: error.code, message: error.message } });
+              reply({ ok: false, error: { code: error.code, message: error.message, ...(error.suggestion ? { suggestion: error.suggestion } : {}) } });
             } else {
               logger.error(`Handler ${event} failed`, {
                 error: error instanceof Error ? (error.stack ?? error.message) : String(error),

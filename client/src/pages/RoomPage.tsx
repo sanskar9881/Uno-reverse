@@ -41,10 +41,12 @@ export function RoomPage() {
   const hasSession = loadSession()?.roomCode === code;
   const [missing, setMissing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const [joining, setJoining] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const updateProfile = useGameStore((s) => s.updateProfile);
 
   const inRoom = validCode && !ended && state?.room.code === code && (bound || hasSession);
 
@@ -83,21 +85,35 @@ export function RoomPage() {
   };
   const onLeave = () => (state?.room.status === 'playing' ? setConfirmLeave(true) : void doLeave());
 
-  const onJoin = async () => {
-    setShowErrors(true);
-    if (nicknameProblem(profile.nickname) || joining) {
-      playSound('error');
-      return;
-    }
+  const onJoin = async (overrideProfile?: typeof profile) => {
+    const activeProfile = overrideProfile ?? profile;
+    if (!overrideProfile) {
+      setShowErrors(true);
+      if (nicknameProblem(activeProfile.nickname) || joining) {
+        playSound('error');
+        return;
+      }
+    } else if (joining) return;
     setJoining(true);
     setNotice(null);
-    const res = await joinRoom(code, profile);
+    setSuggestion(null);
+    const res = await joinRoom(code, activeProfile);
     setJoining(false);
     if (!res.ok) {
       playSound('error');
       if (res.error.code === 'ROOM_NOT_FOUND') setMissing(true);
-      else setNotice(res.error.message);
+      else {
+        setNotice(res.error.message);
+        setSuggestion(res.error.suggestion ?? null);
+      }
     }
+  };
+
+  const useSuggestion = () => {
+    if (!suggestion) return;
+    const next = { ...profile, nickname: suggestion };
+    updateProfile({ nickname: suggestion });
+    void onJoin(next);
   };
 
   const goHome = () => {
@@ -219,6 +235,11 @@ export function RoomPage() {
         <p className="text-sm text-card-red" role="alert">
           {notice}
         </p>
+      )}
+      {suggestion && (
+        <button type="button" onClick={useSuggestion} className="text-sm font-bold text-card-yellow underline hover:no-underline">
+          Use {suggestion}
+        </button>
       )}
       <ConnectionBadge />
       <Link to="/uno" className="text-sm font-semibold text-muted hover:text-ink">

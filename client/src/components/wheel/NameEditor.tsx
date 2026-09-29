@@ -1,7 +1,19 @@
-import { useState } from 'react';
+import { sameNickname } from '@shared';
+import { useMemo, useState } from 'react';
 import { WHEEL_MAX_NAMES } from '../../game/wheel/logic';
 import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
+
+/** How many entries in `names` are repeats of an earlier one (by normalized, case-insensitive text). */
+function countDuplicates(names: string[]): number {
+  const seen: string[] = [];
+  let duplicates = 0;
+  for (const name of names) {
+    if (seen.some((s) => sameNickname(s, name))) duplicates++;
+    else seen.push(name);
+  }
+  return duplicates;
+}
 
 interface NameEditorProps {
   names: string[];
@@ -13,6 +25,7 @@ interface NameEditorProps {
 export function NameEditor({ names, onChange, title, onTitleChange }: NameEditorProps) {
   const [text, setText] = useState(names.join('\n'));
   const [addOne, setAddOne] = useState('');
+  const duplicateCount = useMemo(() => countDuplicates(names), [names]);
 
   const commit = (raw: string) => {
     const parsed = raw
@@ -61,6 +74,12 @@ export function NameEditor({ names, onChange, title, onTitleChange }: NameEditor
             {names.length}/{WHEEL_MAX_NAMES}
           </span>
         </div>
+        {duplicateCount > 0 && (
+          <p className="mb-1.5 text-sm text-muted/70">
+            {duplicateCount === 1 ? '1 name is repeated' : `${duplicateCount} names are repeated`} — that's fine, repeats just mean
+            extra chances.
+          </p>
+        )}
         <textarea
           id="wheel-names"
           value={text}
