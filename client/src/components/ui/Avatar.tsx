@@ -1,7 +1,7 @@
 import { AVATARS } from '@shared';
 import { cn } from '../../utils/cn';
 
-const RINGS = ['#F2474D', '#FFC53D', '#22C58B', '#3D8BFF'];
+const RINGS = ['var(--color-card-red)', 'var(--color-card-yellow)', 'var(--color-card-green)', 'var(--color-card-blue)'];
 
 export function Avatar({ index, size = 44, className, dim }: { index: number; size?: number; className?: string; dim?: boolean }) {
   const ring = RINGS[index % RINGS.length];

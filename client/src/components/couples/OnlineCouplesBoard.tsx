@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Sheet } from '../ui/Sheet';
 import { SoundToggle } from '../ui/SoundToggle';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { Surface } from '../ui/Surface';
 import { CardFlip } from './CardFlip';
 import { LevelPicker } from './LevelPicker';
@@ -60,12 +61,13 @@ export function OnlineCouplesBoard({ state, onLeave }: { state: ClientState; onL
         <button
           type="button"
           onClick={async () => toast((await copyText(state.room.code)) ? 'Room code copied' : `Room code: ${state.room.code}`, 'good', '📋')}
-          className="rounded-xl bg-white/5 px-3 py-1.5 font-display text-sm tracking-[0.2em] ring-1 ring-line hover:bg-white/10"
+          className="rounded-xl bg-veil/5 px-3 py-1.5 font-display text-sm tracking-[0.2em] ring-1 ring-line hover:bg-veil/10"
         >
           {state.room.code}
         </button>
         <div className="flex items-center gap-1">
           <SoundToggle />
+          <ThemeToggle />
           <button type="button" onClick={onLeave} className="h-10 rounded-xl px-3 text-sm font-bold text-muted hover:bg-card-red/15 hover:text-card-red">
             Leave
           </button>
@@ -73,7 +75,7 @@ export function OnlineCouplesBoard({ state, onLeave }: { state: ClientState; onL
       </header>
 
       <Surface className="mt-4 p-5">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <LevelPicker label="Your comfort level" value={myLevel} onChange={(level) => void couplesSetLevel(level)} />
           <div>
             <span className="mb-1.5 block text-sm font-semibold text-muted">{partner?.nickname ?? 'Partner'}'s level</span>
@@ -103,20 +105,21 @@ export function OnlineCouplesBoard({ state, onLeave }: { state: ClientState; onL
             </div>
           ) : (
             <div className="mt-3 grid grid-cols-3 gap-2">
-              <Button variant="secondary" onClick={() => void couplesPass()} disabled={busy}>
+              <Button className="min-w-0" variant="secondary" onClick={() => void couplesPass()} disabled={busy}>
                 Pass
               </Button>
-              <Button onClick={() => void couplesDone()} disabled={busy}>
+              <Button className="min-w-0" onClick={() => void couplesDone()} disabled={busy}>
                 Done
               </Button>
               <Button
+                className="min-w-0 px-2"
                 variant="ghost"
                 onClick={() => {
                   setFavorites(addFavorite(party.card!));
                   toast('Saved to favourites', 'good', '❤️');
                 }}
               >
-                ❤️ Heart
+                <span className="truncate">❤️ Heart</span>
               </Button>
             </div>
           )}

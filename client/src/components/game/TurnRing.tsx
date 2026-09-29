@@ -7,7 +7,7 @@ export function TurnRing({ endsAt, durationMs, size }: { endsAt: number; duratio
   const r = size / 2 - stroke / 2;
   const circumference = 2 * Math.PI * r;
   const fraction = durationMs > 0 ? Math.min(1, left / durationMs) : 0;
-  const color = fraction > 0.5 ? '#22C58B' : fraction > 0.2 ? '#FFC53D' : '#F2474D';
+  const color = fraction > 0.5 ? 'var(--color-card-green)' : fraction > 0.2 ? 'var(--color-card-yellow)' : 'var(--color-card-red)';
   return (
     <svg width={size} height={size} className="pointer-events-none absolute inset-0 -rotate-90" aria-hidden>
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgb(255 255 255 / 0.12)" strokeWidth={stroke} />

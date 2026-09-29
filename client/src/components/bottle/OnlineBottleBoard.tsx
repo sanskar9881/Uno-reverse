@@ -8,6 +8,7 @@ import { serverNow, useGameStore } from '../../store/gameStore';
 import { toast } from '../../store/toastStore';
 import { copyText } from '../../utils/clipboard';
 import { SoundToggle } from '../ui/SoundToggle';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { BottleSvg } from './BottleSvg';
 import { BottleResultSheet } from './ResultSheet';
 
@@ -59,12 +60,13 @@ export function OnlineBottleBoard({ state, onLeave }: { state: ClientState; onLe
         <button
           type="button"
           onClick={async () => toast((await copyText(state.room.code)) ? 'Room code copied' : `Room code: ${state.room.code}`, 'good', '📋')}
-          className="rounded-xl bg-white/5 px-3 py-1.5 font-display text-sm tracking-[0.2em] ring-1 ring-line hover:bg-white/10"
+          className="rounded-xl bg-veil/5 px-3 py-1.5 font-display text-sm tracking-[0.2em] ring-1 ring-line hover:bg-veil/10"
         >
           {state.room.code}
         </button>
         <div className="flex items-center gap-1">
           <SoundToggle />
+          <ThemeToggle />
           <button type="button" onClick={onLeave} className="h-10 rounded-xl px-3 text-sm font-bold text-muted hover:bg-card-red/15 hover:text-card-red">
             Leave
           </button>

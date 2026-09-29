@@ -26,7 +26,7 @@ export function Sheet({ open, onClose, children, label, className }: SheetProps)
     <AnimatePresence>
       {open && (
         <motion.div
-          className={cn('fixed inset-0 z-40 bg-[#0c0818]/70 backdrop-blur-sm', compact ? 'flex items-end' : 'grid place-items-center p-4')}
+          className={cn('fixed inset-0 z-overlay bg-scrim backdrop-blur-sm', compact ? 'flex items-end' : 'grid place-items-center p-4')}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -47,7 +47,7 @@ export function Sheet({ open, onClose, children, label, className }: SheetProps)
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {compact && <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-white/15" aria-hidden />}
+            {compact && <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-veil/15" aria-hidden />}
             {children}
           </motion.div>
         </motion.div>

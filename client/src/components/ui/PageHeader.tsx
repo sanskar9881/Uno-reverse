@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { cn } from '../../utils/cn';
 import { SoundToggle } from './SoundToggle';
+import { ThemeToggle } from './ThemeToggle';
 
 interface PageHeaderProps {
   title: string;
@@ -17,14 +18,17 @@ export function PageHeader({ title, backTo = '/', className }: PageHeaderProps) 
         type="button"
         onClick={() => navigate(backTo)}
         aria-label="Back"
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-ink hover:bg-white/10"
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-ink hover:bg-veil/10"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M15 5l-7 7 7 7" />
         </svg>
       </button>
-      <h1 className="truncate font-display text-xl">{title}</h1>
-      <SoundToggle className="shrink-0" />
+      <h1 className="min-w-0 flex-1 truncate text-center font-display text-xl">{title}</h1>
+      <div className="flex shrink-0 items-center gap-1">
+        <SoundToggle />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

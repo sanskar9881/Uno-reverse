@@ -6,7 +6,7 @@ export function Chip({ className, ...rest }: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-ink ring-1 ring-white/15',
+        'inline-flex items-center gap-1 rounded-full bg-veil/10 px-2.5 py-1 text-xs font-bold text-ink ring-1 ring-veil/15',
         className,
       )}
       {...rest}

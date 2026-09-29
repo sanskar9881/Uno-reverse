@@ -30,14 +30,20 @@ export function GameTile({ to, title, description, badge, accent, illustration, 
       >
         <div
           className="grid aspect-square place-items-center overflow-hidden rounded-3xl p-4"
-          style={{ background: `radial-gradient(circle at 50% 30%, ${accent}33, transparent 70%)` }}
+          style={{ background: `radial-gradient(circle at 50% 30%, color-mix(in oklab, ${accent} 20%, transparent), transparent 70%)` }}
         >
           {illustration}
         </div>
         <div className="mt-3 flex flex-col gap-1.5">
           <h2 className="font-display text-xl">{title}</h2>
           <p className="text-sm text-muted">{description}</p>
-          <Chip className="mt-1 w-fit" style={{ background: `${accent}26`, boxShadow: `inset 0 0 0 1px ${accent}55` }}>
+          <Chip
+            className="mt-1 w-fit"
+            style={{
+              background: `color-mix(in oklab, ${accent} 15%, transparent)`,
+              boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${accent} 33%, transparent)`,
+            }}
+          >
             {badge}
           </Chip>
         </div>

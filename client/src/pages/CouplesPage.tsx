@@ -170,7 +170,7 @@ function TogetherMode() {
   return (
     <div className="flex flex-col gap-4">
       <Surface className="p-5">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <LevelPicker label="Partner A's comfort level" value={state.levelA} onChange={(levelA) => persist({ ...state, levelA })} />
           <LevelPicker label="Partner B's comfort level" value={state.levelB} onChange={(levelB) => persist({ ...state, levelB })} />
         </div>
@@ -192,12 +192,14 @@ function TogetherMode() {
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-2">
-          <Button variant="secondary" onClick={pass}>
+          <Button className="min-w-0" variant="secondary" onClick={pass}>
             Pass
           </Button>
-          <Button onClick={done}>Done</Button>
-          <Button variant="ghost" onClick={heart}>
-            ❤️ Heart
+          <Button className="min-w-0" onClick={done}>
+            Done
+          </Button>
+          <Button className="min-w-0 px-2" variant="ghost" onClick={heart}>
+            <span className="truncate">❤️ Heart</span>
           </Button>
         </div>
       )}
@@ -273,7 +275,7 @@ function TogetherMode() {
         ) : (
           <ul className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
             {favorites.map((f) => (
-              <li key={f.text} className="flex items-start justify-between gap-2 rounded-xl bg-white/5 p-3">
+              <li key={f.text} className="flex items-start justify-between gap-2 rounded-xl bg-veil/5 p-3">
                 <span className="text-sm text-ink">{f.text}</span>
                 <button
                   type="button"

@@ -8,6 +8,24 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>Party Night</title>
+    <script>
+      // Resolve the theme before the first paint, so an installed app never flashes the
+      // wrong one. Keep the colors in sync with --color-night in src/index.css.
+      (function () {
+        try {
+          var saved = localStorage.getItem('uno-party:theme');
+          var choice = saved === 'light' || saved === 'dark' ? saved : 'system';
+          var dark = choice === 'dark' || (choice === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var resolved = dark ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', resolved);
+          document.documentElement.style.colorScheme = resolved;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', dark ? '#151028' : '#faf6ef');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

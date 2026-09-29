@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { segmentAngle } from '../../game/wheel/logic';
 
-const COLORS = ['#e6394a', '#f7c948'];
+const COLORS = ['var(--color-wheel-red)', 'var(--color-wheel-gold)'];
 const CENTER = 200;
 const RADIUS = 180;
 const LABEL_RADIUS = 118;
@@ -37,6 +37,8 @@ export function WheelSvg({ names, title, rotation, spinning, className }: WheelS
   const w = segmentAngle(segments);
   const fontSize = Math.max(7, Math.min(15, 190 / segments));
   const maxChars = Math.max(3, Math.round((w * 1.5) / (fontSize * 0.62)));
+  const labelArcWidth = ((w * Math.PI) / 180) * LABEL_RADIUS;
+  const showLabels = labelArcWidth > fontSize * 1.1;
   const bulbCount = Math.max(12, Math.min(48, segments * 2));
 
   const [activeBulb, setActiveBulb] = useState(0);
@@ -64,7 +66,7 @@ export function WheelSvg({ names, title, rotation, spinning, className }: WheelS
       {Array.from({ length: bulbCount }, (_, i) => {
         const p = point((360 / bulbCount) * i, PEG_RADIUS + 12);
         const lit = spinning && (i === activeBulb || i === (activeBulb + bulbCount - 1) % bulbCount);
-        return <circle key={i} cx={p.x} cy={p.y} r={3.4} fill={lit ? '#fff9e6' : '#4a3f6b'} opacity={lit ? 1 : 0.6} />;
+        return <circle key={i} cx={p.x} cy={p.y} r={3.4} fill={lit ? 'var(--color-bulb-on)' : 'var(--color-bulb-off)'} opacity={lit ? 1 : 0.6} />;
       })}
 
       <g style={{ transform: `rotate(${rotation}deg)`, transformOrigin: '200px 200px' }}>
@@ -76,42 +78,44 @@ export function WheelSvg({ names, title, rotation, spinning, className }: WheelS
           const flip = mid > 90 && mid < 270;
           return (
             <g key={i}>
-              <path d={wedgePath(startDeg, endDeg)} fill={COLORS[i % COLORS.length]} stroke="#1c1537" strokeWidth={1.5} />
-              <text
-                x={labelPoint.x}
-                y={labelPoint.y}
-                fill="#1c1537"
-                fontSize={fontSize}
-                fontFamily="var(--font-sans)"
-                fontWeight={700}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                transform={`rotate(${mid + (flip ? 180 : 0)}, ${labelPoint.x}, ${labelPoint.y})`}
-              >
-                {fitLabel(name, maxChars)}
-              </text>
+              <path d={wedgePath(startDeg, endDeg)} fill={COLORS[i % COLORS.length]} stroke="var(--color-night-2)" strokeWidth={1.5} />
+              {showLabels && (
+                <text
+                  x={labelPoint.x}
+                  y={labelPoint.y}
+                  fill="var(--color-night-2)"
+                  fontSize={fontSize}
+                  fontFamily="var(--font-sans)"
+                  fontWeight={700}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  transform={`rotate(${mid + (flip ? 180 : 0)}, ${labelPoint.x}, ${labelPoint.y})`}
+                >
+                  {fitLabel(name, maxChars)}
+                </text>
+              )}
             </g>
           );
         })}
         {/* Pegs at each segment boundary */}
         {Array.from({ length: segments }, (_, i) => {
           const p = point(i * w, PEG_RADIUS);
-          return <circle key={i} cx={p.x} cy={p.y} r={3.5} fill="#fffaf2" stroke="#1c1537" strokeWidth={1} />;
+          return <circle key={i} cx={p.x} cy={p.y} r={3.5} fill="var(--color-card-face)" stroke="var(--color-night-2)" strokeWidth={1} />;
         })}
-        <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="#f7c948" strokeWidth={5} />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="var(--color-wheel-gold)" strokeWidth={5} />
       </g>
 
       {/* Pointer, fixed at the top, flicks each time it passes a peg */}
       <g key={flick} className="wheel-pointer">
-        <path d="M200 28 L214 54 L186 54 Z" fill="#f7c948" stroke="#1c1537" strokeWidth={2} />
+        <path d="M200 28 L214 54 L186 54 Z" fill="var(--color-wheel-gold)" stroke="var(--color-night-2)" strokeWidth={2} />
       </g>
 
       {/* Center hub cap */}
-      <circle cx={CENTER} cy={CENTER} r={40} fill="#1c1537" stroke="#f7c948" strokeWidth={4} />
+      <circle cx={CENTER} cy={CENTER} r={40} fill="var(--color-night-2)" stroke="var(--color-wheel-gold)" strokeWidth={4} />
       <text
         x={CENTER}
         y={CENTER}
-        fill="#fffaf2"
+        fill="var(--color-card-face)"
         fontSize={11}
         fontFamily="var(--font-display)"
         textAnchor="middle"

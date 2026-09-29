@@ -9,7 +9,9 @@ import { registerPwa } from './pwa';
 import { startSocket } from './socket/lifecycle';
 import { socket } from './socket/socket';
 import { useGameStore } from './store/gameStore';
+import { startThemeSync } from './store/themeStore';
 
+startThemeSync();
 startSocket();
 registerPwa();
 

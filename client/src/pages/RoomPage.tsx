@@ -168,7 +168,7 @@ export function RoomPage() {
           <GameBoard state={state} onLeave={onLeave} />
         )}
         {!bound && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-night/60 backdrop-blur-[2px]">
+          <div className="fixed inset-0 z-modal grid place-items-center bg-night/60 backdrop-blur-[2px]">
             <ConnectionBadge />
             {connection === 'connected' && (
               <p className="rounded-full bg-night-2 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-line">

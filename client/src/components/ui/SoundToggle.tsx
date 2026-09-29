@@ -16,7 +16,7 @@ export function SoundToggle({ className }: { className?: string }) {
       aria-pressed={muted}
       aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}
       title={muted ? 'Unmute sounds' : 'Mute sounds'}
-      className={cn('grid h-10 w-10 place-items-center rounded-xl text-muted hover:bg-white/10 hover:text-ink', className)}
+      className={cn('grid h-10 w-10 place-items-center rounded-xl text-muted hover:bg-veil/10 hover:text-ink', className)}
     >
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" stroke="none" />

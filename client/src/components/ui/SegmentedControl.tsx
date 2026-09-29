@@ -32,7 +32,7 @@ export function SegmentedControl<T extends string | number>({
             onClick={() => value !== option && onChange(option)}
             className={cn(
               'h-9 rounded-xl px-2 text-sm font-bold transition-colors',
-              value === option ? 'bg-card-yellow text-night' : 'text-muted enabled:hover:bg-white/10 enabled:hover:text-ink',
+              value === option ? 'bg-card-yellow text-night' : 'text-muted enabled:hover:bg-veil/10 enabled:hover:text-ink',
               disabled && value !== option && 'opacity-50',
             )}
           >

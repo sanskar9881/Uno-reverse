@@ -17,9 +17,12 @@ import { WheelSvg } from '../components/wheel/WheelSvg';
 import { Button } from '../components/ui/Button';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { Sheet } from '../components/ui/Sheet';
 import { Surface } from '../components/ui/Surface';
+import { useIsCompact } from '../hooks/useMediaQuery';
 import { copyText } from '../utils/clipboard';
 import { toast } from '../store/toastStore';
+import { cn } from '../utils/cn';
 
 const SPIN_LENGTHS = ['short', 'normal', 'long'] as const;
 
@@ -37,6 +40,8 @@ export function WheelPage() {
   const [resultOpen, setResultOpen] = useState(false);
   const flickSpeed = useRef(0);
   const { rotation, spinning, spin } = useWheelSpin();
+  const compact = useIsCompact();
+  const [namesSheetOpen, setNamesSheetOpen] = useState(false);
 
   // Opening a shared link recreates the wheel from the URL hash.
   useEffect(() => {
@@ -92,35 +97,9 @@ export function WheelPage() {
     toast((await copyText(url)) ? 'Share link copied' : url, 'good', '🔗');
   };
 
-  return (
-    <main className="mx-auto flex min-h-full max-w-3xl flex-col px-4 pb-12 pt-2">
-      <PageHeader title="Name Wheel" />
-
-      <div className="mt-2 flex flex-col items-center gap-4">
-        <div
-          className="w-full max-w-sm cursor-pointer touch-none select-none"
-          onClick={() => canSpin && doSpin()}
-          onPointerDown={(e) => {
-            const startY = e.clientY;
-            const startT = performance.now();
-            const onUp = (ev: PointerEvent) => {
-              const dt = Math.max(1, performance.now() - startT);
-              const dy = startY - ev.clientY;
-              window.removeEventListener('pointerup', onUp);
-              if (Math.abs(dy) > 30) onFlick((dy / dt) * 100);
-            };
-            window.addEventListener('pointerup', onUp);
-          }}
-        >
-          <WheelSvg names={names.length ? names : ['Add names below']} title={title} rotation={rotation} spinning={spinning} />
-        </div>
-        <Button size="lg" onClick={() => doSpin()} disabled={!canSpin} loading={spinning}>
-          {spinning ? 'Spinning…' : 'Spin'}
-        </Button>
-        {names.length < WHEEL_MIN_NAMES && <p className="text-sm text-muted">Add at least {WHEEL_MIN_NAMES} names to spin.</p>}
-      </div>
-
-      <Surface className="mt-6 p-5">
+  const panel = (
+    <>
+      <Surface className="p-5">
         <NameEditor key={namesRevision} names={names} onChange={setNames} title={title} onTitleChange={setTitle} />
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -148,7 +127,7 @@ export function WheelPage() {
             <h3 className="mb-2 text-sm font-semibold text-muted">Saved wheels</h3>
             <ul className="flex flex-col gap-1.5">
               {saved.map((w) => (
-                <li key={w.title} className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3 py-2">
+                <li key={w.title} className="flex items-center justify-between gap-2 rounded-xl bg-veil/5 px-3 py-2">
                   <button
                     type="button"
                     className="min-w-0 flex-1 truncate text-left font-semibold text-ink hover:text-wheel-gold"
@@ -202,6 +181,51 @@ export function WheelPage() {
           />
         </label>
       </Surface>
+    </>
+  );
+
+  return (
+    <main className="mx-auto flex min-h-full max-w-6xl flex-col px-4 pb-12 pt-2">
+      <PageHeader title="Name Wheel" />
+
+      <div className={cn('mt-2', !compact && 'grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]')}>
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-full max-w-sm cursor-pointer touch-none select-none"
+            onClick={() => canSpin && doSpin()}
+            onPointerDown={(e) => {
+              const startY = e.clientY;
+              const startT = performance.now();
+              const onUp = (ev: PointerEvent) => {
+                const dt = Math.max(1, performance.now() - startT);
+                const dy = startY - ev.clientY;
+                window.removeEventListener('pointerup', onUp);
+                if (Math.abs(dy) > 30) onFlick((dy / dt) * 100);
+              };
+              window.addEventListener('pointerup', onUp);
+            }}
+          >
+            <WheelSvg names={names.length ? names : ['Add names below']} title={title} rotation={rotation} spinning={spinning} />
+          </div>
+          <Button size="lg" onClick={() => doSpin()} disabled={!canSpin} loading={spinning}>
+            {spinning ? 'Spinning…' : 'Spin'}
+          </Button>
+          {names.length < WHEEL_MIN_NAMES && <p className="text-sm text-muted">Add at least {WHEEL_MIN_NAMES} names to spin.</p>}
+          {compact && (
+            <Button variant="secondary" onClick={() => setNamesSheetOpen(true)}>
+              Names &amp; settings ({names.length})
+            </Button>
+          )}
+        </div>
+
+        {!compact && <div className="min-w-0">{panel}</div>}
+      </div>
+
+      {compact && (
+        <Sheet open={namesSheetOpen} onClose={() => setNamesSheetOpen(false)} label="Names and settings" className="max-h-[85vh] overflow-y-auto">
+          {panel}
+        </Sheet>
+      )}
 
       <ResultSheet
         open={resultOpen}

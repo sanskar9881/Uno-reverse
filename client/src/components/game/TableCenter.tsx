@@ -38,7 +38,7 @@ export function TableCenter({ state, canDraw, onDraw, cardWidth }: TableCenterPr
       {/* Direction of play */}
       <motion.svg
         viewBox="0 0 200 120"
-        className="pointer-events-none absolute -inset-x-10 -inset-y-8 h-[calc(100%+4rem)] w-[calc(100%+5rem)] text-white/15"
+        className="pointer-events-none absolute -inset-x-10 -inset-y-8 h-[calc(100%+4rem)] w-[calc(100%+5rem)] text-ink/15"
         animate={{ scaleX: game.direction }}
         transition={{ type: 'spring', stiffness: 120, damping: 14 }}
         aria-hidden
@@ -58,6 +58,7 @@ export function TableCenter({ state, canDraw, onDraw, cardWidth }: TableCenterPr
         <div
           ref={registerElement(DISCARD_PILE)}
           data-testid="discard-pile"
+          data-overlap-ok
           className="relative grid place-items-center"
           style={{ width: width * 1.25, height: width * 1.6 }}
         >
@@ -137,6 +138,7 @@ function DrawPile({ count, width, canDraw, onDraw }: { count: number; width: num
           canDraw && 'hover:-translate-y-1',
         )}
         style={{ width, height: (width * 7) / 5 }}
+        data-overlap-ok
       >
         {Array.from({ length: layers }, (_, i) => (
           <CardBack
@@ -162,7 +164,7 @@ function ColorPill({ color, highlight }: { color: keyof typeof COLOR_HEX; highli
       animate={{ scale: 1, opacity: 1 }}
       className={cn(
         'flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold capitalize',
-        highlight ? 'bg-white/15 text-ink ring-1 ring-white/30' : 'bg-black/20 text-muted',
+        highlight ? 'bg-veil/15 text-ink ring-1 ring-veil/30' : 'bg-black/20 text-muted',
       )}
     >
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: COLOR_HEX[color] }} aria-hidden />

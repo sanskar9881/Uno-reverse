@@ -52,6 +52,7 @@ export function RoundOverModal({ state, onLeave }: { state: ClientState; onLeave
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 14, delay: 0.1 }}
           className="relative"
+          data-overlap-ok
         >
           <Avatar index={winner?.avatar ?? 0} size={88} />
           <span className="absolute -right-2 -top-3 text-3xl" aria-hidden>
@@ -92,14 +93,14 @@ export function RoundOverModal({ state, onLeave }: { state: ClientState; onLeave
             </Button>
           </div>
         ) : (
-          <p className="rounded-2xl bg-white/5 py-3 text-center font-semibold text-muted">
+          <p className="rounded-2xl bg-veil/5 py-3 text-center font-semibold text-muted">
             Waiting for {host?.nickname ?? 'the host'} to start the next round…
           </p>
         )}
         {isHost && room.players.filter((p) => p.connected).length < 2 && (
           <p className="text-center text-sm text-muted">You need at least 2 players to keep going. Invite someone with the room code.</p>
         )}
-        <button type="button" onClick={onLeave} className="rounded-2xl py-2 text-sm font-semibold text-muted hover:bg-white/5 hover:text-ink">
+        <button type="button" onClick={onLeave} className="rounded-2xl py-2 text-sm font-semibold text-muted hover:bg-veil/5 hover:text-ink">
           Leave room
         </button>
       </div>

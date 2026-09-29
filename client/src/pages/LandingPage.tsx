@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { ConnectionBadge } from '../components/ui/ConnectionBadge';
 import { Logo } from '../components/ui/Logo';
 import { SoundToggle } from '../components/ui/SoundToggle';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { playSound } from '../game/sounds';
 import { createRoom, joinRoom } from '../socket/lifecycle';
 import { SERVER_URL } from '../socket/socket';
@@ -98,7 +99,7 @@ export function LandingPage() {
       <Link
         to="/"
         aria-label="Back to the hub"
-        className="absolute left-3 top-3 grid h-10 w-10 place-items-center rounded-xl text-muted hover:bg-white/10 hover:text-ink"
+        className="absolute left-3 top-3 grid h-10 w-10 place-items-center rounded-xl text-muted hover:bg-veil/10 hover:text-ink"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M15 5l-7 7 7 7" />
@@ -106,6 +107,7 @@ export function LandingPage() {
       </Link>
       <div className="absolute right-3 top-3">
         <SoundToggle />
+          <ThemeToggle />
       </div>
 
       {session && (
@@ -193,7 +195,7 @@ export function LandingPage() {
       {(mine?.gamesPlayed || top.length > 0) && (
         <section className="mt-8 grid w-full max-w-[520px] gap-4 sm:grid-cols-2">
           {mine && mine.gamesPlayed > 0 && (
-            <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-line">
+            <div className="rounded-3xl bg-veil/5 p-5 ring-1 ring-line">
               <h2 className="font-display text-lg">Your record</h2>
               <p className="mt-2 text-muted">
                 {plural(mine.gamesPlayed, 'game')} played, {plural(mine.wins, 'win')}, {plural(mine.points, 'point')}.
@@ -201,7 +203,7 @@ export function LandingPage() {
             </div>
           )}
           {top.length > 0 && (
-            <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-line">
+            <div className="rounded-3xl bg-veil/5 p-5 ring-1 ring-line">
               <h2 className="font-display text-lg">Most wins</h2>
               <ol className="mt-2 space-y-1">
                 {top.map((entry, i) => (

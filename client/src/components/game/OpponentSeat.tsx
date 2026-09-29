@@ -42,11 +42,11 @@ export function OpponentSeat({
       className={cn(
         'relative flex flex-col items-center gap-1 rounded-2xl px-2 py-1.5 transition-colors',
         compact ? 'w-[84px]' : 'w-[124px]',
-        isCurrent && 'bg-white/[0.07] ring-1 ring-card-yellow/50',
+        isCurrent && 'bg-veil/[0.07] ring-1 ring-card-yellow/50',
       )}
       aria-label={`${player.nickname}, ${cardCount} cards${isCurrent ? ', playing now' : ''}${player.connected ? '' : ', offline'}`}
     >
-      <div className="relative grid place-items-center" style={{ width: ringSize, height: ringSize }}>
+      <div className="relative grid place-items-center" style={{ width: ringSize, height: ringSize }} data-overlap-ok>
         {isCurrent && turnEndsAt > 0 && <TurnRing endsAt={turnEndsAt} durationMs={turnDurationMs} size={ringSize} />}
         <Avatar index={player.avatar} size={avatarSize} dim={!player.connected} />
         {player.isHost && (
@@ -72,7 +72,7 @@ export function OpponentSeat({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <div className="relative h-[26px]" style={{ width: 18 + Math.max(0, fan - 1) * 7 }} aria-hidden>
+        <div className="relative h-[26px]" style={{ width: 18 + Math.max(0, fan - 1) * 7 }} aria-hidden data-overlap-ok>
           {Array.from({ length: fan }, (_, i) => (
             <CardBack
               key={i}
@@ -89,12 +89,12 @@ export function OpponentSeat({
       {!player.connected && <span className="text-[11px] font-semibold text-card-red">Offline</span>}
 
       {catchable && onCatch && (
-        <div className="absolute -bottom-3 left-1/2 z-10 -translate-x-1/2">
+        <div className="absolute -bottom-3 left-1/2 z-seat -translate-x-1/2">
           <button
             type="button"
             onClick={onCatch}
             aria-label={`Catch ${player.nickname}: they forgot to call UNO`}
-            className="animate-wiggle whitespace-nowrap rounded-xl bg-card-red px-3 py-1 text-sm font-extrabold text-white shadow-[0_4px_0_#a52a30]"
+            className="animate-wiggle whitespace-nowrap rounded-xl bg-card-red px-3 py-1 text-sm font-extrabold text-white shadow-[0_4px_0_var(--color-shadow-red)]"
           >
             Catch!
           </button>

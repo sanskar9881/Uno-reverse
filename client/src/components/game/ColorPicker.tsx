@@ -26,14 +26,14 @@ export function ColorPicker({ open, onPick, onCancel }: { open: boolean; onPick:
             autoFocus={i === 0}
             onClick={() => onPick(color)}
             className="group flex aspect-[4/3] flex-col items-center justify-center gap-1 rounded-3xl font-display text-xl capitalize text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.4),0_6px_0_rgb(0_0_0/0.3)] transition-transform hover:-translate-y-1 active:translate-y-0.5"
-            style={{ background: COLOR_HEX[color], color: color === 'yellow' ? '#151028' : undefined }}
+            style={{ background: COLOR_HEX[color], color: color === 'yellow' ? 'var(--color-card-wild)' : undefined }}
           >
             {color}
             <span className="text-xs font-sans font-bold opacity-70">Press {i + 1}</span>
           </button>
         ))}
       </div>
-      <button type="button" onClick={onCancel} className="mt-4 w-full rounded-2xl py-2 font-semibold text-muted hover:bg-white/5 hover:text-ink">
+      <button type="button" onClick={onCancel} className="mt-4 w-full rounded-2xl py-2 font-semibold text-muted hover:bg-veil/5 hover:text-ink">
         Keep my card
       </button>
     </Modal>

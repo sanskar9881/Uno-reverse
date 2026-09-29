@@ -20,6 +20,7 @@ import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { SoundToggle } from '../ui/SoundToggle';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 const TILE_COLORS = ['bg-card-red', 'bg-card-yellow', 'bg-card-green', 'bg-card-blue', 'bg-card-red', 'bg-card-yellow'];
 
@@ -77,6 +78,7 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
         <Logo size="sm" animate={false} />
         <div className="flex items-center gap-1">
           <SoundToggle />
+          <ThemeToggle />
           <Button variant="ghost" size="sm" onClick={onLeave}>
             Leave room
           </Button>
@@ -129,11 +131,11 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
                 initial={{ scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 className={cn(
-                  'relative flex h-[92px] flex-col items-center justify-center gap-1 rounded-2xl bg-white/5 px-2 ring-1 ring-line',
+                  'relative flex h-[92px] flex-col items-center justify-center gap-1 rounded-2xl bg-veil/5 px-2 ring-1 ring-line',
                   p.id === selfId && 'ring-2 ring-card-yellow/60',
                 )}
               >
-                <div className="relative">
+                <div className="relative" data-overlap-ok>
                   <Avatar index={p.avatar} size={46} dim={!p.connected} />
                   {p.isHost && (
                     <span className="absolute -right-2 -top-2 text-lg" title="Host" aria-label="Host">
@@ -222,7 +224,7 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
             </p>
           </>
         ) : (
-          <p className="flex items-center gap-2 rounded-2xl bg-white/5 px-5 py-3 font-semibold text-muted">
+          <p className="flex items-center gap-2 rounded-2xl bg-veil/5 px-5 py-3 font-semibold text-muted">
             <span className="h-2 w-2 animate-pulse rounded-full bg-card-yellow" aria-hidden />
             Waiting for {host?.nickname ?? 'the host'} to start the game…
           </p>

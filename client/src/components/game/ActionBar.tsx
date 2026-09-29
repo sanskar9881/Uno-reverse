@@ -52,7 +52,7 @@ export function ActionBar(props: ActionBarProps) {
           </span>
         )}
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden>
+      <div className="h-1.5 overflow-hidden rounded-full bg-veil/10" aria-hidden>
         <div
           className={cn('h-full rounded-full', fraction > 0.5 ? 'bg-card-green' : fraction > 0.2 ? 'bg-card-yellow' : 'bg-card-red')}
           style={{ width: `${myTurn ? fraction * 100 : 0}%`, transition: 'width 100ms linear' }}
@@ -75,10 +75,10 @@ export function ActionBar(props: ActionBarProps) {
             'relative grid place-items-center rounded-full font-display text-night transition-transform',
             compact ? 'h-12 w-12 text-sm' : 'h-14 w-14 text-base',
             canUno
-              ? 'animate-pulse-soft bg-card-yellow shadow-[0_5px_0_#b8861a]'
+              ? 'animate-pulse-soft bg-card-yellow shadow-[0_5px_0_var(--color-shadow-yellow)]'
               : declared
                 ? 'bg-card-green text-white'
-                : 'bg-white/10 text-muted/60',
+                : 'bg-veil/10 text-muted/60',
           )}
         >
           UNO!

@@ -43,8 +43,9 @@ export function CardFlip({ card }: { card: CouplesCard | null }) {
           transition={{ duration: 0.35, ease: 'easeInOut' }}
           className="relative flex aspect-[5/7] flex-col items-center justify-center gap-4 rounded-[24px] p-6 text-center shadow-[0_20px_50px_rgb(0_0_0/0.55)]"
           style={{
-            background: 'linear-gradient(155deg, #5b1633 0%, #3a0f22 60%, #2a0a18 100%)',
-            border: '2px solid #f6c177',
+            background:
+              'linear-gradient(155deg, var(--color-couples-card-1) 0%, var(--color-couples-card-2) 60%, var(--color-couples-card-3) 100%)',
+            border: '2px solid var(--color-couples-candle)',
           }}
         >
           {card && (
@@ -68,7 +69,7 @@ export function CardFlip({ card }: { card: CouplesCard | null }) {
               <span className="rounded-full bg-couples-candle/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-couples-candle">
                 {LEVEL_LABEL[card.level]} · {card.kind === 'truth' ? 'Truth' : 'Dare'}
               </span>
-              <p className="font-couples text-xl leading-snug text-white">{card.text}</p>
+              <p className="font-couples text-xl leading-snug text-couples-ink">{card.text}</p>
               {timer && <Countdown seconds={timer} />}
             </>
           ) : (
@@ -76,7 +77,7 @@ export function CardFlip({ card }: { card: CouplesCard | null }) {
               <span className="text-5xl" aria-hidden>
                 🕯️
               </span>
-              <p className="font-couples text-lg text-couples-candle/80">Choose Truth or Dare</p>
+              <p className="font-couples text-lg text-couples-ink/70">Choose Truth or Dare</p>
             </>
           )}
         </motion.div>

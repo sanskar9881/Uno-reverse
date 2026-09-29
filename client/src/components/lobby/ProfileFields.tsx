@@ -48,7 +48,7 @@ export function ProfileFields({ showErrors, onEnter }: { showErrors: boolean; on
               onClick={() => updateProfile({ avatar: index })}
               className={cn(
                 'grid aspect-square place-items-center rounded-xl text-2xl transition-transform',
-                profile.avatar === index ? 'scale-110 bg-card-yellow/20 ring-2 ring-card-yellow' : 'bg-white/5 hover:bg-white/10',
+                profile.avatar === index ? 'scale-110 bg-card-yellow/20 ring-2 ring-card-yellow' : 'bg-veil/5 hover:bg-veil/10',
               )}
             >
               {emoji}

@@ -15,7 +15,7 @@ export function ProfileButton() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Edit profile, currently ${profile.nickname}`}
-        className="grid h-11 w-11 place-items-center rounded-2xl hover:bg-white/10"
+        className="grid h-11 w-11 place-items-center rounded-2xl hover:bg-veil/10"
       >
         <Avatar index={profile.avatar} size={32} />
       </button>

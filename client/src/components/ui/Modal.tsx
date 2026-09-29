@@ -22,7 +22,7 @@ export function Modal({ open, onClose, children, className, label }: ModalProps)
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-40 grid place-items-center bg-[#0c0818]/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-overlay grid place-items-center bg-scrim p-4 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -33,7 +33,7 @@ export function Modal({ open, onClose, children, className, label }: ModalProps)
             aria-modal="true"
             aria-label={label}
             className={cn(
-              'w-full max-w-md rounded-[28px] bg-night-2 p-6 shadow-[0_30px_80px_rgb(0_0_0/0.6)] ring-1 ring-line',
+              'max-h-[85vh] w-full max-w-md overflow-y-auto rounded-[28px] bg-night-2 p-6 shadow-[0_30px_80px_rgb(0_0_0/0.6)] ring-1 ring-line',
               className,
             )}
             initial={{ scale: 0.92, y: 20 }}

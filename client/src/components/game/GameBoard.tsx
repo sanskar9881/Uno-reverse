@@ -5,7 +5,7 @@ import { rememberPlayOrigin } from '../../game/domRegistry';
 import { arcPositions, opponentsInSeatOrder } from '../../game/seatLayout';
 import { playSound } from '../../game/sounds';
 import { useElementSize } from '../../hooks/useElementSize';
-import { useIsCompact } from '../../hooks/useMediaQuery';
+import { useIsCompact, useIsShortLandscape } from '../../hooks/useMediaQuery';
 import { useViewport } from '../../hooks/useViewport';
 import { useGameStore } from '../../store/gameStore';
 import { toast } from '../../store/toastStore';
@@ -40,6 +40,7 @@ function statusLine(state: ClientState, myTurn: boolean, playableCount: number):
 
 export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () => void }) {
   const compact = useIsCompact();
+  const shortLandscape = useIsShortLandscape();
   const viewport = useViewport();
   const tableRef = useRef<HTMLDivElement>(null);
   const table = useElementSize(tableRef);
@@ -182,82 +183,101 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
     />
   );
 
-  return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <TopBar state={state} onLeave={onLeave} />
-
-      {compact && (
-        <div className="scrollbar-none flex shrink-0 justify-start gap-1 overflow-x-auto px-2 pb-1 pt-3 [&>*]:shrink-0 sm:justify-center">
-          {opponents.map(seatFor)}
-        </div>
-      )}
-
-      <div ref={tableRef} className="relative mx-auto w-full max-w-[1200px] min-h-0 flex-1">
-        <div
-          className={cn('felt absolute', compact ? 'inset-x-3 inset-y-2 rounded-[40px]' : 'inset-x-[11%] bottom-[6%] top-[16%] rounded-[50%]')}
-          aria-hidden
-        />
-        <div className="absolute inset-x-0 top-[52%] flex -translate-y-1/2 justify-center">
-          <TableCenter state={state} canDraw={canDraw && !busy} onDraw={onDraw} cardWidth={pileCardWidth} />
-        </div>
-        {!compact &&
-          table.width > 0 &&
-          opponents.map((p, i) => (
-            <div
-              key={p.id}
-              className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
-              style={{ left: seats[i].x, top: seats[i].y }}
-            >
-              {seatFor(p)}
-            </div>
-          ))}
-        {vulnerable && inRound && active && (
-          <div className="absolute inset-x-0 bottom-2 z-20 flex justify-center px-3">
-            <button
-              type="button"
-              onClick={() => void catchPlayer(vulnerable.id)}
-              className="animate-pulse rounded-2xl bg-card-red px-4 py-2 font-extrabold text-white shadow-[0_5px_0_#a52a30]"
-            >
-              {vulnerable.nickname} forgot to call UNO! Catch them
-            </button>
-          </div>
+  const handArea =
+    inRound && me ? (
+      <div
+        className={cn(
+          'safe-bottom relative z-seat flex shrink-0 flex-col',
+          compact ? 'gap-1 pt-1' : 'gap-2 pt-2',
+          shortLandscape && 'h-full justify-center gap-2 pt-0',
         )}
-      </div>
-
-      {inRound && me ? (
-        <div className={cn('safe-bottom relative z-10 flex shrink-0 flex-col', compact ? 'gap-1 pt-1' : 'gap-2 pt-2')}>
-          <ActionBar
-            me={{ avatar: me.avatar, nickname: me.nickname, score: me.score, cards: state.hand.length }}
+      >
+        <ActionBar
+          me={{ avatar: me.avatar, nickname: me.nickname, score: me.score, cards: state.hand.length }}
+          myTurn={myTurn}
+          canDraw={canDraw}
+          canPass={canPass}
+          canUno={canUno}
+          declared={declared}
+          busy={busy}
+          status={statusLine(state, myTurn, playable.size)}
+          turnEndsAt={game.turnEndsAt}
+          turnDurationMs={game.turnDurationMs}
+          onDraw={onDraw}
+          onPass={onPass}
+          onUno={onUno}
+          compact={compact}
+        />
+        <div className={cn('mx-auto w-full px-2', shortLandscape ? 'max-w-none' : 'max-w-5xl')}>
+          <Hand
+            cards={state.hand}
+            playable={playable}
             myTurn={myTurn}
-            canDraw={canDraw}
-            canPass={canPass}
-            canUno={canUno}
-            declared={declared}
-            busy={busy}
-            status={statusLine(state, myTurn, playable.size)}
-            turnEndsAt={game.turnEndsAt}
-            turnDurationMs={game.turnDurationMs}
-            onDraw={onDraw}
-            onPass={onPass}
-            onUno={onUno}
+            selectedId={selectedId}
+            onCardClick={onCardClick}
+            onCardDoubleClick={(card, el) => tryPlay(card, el)}
+            cardWidth={handCardWidth}
             compact={compact}
           />
-          <div className="mx-auto w-full max-w-5xl px-2">
-            <Hand
-              cards={state.hand}
-              playable={playable}
-              myTurn={myTurn}
-              selectedId={selectedId}
-              onCardClick={onCardClick}
-              onCardDoubleClick={(card, el) => tryPlay(card, el)}
-              cardWidth={handCardWidth}
-              compact={compact}
-            />
-          </div>
         </div>
-      ) : (
-        <p className="safe-bottom py-6 text-center font-semibold text-muted">You're watching. You'll be dealt in next round.</p>
-      )}
+      </div>
+    ) : (
+      <p className="safe-bottom py-6 text-center font-semibold text-muted">You're watching. You'll be dealt in next round.</p>
+    );
+
+  return (
+    <div className={cn('flex h-full overflow-hidden', shortLandscape ? 'flex-row' : 'flex-col')}>
+      <div className={cn('flex min-w-0 flex-1 flex-col overflow-hidden', shortLandscape && 'h-full')}>
+        <TopBar state={state} onLeave={onLeave} />
+
+        {compact && !shortLandscape && (
+          <div className="scrollbar-none flex shrink-0 justify-start gap-1 overflow-x-auto px-2 pb-1 pt-3 [&>*]:shrink-0 sm:justify-center">
+            {opponents.map(seatFor)}
+          </div>
+        )}
+
+        <div ref={tableRef} className="relative mx-auto w-full max-w-[1200px] min-h-0 flex-1">
+          <div
+            className={cn('felt absolute', compact ? 'inset-x-3 inset-y-2 rounded-[40px]' : 'inset-x-[11%] bottom-[6%] top-[16%] rounded-[50%]')}
+            aria-hidden
+          />
+          <div className="absolute inset-x-0 top-[52%] flex -translate-y-1/2 justify-center">
+            <TableCenter state={state} canDraw={canDraw && !busy} onDraw={onDraw} cardWidth={pileCardWidth} />
+          </div>
+          {!compact &&
+            table.width > 0 &&
+            opponents.map((p, i) => (
+              <div
+                key={p.id}
+                className="absolute z-seat -translate-x-1/2 -translate-y-1/2"
+                style={{ left: seats[i].x, top: seats[i].y }}
+              >
+                {seatFor(p)}
+              </div>
+            ))}
+          {compact && shortLandscape && (
+            <div className="scrollbar-none absolute inset-x-0 top-1 flex justify-start gap-1 overflow-x-auto px-2 [&>*]:shrink-0">
+              {opponents.map(seatFor)}
+            </div>
+          )}
+          {vulnerable && inRound && active && (
+            <div className="absolute inset-x-0 bottom-2 z-header flex justify-center px-3">
+              <button
+                type="button"
+                onClick={() => void catchPlayer(vulnerable.id)}
+                className="animate-pulse rounded-2xl bg-card-red px-4 py-2 font-extrabold text-white shadow-[0_5px_0_var(--color-shadow-red)]"
+              >
+                {vulnerable.nickname} forgot to call UNO! Catch them
+              </button>
+            </div>
+          )}
+        </div>
+
+        {!shortLandscape && handArea}
+      </div>
+
+      {/* Short landscape (a phone on its side): the hand and actions move here, beside the table. */}
+      {shortLandscape && <div className="w-[42%] max-w-xs shrink-0 overflow-y-auto border-l border-line px-2">{handArea}</div>}
 
       <ColorPicker
         open={pendingWild !== null}

@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "@fontsource-variable/fraunces";
 
+/*
+ * Colors live in exactly two places: the dark values below (the default), and the light
+ * overrides in the `[data-theme='light']` block further down. Components must never hard-code
+ * a color — use a token, so both themes stay correct.
+ *
+ * Brand hues (the four card colors and each game's accent) are deliberately the same in both
+ * themes; only surfaces, text and materials change.
+ */
 @theme {
   --color-night: #151028;
   --color-night-2: #1c1537;
@@ -9,22 +17,56 @@
   --color-ink: #f6f1ff;
   --color-muted: #a89cc8;
   --color-line: rgb(246 241 255 / 0.12);
+  /* Tint used for subtle raised surfaces and hover states, always with an opacity modifier
+     (bg-veil/5, ring-veil/15): white over a dark theme, near-black over a light one. */
+  --color-veil: #ffffff;
+  --color-scrim: rgb(12 8 24 / 0.72);
   --color-card-red: #f2474d;
   --color-card-yellow: #ffc53d;
   --color-card-green: #22c58b;
   --color-card-blue: #3d8bff;
   --color-card-wild: #17122b;
+  /* The printed face of a card, and the shadow under a "pressed" button. */
+  --color-card-face: #fffaf2;
+  --color-shadow-yellow: #b8861a;
+  --color-shadow-red: #a52a30;
 
   /* Spin the Bottle accents */
   --color-bottle-amber: #f4a340;
   --color-bottle-glass: #3fb8a9;
+  --color-bottle-glass-deep: #2f8f83;
   /* Name Wheel accents */
   --color-wheel-red: #e6394a;
   --color-wheel-gold: #f7c948;
+  --color-bulb-on: #fff9e6;
+  --color-bulb-off: #4a3f6b;
   /* Couples Truth or Dare accents */
   --color-couples-wine: #5b1633;
   --color-couples-rose: #ff6f91;
   --color-couples-candle: #f6c177;
+
+  /* Materials: the table rim, the rug the bottle spins on, and the couples card stock. */
+  --color-wood-1: #a9713f;
+  --color-wood-2: #7c4e28;
+  --color-wood-3: #5b3719;
+  --color-rug-1: #3a2a1a;
+  --color-rug-2: #241a10;
+  --color-couples-card-1: #5b1633;
+  --color-couples-card-2: #3a0f22;
+  --color-couples-card-3: #2a0a18;
+  --color-couples-ink: #ffffff;
+  --color-toast-good: #123a33;
+  --color-toast-bad: #3d1624;
+
+  /* Named stacking layers, so nothing depends on an arbitrary z-index somewhere else. Toast
+     is deliberately the topmost: a toast must never end up hidden behind a modal. */
+  --z-index-table: 0;
+  --z-index-seat: 10;
+  --z-index-header: 20;
+  --z-index-flying-card: 30;
+  --z-index-overlay: 40;
+  --z-index-modal: 50;
+  --z-index-toast: 60;
 
   --font-display: "Bagel Fat One", "Baloo 2 Variable", system-ui, sans-serif;
   --font-sans: "Baloo 2 Variable", "Baloo 2", ui-rounded, system-ui, sans-serif;
@@ -82,15 +124,56 @@
   }
 }
 
+/*
+ * `data-theme` always holds the *resolved* theme ("light" or "dark"); the inline script in
+ * index.html sets it before the first paint, and the theme store keeps it in sync when the
+ * choice is System and the OS flips. So the CSS only ever has to key off one attribute.
+ */
+:root[data-theme='light'] {
+  --color-night: #faf6ef;
+  --color-night-2: #ffffff;
+  --color-felt: #cfe3d5;
+  --color-felt-deep: #b9d5c2;
+  --color-ink: #241a33;
+  --color-muted: #5d5273;
+  --color-line: rgb(36 26 51 / 0.14);
+  --color-veil: #241a33;
+  --color-scrim: rgb(36 26 51 / 0.45);
+  --color-card-face: #fffaf2;
+  --color-shadow-yellow: #c9922a;
+  --color-shadow-red: #b9343b;
+
+  --color-bulb-on: #ffcf4a;
+  --color-bulb-off: #d5c9ae;
+
+  --color-wood-1: #e0bd92;
+  --color-wood-2: #c99b66;
+  --color-wood-3: #ad7c48;
+  --color-rug-1: #e9d3ad;
+  --color-rug-2: #d8b98a;
+  --color-couples-card-1: #fdeef2;
+  --color-couples-card-2: #f8dfe7;
+  --color-couples-card-3: #f2d2dc;
+  --color-couples-ink: #3a1526;
+  --color-toast-good: #d7f2e8;
+  --color-toast-bad: #ffe1e6;
+}
+
 @layer base {
   :root {
     color-scheme: dark;
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
   }
 
   html,
   body,
   #root {
     height: 100%;
+    /* dvh tracks the mobile URL bar, so a game screen is never taller than the visible area. */
+    min-height: 100dvh;
   }
 
   body {
@@ -106,13 +189,27 @@
     overscroll-behavior: none;
   }
 
+  :root[data-theme='light'] body {
+    background:
+      radial-gradient(1200px 700px at 50% -10%, rgb(125 90 220 / 0.1), transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, rgb(61 139 255 / 0.07), transparent 60%),
+      var(--color-night);
+  }
+
   ::selection {
-    background: rgb(255 197 61 / 0.35);
+    background: color-mix(in oklab, var(--color-card-yellow) 35%, transparent);
   }
 
   :focus-visible {
-    outline: 3px solid #ffc53d;
+    outline: 3px solid var(--color-card-yellow);
     outline-offset: 2px;
+  }
+
+  /* Headings read better when the last line isn't a lone short word. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
 
   button {
@@ -130,10 +227,15 @@
   /* Layered radial light plus a subtle grain, made with an inline feTurbulence data URI. */
   .hub-background {
     background:
-      radial-gradient(1100px 650px at 15% -5%, rgb(255 197 61 / 0.14), transparent 60%),
-      radial-gradient(900px 700px at 90% 10%, rgb(230 57 74 / 0.12), transparent 60%),
-      radial-gradient(1000px 800px at 50% 110%, rgb(61 139 255 / 0.14), transparent 60%),
+      radial-gradient(1100px 650px at 15% -5%, color-mix(in oklab, var(--color-card-yellow) 14%, transparent), transparent 60%),
+      radial-gradient(900px 700px at 90% 10%, color-mix(in oklab, var(--color-wheel-red) 12%, transparent), transparent 60%),
+      radial-gradient(1000px 800px at 50% 110%, color-mix(in oklab, var(--color-card-blue) 14%, transparent), transparent 60%),
       var(--color-night);
+  }
+
+  :root[data-theme='light'] .hub-background::before {
+    opacity: 0.22;
+    mix-blend-mode: multiply;
   }
 
   .hub-background::before {
@@ -193,7 +295,7 @@
     border-radius: inherit;
     background:
       repeating-linear-gradient(115deg, rgb(0 0 0 / 0.08) 0 3px, transparent 3px 9px),
-      linear-gradient(160deg, #a9713f 0%, #7c4e28 45%, #5b3719 100%);
+      linear-gradient(160deg, var(--color-wood-1) 0%, var(--color-wood-2) 45%, var(--color-wood-3) 100%);
     box-shadow:
       inset 0 2px 3px rgb(255 255 255 / 0.25),
       inset 0 -6px 10px rgb(0 0 0 / 0.4),
@@ -275,7 +377,7 @@
     margin: -28cqw 0 0 -28cqw;
     border-radius: 14cqw;
     transform: rotate(45deg);
-    background: #fffaf2;
+    background: var(--color-card-face);
     box-shadow:
       inset 0 -2cqw 0 rgb(0 0 0 / 0.08),
       0 1.5cqw 3cqw rgb(0 0 0 / 0.22);

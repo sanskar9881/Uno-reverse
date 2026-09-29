@@ -25,12 +25,12 @@ export function BottleSvg({ players, rotation, spinning, targetIndex, spinnerInd
     <svg viewBox="0 0 400 400" className={className} role="img" aria-label="Spin the bottle table">
       <defs>
         <radialGradient id="rug" cx="50%" cy="45%" r="60%">
-          <stop offset="0%" stopColor="#3a2a1a" />
-          <stop offset="100%" stopColor="#241a10" />
+          <stop offset="0%" stopColor="var(--color-rug-1)" />
+          <stop offset="100%" stopColor="var(--color-rug-2)" />
         </radialGradient>
       </defs>
       <circle cx={CENTER} cy={CENTER} r={190} fill="url(#rug)" />
-      <circle cx={CENTER} cy={CENTER} r={190} fill="none" stroke="#5b3719" strokeWidth={6} opacity={0.6} />
+      <circle cx={CENTER} cy={CENTER} r={190} fill="none" stroke="var(--color-wood-3)" strokeWidth={6} opacity={0.6} />
 
       {players.map((p, i) => {
         const angle = playerAngle(i, count);
@@ -39,8 +39,8 @@ export function BottleSvg({ players, rotation, spinning, targetIndex, spinnerInd
         const isSpinner = i === spinnerIndex;
         return (
           <g key={i}>
-            {isTarget && <circle cx={pos.x} cy={pos.y} r={30} fill="none" stroke="#f4a340" strokeWidth={4} className="animate-pulse-soft" />}
-            <circle cx={pos.x} cy={pos.y} r={26} fill="#1c1537" stroke={isSpinner ? '#3fb8a9' : '#f6f1ff33'} strokeWidth={isSpinner ? 3 : 1.5} />
+            {isTarget && <circle cx={pos.x} cy={pos.y} r={30} fill="none" stroke="var(--color-bottle-amber)" strokeWidth={4} className="animate-pulse-soft" />}
+            <circle cx={pos.x} cy={pos.y} r={26} fill="var(--color-night-2)" stroke={isSpinner ? 'var(--color-bottle-glass)' : 'color-mix(in oklab, var(--color-ink) 20%, transparent)'} strokeWidth={isSpinner ? 3 : 1.5} />
             <text x={pos.x} y={pos.y - 2} textAnchor="middle" dominantBaseline="middle" fontSize={20}>
               {p.emoji}
             </text>
@@ -51,7 +51,7 @@ export function BottleSvg({ players, rotation, spinning, targetIndex, spinnerInd
               fontSize={12}
               fontFamily="var(--font-sans)"
               fontWeight={700}
-              fill="#f6f1ff"
+              fill="var(--color-ink)"
             >
               {p.name.length > 10 ? `${p.name.slice(0, 9)}…` : p.name}
             </text>
@@ -65,9 +65,9 @@ export function BottleSvg({ players, rotation, spinning, targetIndex, spinnerInd
         <g transform={`translate(${CENTER} ${CENTER})`}>
           <path
             d="M-9 20 H9 V-46 c10 4 14 16 14 30 v10 a12 12 0 0 1-12 12 h-12 a12 12 0 0 1-12-12 v-10 c0-14 4-26 14-30 z"
-            fill="#3fb8a9"
+            fill="var(--color-bottle-glass)"
           />
-          <rect x={-7} y={-58} width={14} height={14} rx={2} fill="#2f8f83" />
+          <rect x={-7} y={-58} width={14} height={14} rx={2} fill="var(--color-bottle-glass-deep)" />
           <path d="M-9 -30 c8 3 11 12 11 22 v18 h-3 v-18 c0-8-2-16-10-19z" fill="#ffffff" opacity={0.3} />
         </g>
       </g>

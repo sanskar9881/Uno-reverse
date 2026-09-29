@@ -7,6 +7,7 @@ import { GameTile } from '../components/hub/GameTile';
 import { ProfileButton } from '../components/hub/ProfileButton';
 import { Button } from '../components/ui/Button';
 import { SoundToggle } from '../components/ui/SoundToggle';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { playSound } from '../game/sounds';
 
 const GAMES = [
@@ -15,7 +16,7 @@ const GAMES = [
     title: 'UNO',
     description: 'The classic card game, online with friends.',
     badge: '2–8 players, online',
-    accent: '#3d8bff',
+    accent: 'var(--color-card-blue)',
     illustration: <UnoIllustration />,
   },
   {
@@ -23,7 +24,7 @@ const GAMES = [
     title: 'Spin the Bottle',
     description: 'Spin it, see who it lands on, and go.',
     badge: '2–12 players, one phone or online',
-    accent: '#f4a340',
+    accent: 'var(--color-bottle-amber)',
     illustration: <BottleIllustration />,
   },
   {
@@ -31,7 +32,7 @@ const GAMES = [
     title: 'Name Wheel',
     description: 'Put in any names, spin, get a winner.',
     badge: 'Any names, one screen',
-    accent: '#f7c948',
+    accent: 'var(--color-wheel-gold)',
     illustration: <WheelIllustration />,
   },
   {
@@ -39,7 +40,7 @@ const GAMES = [
     title: 'Couples Truth or Dare',
     description: 'A private game for two, warm and playful.',
     badge: '2 players, 18+',
-    accent: '#ff6f91',
+    accent: 'var(--color-couples-rose)',
     illustration: <CouplesIllustration />,
   },
 ];
@@ -62,11 +63,12 @@ export function HubPage() {
   return (
     <main className="hub-background relative min-h-full overflow-hidden">
       <div className="hub-glow" aria-hidden />
-      <div className="relative mx-auto flex min-h-full max-w-5xl flex-col px-4 pb-12 pt-4 sm:px-6">
+      <div className="relative mx-auto flex min-h-full max-w-6xl flex-col px-4 pb-12 pt-4 sm:px-6">
         <header className="flex items-center justify-between">
           <span className="font-display text-2xl tracking-wide">{APP_NAME}</span>
           <div className="flex items-center gap-1">
             <SoundToggle />
+          <ThemeToggle />
             <ProfileButton />
           </div>
         </header>
@@ -79,7 +81,7 @@ export function HubPage() {
           Pick a game to start the party.
         </motion.p>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {GAMES.map((game, i) => (
             <GameTile key={game.to} index={i} {...game} />
           ))}

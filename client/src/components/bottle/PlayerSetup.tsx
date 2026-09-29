@@ -42,12 +42,12 @@ export function PlayerSetup({ players, onChange, savedGroups, onSaveGroup, onLoa
 
         <ul className="mt-4 flex flex-col gap-2">
           {players.map((p, i) => (
-            <li key={i} className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2">
+            <li key={i} className="flex items-center gap-2 rounded-xl bg-veil/5 px-3 py-2">
               <button
                 type="button"
                 aria-label={`Change emoji for ${p.name}`}
                 onClick={() => cycleEmoji(i)}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/5 text-xl hover:bg-white/10"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-veil/5 text-xl hover:bg-veil/10"
               >
                 {p.emoji}
               </button>
@@ -105,7 +105,7 @@ export function PlayerSetup({ players, onChange, savedGroups, onSaveGroup, onLoa
             <h3 className="mb-1.5 text-sm font-semibold text-muted">Saved groups</h3>
             <ul className="flex flex-col gap-1.5">
               {savedGroups.map((g) => (
-                <li key={g.name} className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3 py-2">
+                <li key={g.name} className="flex items-center justify-between gap-2 rounded-xl bg-veil/5 px-3 py-2">
                   <button
                     type="button"
                     className="min-w-0 flex-1 truncate text-left font-semibold text-ink hover:text-bottle-amber"

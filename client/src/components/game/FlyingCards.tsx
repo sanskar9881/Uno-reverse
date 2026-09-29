@@ -10,7 +10,7 @@ export function FlyingCards() {
   const flights = useFxStore((s) => s.flights);
   const land = useFxStore((s) => s.land);
   return (
-    <div className="pointer-events-none fixed inset-0 z-30" aria-hidden>
+    <div className="pointer-events-none fixed inset-0 z-flying-card" aria-hidden>
       {flights.map((f) =>
         Array.from({ length: f.count }, (_, i) => (
           <motion.div

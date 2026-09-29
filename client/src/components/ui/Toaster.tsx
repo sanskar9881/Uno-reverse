@@ -4,8 +4,8 @@ import { cn } from '../../utils/cn';
 
 const TONES: Record<ToastTone, string> = {
   info: 'bg-night-2/95 text-ink ring-1 ring-line',
-  good: 'bg-[#123a33]/95 text-ink ring-1 ring-card-green/40',
-  bad: 'bg-[#3d1624]/95 text-ink ring-1 ring-card-red/40',
+  good: 'bg-toast-good/95 text-ink ring-1 ring-card-green/40',
+  bad: 'bg-toast-bad/95 text-ink ring-1 ring-card-red/40',
   uno: 'bg-card-yellow text-night font-display text-lg ring-2 ring-white/60',
 };
 
@@ -14,7 +14,7 @@ export function Toaster() {
   const dismiss = useToastStore((s) => s.dismiss);
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-3 z-50 flex flex-col items-center gap-2 px-3 sm:left-auto sm:right-4 sm:top-16 sm:w-[380px] sm:items-end sm:px-0"
+      className="pointer-events-none fixed inset-x-0 bottom-20 z-toast flex flex-col-reverse items-center gap-2 px-3 sm:inset-x-auto sm:top-16 sm:bottom-auto sm:right-4 sm:flex-col sm:w-[380px] sm:items-end sm:px-0"
       role="status"
       aria-live="polite"
     >

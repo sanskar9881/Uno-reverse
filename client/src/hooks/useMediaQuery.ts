@@ -12,5 +12,11 @@ export function useMediaQuery(query: string): boolean {
   return matches;
 }
 
-/** Phones and short landscape screens get the compact table layout. */
-export const useIsCompact = (): boolean => useMediaQuery('(max-width: 767px), (max-height: 540px)');
+/** Phone: the opponent strip, compact piles and the hand — width under 640px. */
+export const useIsCompact = (): boolean => useMediaQuery('(max-width: 639px)');
+
+/** Tablet: 640–1023px. Between the phone strip and the full desktop oval. */
+export const useIsTablet = (): boolean => useMediaQuery('(min-width: 640px) and (max-width: 1023px)');
+
+/** A phone held sideways: short enough that the hand and actions move to the side instead of the bottom. */
+export const useIsShortLandscape = (): boolean => useMediaQuery('(max-height: 499px)');
