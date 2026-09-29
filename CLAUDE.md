@@ -19,6 +19,7 @@ UNO Party: a real-time multiplayer UNO-style game. There are three packages. `sh
 
 - **The server is authoritative.** Rules live only in `server/src/game/engine.ts`, which is pure, synchronous and does no I/O. `shared/rules.ts` is for UI hints and must match the engine.
 - **Hands are private.** Only `server/src/game/views.ts` and `server/src/rooms/views.ts` build what a player sees, and a player's snapshot contains only their own hand. Seat tokens are never broadcast. Tests check both.
+  - **One deliberate exception:** after a Wild +4 challenge, the challenger briefly sees the challenged player's hand (`ClientState.revealedHand`), exactly as in the physical game. It's scoped to `room.revealViewerId`/`revealOwnerId`/`revealEndsAt` on the plain `Room` (mirroring the `turnEndsAt` timer pattern) and only ever populated for that one viewer, for a few seconds.
 - **Every turn action carries a `turnId`,** and stale actions are rejected. Keep it that way for any new action.
 - **Room state is plain JSON** (`server/src/rooms/types.ts`) behind the `RoomStore` interface, so a Redis store can replace it. Don't put class instances or timers in it; timers live in RoomManager maps.
 - **Adding a client→server event** takes five steps:

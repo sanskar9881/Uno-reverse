@@ -31,5 +31,15 @@ export function buildGameView(
     hasDrawnThisTurn: state.hasDrawn,
     drawnCardId: currentPlayerId === viewerId ? state.drawnCardId : null,
     finished: state.finished,
+    pendingDraw: state.pendingDraw
+      ? {
+          kind: state.pendingDraw.kind,
+          amount: state.pendingDraw.amount,
+          fromPlayerId: state.pendingDraw.fromPlayerId,
+          toPlayerId: state.pendingDraw.toPlayerId,
+          canChallenge: state.pendingDraw.kind === 'wild4',
+        }
+      : null,
+    houseRules: state.houseRules,
   };
 }

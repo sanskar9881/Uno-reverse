@@ -4,7 +4,7 @@ export type CardColor = (typeof CARD_COLORS)[number];
 export const NUMBER_VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;
 export type NumberValue = (typeof NUMBER_VALUES)[number];
 export type ActionValue = 'skip' | 'reverse' | 'draw2';
-export type WildValue = 'wild' | 'wild4';
+export type WildValue = 'wild' | 'wild4' | 'wildShuffle' | 'wildCustom';
 export type CardValue = NumberValue | ActionValue | WildValue;
 
 export interface Card {
@@ -17,9 +17,28 @@ export type RoomStatus = 'lobby' | 'playing' | 'roundOver';
 
 export type GameType = 'uno' | 'bottle' | 'couples';
 
+/** Off by default. The host toggles these in the lobby, before a round starts. */
+export interface HouseRules {
+  /** A Draw Two answers a Draw Two, a Wild +4 answers a Wild +4; the total falls on whoever can't stack. */
+  stacking: boolean;
+  /** Can't play? Keep drawing until you can, instead of drawing just one. */
+  drawUntilPlayable: boolean;
+  /** A drawn card must be played immediately if it's playable. */
+  mustPlayDrawn: boolean;
+  /** Playing a 7 swaps hands with a chosen player; playing a 0 rotates every hand one seat. */
+  sevenZero: boolean;
+  /** Hold an exact match for the top card? Play it out of turn. */
+  jumpIn: boolean;
+  /** The 112-card deck: one Wild Shuffle Hands, three Wild Customizable. */
+  modernDeck: boolean;
+  /** Shown when a Wild Customizable card is played. */
+  customRuleText: string;
+}
+
 export interface RoomSettings {
   turnSeconds: number;
   targetScore: number;
+  houseRules: HouseRules;
 }
 
 export type BottlePromptPack = 'off' | 'party' | 'flirty';
@@ -104,6 +123,18 @@ export interface GameView {
   /** Only populated for the viewer, and only on their own turn after drawing a playable card. */
   drawnCardId: string | null;
   finished: boolean;
+  /** A Draw Two or Wild +4 (or a stacked chain of them) waiting on toPlayerId to accept, challenge or stack. */
+  pendingDraw: PendingDrawView | null;
+  houseRules: HouseRules;
+}
+
+export interface PendingDrawView {
+  kind: 'draw2' | 'wild4';
+  amount: number;
+  fromPlayerId: string;
+  toPlayerId: string;
+  /** Only true for a Wild +4: the next player may challenge instead of accepting. */
+  canChallenge: boolean;
 }
 
 export interface RoundResult {
@@ -130,7 +161,7 @@ export interface RoomView {
   lastRound: RoundResult | null;
 }
 
-export type DrawReason = 'draw' | 'draw2' | 'wild4' | 'unoPenalty' | 'timeout';
+export type DrawReason = 'draw' | 'draw2' | 'wild4' | 'unoPenalty' | 'timeout' | 'wild4Challenge';
 
 export type GameEvent =
   | { type: 'playerJoined'; playerId: string; nickname: string }
@@ -140,7 +171,7 @@ export type GameEvent =
   | { type: 'hostChanged'; playerId: string; nickname: string }
   | { type: 'settingsChanged'; settings: RoomSettings }
   | { type: 'gameStarted'; roundNumber: number; firstPlayerId: string }
-  | { type: 'cardPlayed'; playerId: string; card: Card; chosenColor: CardColor | null }
+  | { type: 'cardPlayed'; playerId: string; card: Card; chosenColor: CardColor | null; targetPlayerId?: string }
   | { type: 'cardDrawn'; playerId: string; count: number; reason: DrawReason }
   | { type: 'skipped'; playerId: string }
   | { type: 'reversed'; direction: 1 | -1 }
@@ -150,6 +181,12 @@ export type GameEvent =
   | { type: 'unoCaught'; playerId: string; catcherId: string }
   | { type: 'deckReshuffled' }
   | { type: 'turnChanged'; playerId: string }
+  | { type: 'drawStacked'; playerId: string; amount: number }
+  | { type: 'wild4Challenged'; challengerId: string; challengedId: string; legal: boolean }
+  | { type: 'handsSwapped'; playerId: string; targetPlayerId: string }
+  | { type: 'handsRotated' }
+  | { type: 'handsShuffled'; playerId: string }
+  | { type: 'jumpedIn'; playerId: string }
   | { type: 'roundOver'; winnerId: string; points: number; reason: 'emptiedHand' | 'forfeit' }
   | { type: 'matchOver'; winnerId: string };
 
@@ -161,6 +198,12 @@ export interface ClientState {
   game: GameView | null;
   hand: Card[];
   events: GameEvent[];
+  /**
+   * The one deliberate exception to hand privacy: right after you challenge a Wild +4,
+   * you briefly see the challenged player's full hand, as in the physical game. Null
+   * otherwise, and for everyone else.
+   */
+  revealedHand: { ownerId: string; cards: Card[] } | null;
   /** Non-UNO game state (Spin the Bottle, Couples), or null in a UNO room. */
   party: BottleView | CouplesView | null;
 }

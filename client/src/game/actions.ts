@@ -1,4 +1,4 @@
-import type { BottlePartySettings, CardColor, CouplesKind, CouplesLevel, RoomSettings } from '@shared';
+import type { BottlePartySettings, CardColor, CouplesKind, CouplesLevel, RoomSettingsPatch } from '@shared';
 import { request, type ClientErrorCode, type RequestResult } from '../socket/socket';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
@@ -32,12 +32,19 @@ async function send(
 
 const turnId = (): number => useGameStore.getState().state?.game?.turnId ?? -1;
 
-export const playCard = (cardId: string, chosenColor?: CardColor) =>
-  send(() => request('game:play', { turnId: turnId(), cardId, chosenColor }));
+export const playCard = (cardId: string, chosenColor?: CardColor, targetPlayerId?: string) =>
+  send(() => request('game:play', { turnId: turnId(), cardId, chosenColor, targetPlayerId }));
 
 export const drawCard = () => send(() => request('game:draw', { turnId: turnId() }));
 
 export const passTurn = () => send(() => request('game:pass', { turnId: turnId() }));
+
+export const acceptDraw = () => send(() => request('game:acceptDraw', { turnId: turnId() }));
+
+export const challengeWild4 = () => send(() => request('game:challenge', { turnId: turnId() }));
+
+export const jumpIn = (cardId: string, chosenColor?: CardColor, targetPlayerId?: string) =>
+  send(() => request('game:jumpIn', { cardId, chosenColor, targetPlayerId }), { quiet: ['CANNOT_JUMP_IN'] });
 
 export const callUno = () => send(() => request('game:uno', {}), { allowWhileBusy: true });
 
@@ -62,7 +69,7 @@ export const couplesAddCard = (level: CouplesLevel, kind: CouplesKind, text: str
   send(() => request('couples:addCard', { level, kind, text }));
 export const nextRound = () => send(() => request('game:nextRound', {}));
 export const rematch = () => send(() => request('game:rematch', {}));
-export const updateSettings = (patch: Partial<RoomSettings>) => send(() => request('room:settings', patch));
+export const updateSettings = (patch: RoomSettingsPatch) => send(() => request('room:settings', patch));
 export const kickPlayer = (playerId: string) => send(() => request('room:kick', { playerId }));
 
 /** Leaves the room and forgets the seat, even if the server can't be reached. */

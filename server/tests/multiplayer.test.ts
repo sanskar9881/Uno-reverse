@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   ROOM_CODE_REGEX,
   TOTAL_CARDS,
+  TOTAL_CARDS_MODERN,
   playableCardIds,
   type Card,
   type CardColor,
@@ -171,12 +172,12 @@ describe('starting games', () => {
   it('starts a 2-player game and deals 7 private cards each', async () => {
     const table = await lobby(2);
     const [host, guest] = table.players;
-    await start(table);
+    await start(table, ['b1 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8']);
     for (const p of table.players) {
       const g = p.state.game!;
       expect(p.state.hand).toHaveLength(7);
       expect(Object.values(g.cardCounts)).toEqual([7, 7]);
-      expect(g.drawPileCount).toBe(TOTAL_CARDS - 15);
+      expect(g.drawPileCount).toBe(40); // start()'s rigged deck always has 40 filler cards
       expect(g.discardCount).toBe(1);
       expect(g.topCard.color).not.toBe('wild');
       expect(current(p.state)).toBe(table.seats[0].playerId);
@@ -184,18 +185,25 @@ describe('starting games', () => {
     // Hidden information: nobody's snapshot contains another player's cards.
     const hostJson = JSON.stringify(host.states);
     const guestJson = JSON.stringify(guest.states);
-    for (const c of guest.state.hand) expect(hostJson).not.toContain(c.id);
-    for (const c of host.state.hand) expect(guestJson).not.toContain(c.id);
+    // Quoted, so a short id like "t1" can't false-positive match inside "t10".
+    for (const c of guest.state.hand) expect(hostJson).not.toContain(`"${c.id}"`);
+    for (const c of host.state.hand) expect(guestJson).not.toContain(`"${c.id}"`);
   });
 
   it('starts a 5-player game with correct counts and disjoint hands', async () => {
     const table = await lobby(5);
-    await start(table);
+    await start(table, [
+      'b1 b2 b3 b4 b6 b7 b8',
+      'y1 y2 y3 y4 y6 y7 y8',
+      'g1 g2 g3 g4 g6 g7 g8',
+      'r1 r2 r3 r4 r6 r7 r8',
+      'b9 y9 g9 r9 b3 y3 g3',
+    ]);
     const ids = new Set<string>();
     for (const p of table.players) {
       expect(p.state.hand).toHaveLength(7);
       expect(p.state.game!.turnOrder).toHaveLength(5);
-      expect(p.state.game!.drawPileCount).toBe(TOTAL_CARDS - 36);
+      expect(p.state.game!.drawPileCount).toBe(40); // start()'s rigged deck always has 40 filler cards
       for (const c of p.state.hand) ids.add(c.id);
     }
     expect(ids.size).toBe(35);
@@ -281,17 +289,55 @@ describe('playing', () => {
     expect((await playCode(guest, 'g8')).ok).toBe(true);
   });
 
-  it('wild draw four: +4, skip, color change, and the no-matching-color rule', async () => {
+  it('wild draw four: playing it is always legal, but leaves a pending draw until accepted', async () => {
     const table = await lobby(3);
     const [host, p1, p2] = table.players;
-    await start(table, ['W4 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'W4 b9 g2 g4 g6 g7 g8']);
+    await start(table, ['W4 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g3 g4 g6 g7 g8']);
     expect((await playCode(host, 'W4', 'blue')).ok).toBe(true);
-    const s = await p2.waitFor((st) => current(st) === p2.id);
-    expect(s.game!.cardCounts[p1.id]).toBe(11);
+    const s = await p2.waitFor((st) => st.game!.pendingDraw !== null);
     expect(s.game!.currentColor).toBe('blue');
-    expect(s.events).toContainEqual({ type: 'skipped', playerId: p1.id });
-    // p2 holds a blue card, so their Wild +4 is illegal.
-    expect(await playCode(p2, 'W4', 'green')).toMatchObject({ error: { code: 'INVALID_PLAY' } });
+    expect(s.game!.cardCounts[p1.id]).toBe(7); // hasn't drawn yet — still just their dealt hand
+    expect(s.game!.pendingDraw).toMatchObject({
+      kind: 'wild4',
+      amount: 4,
+      fromPlayerId: host.id,
+      toPlayerId: p1.id,
+      canChallenge: true,
+    });
+    expect(current(s)).toBe(p1.id);
+
+    await p1.ok('game:acceptDraw', { turnId: s.game!.turnId });
+    const after = await p2.waitFor((st) => st.game!.pendingDraw === null);
+    expect(after.game!.cardCounts[p1.id]).toBe(11);
+    expect(current(after)).toBe(p2.id);
+  });
+
+  it('wild draw four: a legal challenge costs the challenger 6 cards and their turn', async () => {
+    const table = await lobby(3);
+    const [host, p1, p2] = table.players;
+    // Host holds no red card: the play is legal.
+    await start(table, ['W4 y2 y3 y4 y6 y7 y8', 'g1 g2 g3 g4 g6 g7 g8', 'b1 b2 b3 b4 b6 b7 b8']);
+    await playCode(host, 'W4', 'blue');
+    const pending = await p1.waitFor((st) => st.game!.pendingDraw !== null);
+    await p1.ok('game:challenge', { turnId: pending.game!.turnId });
+    const after = await p1.waitFor((st) => st.game!.pendingDraw === null);
+    expect(after.game!.cardCounts[p1.id]).toBe(13); // 7 dealt + 6 (4 plus 2) for guessing wrong
+    expect(current(after)).toBe(p2.id); // the challenger loses their turn
+    expect(after.revealedHand).toMatchObject({ ownerId: host.id });
+  });
+
+  it('wild draw four: an illegal challenge makes the challenged player draw instead', async () => {
+    const table = await lobby(3);
+    const [host, p1, p2] = table.players;
+    // Host holds a red card too: the play is illegal.
+    await start(table, ['W4 r2 y3 y4 y6 y7 y8', 'g1 g2 g3 g4 g6 g7 g8', 'b1 b2 b3 b4 b6 b7 b8']);
+    await playCode(host, 'W4', 'blue');
+    const pending = await p1.waitFor((st) => st.game!.pendingDraw !== null);
+    await p1.ok('game:challenge', { turnId: pending.game!.turnId });
+    const after = await p1.waitFor((st) => st.game!.pendingDraw === null);
+    expect(after.game!.cardCounts[host.id]).toBe(10); // 6 left after playing + 4 drawn
+    expect(current(after)).toBe(p1.id); // the challenger keeps their turn
+    expect(after.revealedHand).toMatchObject({ ownerId: host.id });
   });
 
   it('skip jumps the next player', async () => {
@@ -608,94 +654,106 @@ describe('security and validation', () => {
   });
 });
 
+/** Runs a full bot game to completion, sending sensible-but-simple moves for every decision the rules present. */
+async function runBotGame(table: Table, expectedTotal: number): Promise<{ errors: string[]; violations: number; final: ClientState }> {
+  const errors: string[] = [];
+  let violations = 0;
+  const tokens = table.seats.map((s) => s.token);
+
+  const bestColor = (hand: Card[]): CardColor => {
+    const counts: Record<string, number> = {};
+    for (const c of hand) if (c.color !== 'wild') counts[c.color] = (counts[c.color] ?? 0) + 1;
+    return (Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] as CardColor) ?? 'red';
+  };
+
+  table.players.forEach((bot, index) => {
+    const callsUno = index !== 1; // one forgetful bot…
+    const catches = index === 2; // …and one sharp-eyed one
+    let busy = false;
+    let again = false;
+
+    bot.socket.on('state', (s) => {
+      if (s.game) {
+        const total = tableTotal(s);
+        if (total !== expectedTotal || s.hand.length !== s.game.cardCounts[s.selfId]) violations++;
+      }
+      const json = JSON.stringify(s);
+      if (tokens.some((t) => json.includes(t))) violations++;
+      void act();
+    });
+
+    async function act(): Promise<void> {
+      if (busy) {
+        again = true;
+        return;
+      }
+      const s = bot.states.at(-1);
+      const g = s?.game;
+      if (!s || !g || s.room.status !== 'playing' || errors.length > 20) return;
+      const canCatch = catches && g.unoVulnerableId !== null && g.unoVulnerableId !== s.selfId;
+      const canResolvePending = g.pendingDraw?.toPlayerId === s.selfId;
+      if (!canCatch && !canResolvePending && g.currentPlayerId !== s.selfId) return;
+
+      busy = true;
+      let retry = false;
+      try {
+        await sleep(40);
+        const now = bot.state;
+        const game = now.game!;
+        if (now.room.status !== 'playing') return;
+        let res;
+        if (catches && game.unoVulnerableId && game.unoVulnerableId !== now.selfId) {
+          res = await bot.send('game:catch', { targetId: game.unoVulnerableId });
+        } else if (game.pendingDraw && game.pendingDraw.toPlayerId === now.selfId) {
+          // Bots always accept rather than stack or challenge — simple and deterministic.
+          res = await bot.send('game:acceptDraw', { turnId: game.turnId });
+        } else if (game.currentPlayerId === now.selfId) {
+          const playable = [...playableCardIds(now.hand, game.topCard, game.currentColor, game.drawnCardId)];
+          if (playable.length > 0) {
+            if (callsUno && now.hand.length === 2 && !game.unoDeclared.includes(now.selfId)) {
+              await bot.send('game:uno');
+            }
+            const chosen = now.hand.find((c) => c.id === playable[0])!;
+            const target = game.turnOrder.find((id) => id !== now.selfId);
+            res = await bot.send('game:play', {
+              turnId: game.turnId,
+              cardId: chosen.id,
+              chosenColor: chosen.color === 'wild' ? bestColor(now.hand) : undefined,
+              targetPlayerId: chosen.value === '7' ? target : undefined,
+            });
+          } else if (!game.hasDrawnThisTurn) {
+            res = await bot.send('game:draw', { turnId: game.turnId });
+          } else {
+            res = await bot.send('game:pass', { turnId: game.turnId });
+          }
+        }
+        if (res && !res.ok) {
+          retry = true;
+          if (res.error.code === 'RATE_LIMITED') await sleep(300);
+          else if (!['STALE_ACTION', 'NOT_YOUR_TURN', 'NOTHING_TO_CATCH', 'INVALID_STATE'].includes(res.error.code)) {
+            errors.push(res.error.code);
+          }
+        }
+      } finally {
+        busy = false;
+        if (again || retry) {
+          again = false;
+          void act();
+        }
+      }
+    }
+  });
+
+  await table.players[0].ok('game:start');
+  const final = await table.players[0].waitFor((s) => s.room.status === 'roundOver', 110_000);
+  await sleep(100);
+  return { errors, violations, final };
+}
+
 describe('full game simulation', () => {
   it.each([4, 8])('%i bots play a complete random round with every card accounted for', async (botCount) => {
     const table = await lobby(botCount, { ...FAST, rng: undefined });
-    const errors: string[] = [];
-    let violations = 0;
-    const tokens = table.seats.map((s) => s.token);
-
-    const bestColor = (hand: Card[]): CardColor => {
-      const counts: Record<string, number> = {};
-      for (const c of hand) if (c.color !== 'wild') counts[c.color] = (counts[c.color] ?? 0) + 1;
-      return (Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] as CardColor) ?? 'red';
-    };
-
-    table.players.forEach((bot, index) => {
-      const callsUno = index !== 1; // one forgetful bot…
-      const catches = index === 2; // …and one sharp-eyed one
-      let busy = false;
-      let again = false;
-
-      bot.socket.on('state', (s) => {
-        if (s.game) {
-          const total = tableTotal(s);
-          if (total !== TOTAL_CARDS || s.hand.length !== s.game.cardCounts[s.selfId]) violations++;
-        }
-        const json = JSON.stringify(s);
-        if (tokens.some((t) => json.includes(t))) violations++;
-        void act();
-      });
-
-      async function act(): Promise<void> {
-        if (busy) {
-          again = true;
-          return;
-        }
-        const s = bot.states.at(-1);
-        const g = s?.game;
-        if (!s || !g || s.room.status !== 'playing' || errors.length > 20) return;
-        const canCatch = catches && g.unoVulnerableId !== null && g.unoVulnerableId !== s.selfId;
-        if (!canCatch && g.currentPlayerId !== s.selfId) return;
-
-        busy = true;
-        let retry = false;
-        try {
-          await sleep(40);
-          const now = bot.state;
-          const game = now.game!;
-          if (now.room.status !== 'playing') return;
-          let res;
-          if (catches && game.unoVulnerableId && game.unoVulnerableId !== now.selfId) {
-            res = await bot.send('game:catch', { targetId: game.unoVulnerableId });
-          } else if (game.currentPlayerId === now.selfId) {
-            const playable = [...playableCardIds(now.hand, game.topCard, game.currentColor, game.drawnCardId)];
-            if (playable.length > 0) {
-              if (callsUno && now.hand.length === 2 && !game.unoDeclared.includes(now.selfId)) {
-                await bot.send('game:uno');
-              }
-              const chosen = now.hand.find((c) => c.id === playable[0])!;
-              res = await bot.send('game:play', {
-                turnId: game.turnId,
-                cardId: chosen.id,
-                chosenColor: chosen.color === 'wild' ? bestColor(now.hand) : undefined,
-              });
-            } else if (!game.hasDrawnThisTurn) {
-              res = await bot.send('game:draw', { turnId: game.turnId });
-            } else {
-              res = await bot.send('game:pass', { turnId: game.turnId });
-            }
-          }
-          if (res && !res.ok) {
-            retry = true;
-            if (res.error.code === 'RATE_LIMITED') await sleep(300);
-            else if (!['STALE_ACTION', 'NOT_YOUR_TURN', 'NOTHING_TO_CATCH', 'INVALID_STATE'].includes(res.error.code)) {
-              errors.push(res.error.code);
-            }
-          }
-        } finally {
-          busy = false;
-          if (again || retry) {
-            again = false;
-            void act();
-          }
-        }
-      }
-    });
-
-    await table.players[0].ok('game:start');
-    const final = await table.players[0].waitFor((s) => s.room.status === 'roundOver', 110_000);
-    await sleep(100);
+    const { errors, violations, final } = await runBotGame(table, TOTAL_CARDS);
 
     expect(errors).toEqual([]);
     expect(violations).toBe(0);
@@ -705,5 +763,26 @@ describe('full game simulation', () => {
     expect(final.room.players.find((p) => p.id === result.winnerId)!.score).toBe(result.points);
     const plays = table.players[0].states.flatMap((s) => s.events).filter((e) => e.type === 'cardPlayed').length;
     expect(plays).toBeGreaterThan(10);
+  }, 120_000);
+
+  it('6 bots play a complete random round with every house rule on', async () => {
+    const table = await lobby(6, { ...FAST, rng: undefined });
+    await table.players[0].ok('room:settings', {
+      houseRules: {
+        stacking: true,
+        drawUntilPlayable: true,
+        mustPlayDrawn: true,
+        sevenZero: true,
+        jumpIn: true,
+        modernDeck: true,
+      },
+    });
+    const { errors, violations, final } = await runBotGame(table, TOTAL_CARDS_MODERN);
+
+    expect(errors).toEqual([]);
+    expect(violations).toBe(0);
+    const result = final.room.lastRound!;
+    expect(result.reason).toBe('emptiedHand');
+    expect(result.cardsLeft[result.winnerId]).toBe(0);
   }, 120_000);
 });

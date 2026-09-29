@@ -37,9 +37,16 @@ export interface Room {
   scores: Record<string, number>;
   roundNumber: number;
   lastRound: RoundResult | null;
-  /** Epoch ms when the current turn auto-ends (0 = no timer running). */
+  /** Epoch ms when the current turn auto-ends (0 = no timer running). Doubles as the Wild +4 challenge deadline. */
   turnEndsAt: number;
   turnDurationMs: number;
+  /**
+   * The one deliberate exception to hand privacy: right after a Wild +4 challenge,
+   * `revealViewerId` briefly sees `revealOwnerId`'s hand (0 = no reveal running).
+   */
+  revealViewerId: string | null;
+  revealOwnerId: string | null;
+  revealEndsAt: number;
   /** Random offset so the first round doesn't always start with the host; rotates each round. */
   starterSeed: number;
   createdAt: number;

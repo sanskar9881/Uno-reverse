@@ -95,6 +95,9 @@ export function registerSocketHandlers(io: TypedServer, manager: RoomManager, op
     on('game:pass', schemas.turn, buckets.game, (p) => manager.pass(socket.id, p.turnId));
     on('game:uno', schemas.empty, buckets.game, () => manager.callUno(socket.id));
     on('game:catch', schemas.catch, buckets.game, (p) => manager.catchUno(socket.id, p.targetId));
+    on('game:acceptDraw', schemas.turn, buckets.game, (p) => manager.acceptDraw(socket.id, p.turnId));
+    on('game:challenge', schemas.turn, buckets.game, (p) => manager.challenge(socket.id, p.turnId));
+    on('game:jumpIn', schemas.jumpIn, buckets.game, (p) => manager.jumpIn(socket.id, p));
     on('bottle:settings', schemas.bottleSettings, buckets.room, (p) => manager.updateBottleSettings(socket.id, p));
     on('bottle:spin', schemas.turn, buckets.game, (p) => manager.bottleSpin(socket.id, p.turnId));
     on('couples:choose', schemas.couplesChoose, buckets.game, (p) => ({ card: manager.couplesChoose(socket.id, p.kind, p.turnId) }));

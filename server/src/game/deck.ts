@@ -8,8 +8,12 @@ export const secureRng: Rng = (maxExclusive) => randomInt(maxExclusive);
 
 const PER_COLOR_TWICE: CardValue[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2'];
 
-/** Standard 108-card deck with fresh random card ids (ids are unguessable and change every round). */
-export function createDeck(): Card[] {
+/**
+ * The classic 108-card deck, or the modern 112-card deck (adds one Wild Shuffle Hands
+ * and three Wild Customizable cards) when `modern` is set. Fresh random card ids
+ * (unguessable, change every round).
+ */
+export function createDeck(options: { modern?: boolean } = {}): Card[] {
   const used = new Set<string>();
   const newId = (): string => {
     let id: string;
@@ -30,6 +34,10 @@ export function createDeck(): Card[] {
   for (let i = 0; i < 4; i++) {
     cards.push({ id: newId(), color: 'wild', value: 'wild' });
     cards.push({ id: newId(), color: 'wild', value: 'wild4' });
+  }
+  if (options.modern) {
+    cards.push({ id: newId(), color: 'wild', value: 'wildShuffle' });
+    for (let i = 0; i < 3; i++) cards.push({ id: newId(), color: 'wild', value: 'wildCustom' });
   }
   return cards;
 }

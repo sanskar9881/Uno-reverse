@@ -211,8 +211,12 @@ async def four_player_game(browser: Browser):
     await zoya.shot("06-color-picker-mobile", settle=400)
     await zoya.page.get_by_role("dialog", name="Choose a color").get_by_role("button", name=re.compile("^green")).click()
     await amit.wait('s.game.currentColor === "green" && s.game.currentPlayerId === s.selfId')
-    # Wild +4 (Amit has no green): Riya draws 4 and is skipped.
+    # Wild +4 (Amit has no green): Amit plays it, then Riya accepts (the next player always
+    # gets to accept or challenge, per the official rules).
     await amit.play(r"Wild \+4", color="blue")
+    await riya.wait('s.game.pendingDraw !== null && s.game.currentColor === "blue"')
+    await expect(riya.page.get_by_role("button", name=re.compile("^Accept"))).to_be_visible()
+    await riya.page.get_by_role("button", name=re.compile("^Accept")).click()
     await host.wait('s.game.currentPlayerId === s.selfId && s.game.currentColor === "blue"')
     await riya.wait("s.hand.length === 10")
     await host.play("Blue 2")

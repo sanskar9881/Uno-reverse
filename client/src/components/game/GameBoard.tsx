@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { describeCard, playableCardIds, type Card, type CardColor, type ClientState } from '@shared';
-import { callUno, catchPlayer, drawCard, passTurn, playCard } from '../../game/actions';
+import { acceptDraw, callUno, catchPlayer, challengeWild4, drawCard, jumpIn, passTurn, playCard } from '../../game/actions';
 import { rememberPlayOrigin } from '../../game/domRegistry';
 import { arcPositions, opponentsInSeatOrder } from '../../game/seatLayout';
 import { playSound } from '../../game/sounds';
@@ -14,8 +14,10 @@ import { ActionBar } from './ActionBar';
 import { ColorPicker } from './ColorPicker';
 import { Hand, sortHand } from './Hand';
 import { OpponentSeat, SEAT_BOX } from './OpponentSeat';
+import { RevealedHand } from './RevealedHand';
 import { RoundOverModal } from './RoundOverModal';
 import { TableCenter } from './TableCenter';
+import { TargetPicker } from './TargetPicker';
 import { TopBar } from './TopBar';
 
 const clamp = (min: number, value: number, max: number) => Math.min(max, Math.max(min, value));
@@ -26,6 +28,12 @@ function statusLine(state: ClientState, myTurn: boolean, playableCount: number):
   const game = state.game!;
   if (game.finished || state.room.status !== 'playing') return 'Round over';
   if (!game.turnOrder.includes(state.selfId)) return "You'll be dealt in next round.";
+  if (game.pendingDraw?.toPlayerId === state.selfId) {
+    const stackHint = game.houseRules.stacking ? ', or stack a matching card' : '';
+    return game.pendingDraw.canChallenge
+      ? `Accept the Wild +4, or challenge if you think they're bluffing${stackHint}.`
+      : `Accept the Draw Two${stackHint}.`;
+  }
   if (myTurn) {
     if (game.hasDrawnThisTurn) return 'You drew a card you can play. Play it or pass.';
     if (playableCount === 0) return 'No matching cards. Draw one.';
@@ -47,6 +55,7 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
   const busy = useGameStore((s) => s.busy);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingWild, setPendingWild] = useState<Card | null>(null);
+  const [pendingSeven, setPendingSeven] = useState<Card | null>(null);
 
   const game = state.game!;
   const self = state.selfId;
@@ -55,43 +64,64 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
   const inRound = game.turnOrder.includes(self);
   const active = state.room.status === 'playing' && !game.finished;
   const myTurn = active && inRound && game.currentPlayerId === self;
-  const playable = useMemo(
-    () => (myTurn ? playableCardIds(state.hand, game.topCard, game.currentColor, game.drawnCardId) : new Set<string>()),
-    [myTurn, state.hand, game.topCard, game.currentColor, game.drawnCardId],
-  );
+  const myPendingDraw = game.pendingDraw?.toPlayerId === self ? game.pendingDraw : null;
+  const stacking = game.houseRules.stacking;
+  const playable = useMemo(() => {
+    if (myPendingDraw) {
+      if (!stacking) return new Set<string>();
+      return new Set(state.hand.filter((c) => c.value === myPendingDraw.kind).map((c) => c.id));
+    }
+    return myTurn ? playableCardIds(state.hand, game.topCard, game.currentColor, game.drawnCardId) : new Set<string>();
+  }, [myPendingDraw, stacking, myTurn, state.hand, game.topCard, game.currentColor, game.drawnCardId]);
   const declared = game.unoDeclared.includes(self);
-  const canDraw = myTurn && !game.hasDrawnThisTurn;
-  const canPass = myTurn && game.hasDrawnThisTurn;
+  const canDraw = myTurn && !game.hasDrawnThisTurn && !myPendingDraw;
+  const canPass = myTurn && game.hasDrawnThisTurn && !myPendingDraw;
   const canUno =
     active && inRound && !declared && (state.hand.length === 1 || (state.hand.length === 2 && myTurn && playable.size > 0));
   const opponents = opponentsInSeatOrder(game.turnOrder, self)
     .map((id) => byId.get(id))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
   const vulnerable = game.unoVulnerableId && game.unoVulnerableId !== self ? byId.get(game.unoVulnerableId) : undefined;
+  const jumpInCard =
+    game.houseRules.jumpIn && !myTurn && !myPendingDraw
+      ? state.hand.find((c) => c.color !== 'wild' && c.color === game.currentColor && c.value === game.topCard.value)
+      : undefined;
 
   // Drop a stale selection when the hand or turn changes.
   useEffect(() => {
     if (selectedId && !state.hand.some((c) => c.id === selectedId)) setSelectedId(null);
   }, [state.hand, selectedId]);
   useEffect(() => {
-    if (!myTurn) setPendingWild(null);
+    if (!myTurn) {
+      setPendingWild(null);
+      setPendingSeven(null);
+    }
   }, [myTurn]);
 
   const commitPlay = useCallback(
-    (card: Card, element: HTMLElement | null, color?: CardColor) => {
+    (card: Card, element: HTMLElement | null, color?: CardColor, targetPlayerId?: string) => {
       if (element) {
         const r = element.getBoundingClientRect();
         rememberPlayOrigin(card.id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
       }
       setSelectedId(null);
-      void playCard(card.id, color);
+      void playCard(card.id, color, targetPlayerId);
     },
     [],
   );
 
   const tryPlay = useCallback(
     (card: Card, element: HTMLElement | null) => {
-      if (!myTurn) {
+      if (jumpInCard?.id === card.id) {
+        if (element) {
+          const r = element.getBoundingClientRect();
+          rememberPlayOrigin(card.id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        }
+        setSelectedId(null);
+        void jumpIn(card.id);
+        return;
+      }
+      if (!myTurn && !myPendingDraw) {
         playSound('error');
         toast("It's not your turn yet.", 'info');
         return;
@@ -101,11 +131,19 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
         toast(
           game.hasDrawnThisTurn
             ? 'After drawing you can only play the card you drew.'
-            : card.value === 'wild4' && card.color === 'wild'
-              ? `Wild +4 only works when you have no ${game.currentColor} cards.`
+            : myPendingDraw
+              ? `You can only stack another ${myPendingDraw.kind === 'draw2' ? 'Draw Two' : 'Wild +4'} right now.`
               : `${describeCard(card)} doesn't match. Play a ${game.currentColor} card or the same symbol.`,
           'bad',
         );
+        return;
+      }
+      if (card.value === '7' && game.houseRules.sevenZero) {
+        if (element) {
+          const r = element.getBoundingClientRect();
+          rememberPlayOrigin(card.id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        }
+        setPendingSeven(card);
         return;
       }
       if (card.color === 'wild') {
@@ -118,7 +156,7 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
       }
       commitPlay(card, element);
     },
-    [myTurn, playable, game.hasDrawnThisTurn, game.currentColor, commitPlay],
+    [jumpInCard, myTurn, myPendingDraw, playable, game.hasDrawnThisTurn, game.currentColor, game.houseRules.sevenZero, commitPlay],
   );
 
   const onCardClick = (card: Card, element: HTMLElement) => {
@@ -142,7 +180,7 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
   // Keyboard: D draw, P pass, U UNO, ←/→ choose a card, Enter plays it.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (pendingWild || e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (pendingWild || pendingSeven || e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
       const key = e.key.toLowerCase();
       if (key === 'd') onDraw();
       else if (key === 'p') onPass();
@@ -162,7 +200,7 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onDraw, onPass, onUno, pendingWild, selectedId, state.hand, tryPlay]);
+  }, [onDraw, onPass, onUno, pendingWild, pendingSeven, selectedId, state.hand, tryPlay]);
 
   // Cards scale with the screen: height-bound on desktop, width-bound on phones.
   const handCardWidth = compact ? clamp(56, (viewport.width - 24) / 5.2, 86) : clamp(70, viewport.height * 0.12, 108);
@@ -207,6 +245,13 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
           onPass={onPass}
           onUno={onUno}
           compact={compact}
+          pendingChallenge={
+            myPendingDraw
+              ? { amount: myPendingDraw.amount, canChallenge: myPendingDraw.canChallenge, canStack: stacking }
+              : null
+          }
+          onAccept={() => void acceptDraw()}
+          onChallenge={() => void challengeWild4()}
         />
         <div className={cn('mx-auto w-full px-2', shortLandscape ? 'max-w-none' : 'max-w-5xl')}>
           <Hand
@@ -271,6 +316,17 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
               </button>
             </div>
           )}
+          {jumpInCard && (
+            <div className="absolute inset-x-0 top-2 z-header flex justify-center px-3">
+              <button
+                type="button"
+                onClick={() => void jumpIn(jumpInCard.id)}
+                className="animate-pulse rounded-2xl bg-card-yellow px-4 py-2 font-extrabold text-night shadow-[0_5px_0_var(--color-shadow-yellow)]"
+              >
+                Jump in with {describeCard(jumpInCard)}!
+              </button>
+            </div>
+          )}
         </div>
 
         {!shortLandscape && handArea}
@@ -288,6 +344,17 @@ export function GameBoard({ state, onLeave }: { state: ClientState; onLeave: () 
         }}
         onCancel={() => setPendingWild(null)}
       />
+      <TargetPicker
+        open={pendingSeven !== null}
+        players={opponents}
+        onPick={(targetPlayerId) => {
+          const card = pendingSeven;
+          setPendingSeven(null);
+          if (card) commitPlay(card, null, undefined, targetPlayerId);
+        }}
+        onCancel={() => setPendingSeven(null)}
+      />
+      <RevealedHand state={state} />
       <RoundOverModal state={state} onLeave={onLeave} />
     </div>
   );

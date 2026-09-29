@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import {
+  CUSTOM_RULE_MAX_LENGTH,
   MAX_PLAYERS_BY_GAME,
   MIN_PLAYERS,
   TARGET_SCORE_OPTIONS,
@@ -7,7 +8,8 @@ import {
   type BottlePartySettings,
   type BottlePromptPack,
   type ClientState,
-  type RoomSettings,
+  type HouseRules,
+  type RoomSettingsPatch,
 } from '@shared';
 import { kickPlayer, startGame, updateBottleSettings, updateSettings } from '../../game/actions';
 import { useGameStore } from '../../store/gameStore';
@@ -21,6 +23,16 @@ import { Logo } from '../ui/Logo';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { SoundToggle } from '../ui/SoundToggle';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { HouseRuleChips } from '../game/HouseRuleChips';
+
+const HOUSE_RULE_OPTIONS: { key: keyof Omit<HouseRules, 'customRuleText'>; label: string; hint: string }[] = [
+  { key: 'stacking', label: 'Stacking', hint: 'A Draw Two or Wild +4 can be answered with another of its kind.' },
+  { key: 'drawUntilPlayable', label: 'Draw until you can play', hint: "Keep drawing instead of just one card." },
+  { key: 'mustPlayDrawn', label: 'Must play a drawn card', hint: "If it's playable, you have to play it." },
+  { key: 'sevenZero', label: '7-0', hint: 'A 7 swaps hands with someone you choose; a 0 passes every hand along.' },
+  { key: 'jumpIn', label: 'Jump-in', hint: 'Play an exact match out of turn.' },
+  { key: 'modernDeck', label: 'Modern 112-card deck', hint: 'Adds Wild Shuffle Hands and three Wild Customizable cards.' },
+];
 
 const TILE_COLORS = ['bg-card-red', 'bg-card-yellow', 'bg-card-green', 'bg-card-blue', 'bg-card-red', 'bg-card-yellow'];
 
@@ -68,7 +80,7 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
       // The user closed the share sheet.
     }
   };
-  const setSetting = (patch: Partial<RoomSettings>) => void updateSettings(patch);
+  const setSetting = (patch: RoomSettingsPatch) => void updateSettings(patch);
   const setBottleSetting = (patch: Partial<BottlePartySettings>) => void updateBottleSettings(patch);
   const maxPlayers = MAX_PLAYERS_BY_GAME[room.gameType];
 
@@ -184,6 +196,43 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
             disabled={!isHost || busy}
           />
           {!isHost && <p className="text-sm text-muted sm:col-span-2">Only the host can change these.</p>}
+
+          <div className="sm:col-span-2">
+            <h3 className="mb-2 text-sm font-semibold text-muted">House rules (official rules by default)</h3>
+            <div className="flex flex-col gap-2">
+              {HOUSE_RULE_OPTIONS.map(({ key, label, hint }) => (
+                <label key={key} className="flex items-start justify-between gap-3">
+                  <span>
+                    <span className="block text-sm font-semibold text-ink">{label}</span>
+                    <span className="block text-xs text-muted">{hint}</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={room.settings.houseRules[key]}
+                    onChange={(e) => setSetting({ houseRules: { [key]: e.target.checked } })}
+                    disabled={!isHost || busy}
+                    className="mt-1 h-5 w-5 shrink-0 accent-card-yellow"
+                  />
+                </label>
+              ))}
+            </div>
+            {room.settings.houseRules.modernDeck && (
+              <div className="mt-3">
+                <label htmlFor="custom-rule" className="mb-1.5 block text-sm font-semibold text-muted">
+                  Wild Customizable rule (shown when one is played)
+                </label>
+                <input
+                  id="custom-rule"
+                  value={room.settings.houseRules.customRuleText}
+                  onChange={(e) => setSetting({ houseRules: { customRuleText: e.target.value.slice(0, CUSTOM_RULE_MAX_LENGTH) } })}
+                  disabled={!isHost || busy}
+                  placeholder="e.g. Everyone drink!"
+                  className="h-11 w-full rounded-xl bg-night px-3.5 text-ink ring-1 ring-line placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-card-yellow"
+                />
+              </div>
+            )}
+            <HouseRuleChips houseRules={room.settings.houseRules} className="mt-3" />
+          </div>
         </section>
       ) : room.gameType === 'bottle' ? (
         <section className="mt-6 flex flex-col gap-4 rounded-3xl bg-night-2/70 p-5 ring-1 ring-line">

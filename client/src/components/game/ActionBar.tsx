@@ -4,6 +4,12 @@ import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { TurnRing } from './TurnRing';
 
+interface PendingChallenge {
+  amount: number;
+  canChallenge: boolean;
+  canStack: boolean;
+}
+
 interface ActionBarProps {
   me: { avatar: number; nickname: string; score: number; cards: number };
   myTurn: boolean;
@@ -19,10 +25,14 @@ interface ActionBarProps {
   onPass: () => void;
   onUno: () => void;
   compact: boolean;
+  /** Set when it's my decision to accept, challenge or (if stacking) stack a pending Draw Two / Wild +4. */
+  pendingChallenge?: PendingChallenge | null;
+  onAccept?: () => void;
+  onChallenge?: () => void;
 }
 
 export function ActionBar(props: ActionBarProps) {
-  const { me, myTurn, canDraw, canPass, canUno, declared, busy, status, turnEndsAt, turnDurationMs, compact } = props;
+  const { me, myTurn, canDraw, canPass, canUno, declared, busy, status, turnEndsAt, turnDurationMs, compact, pendingChallenge } = props;
   const left = useCountdown(myTurn ? turnEndsAt : 0);
   const fraction = turnDurationMs > 0 ? Math.min(1, left / turnDurationMs) : 0;
   const seconds = Math.ceil(left / 1000);
@@ -58,32 +68,45 @@ export function ActionBar(props: ActionBarProps) {
           style={{ width: `${myTurn ? fraction * 100 : 0}%`, transition: 'width 100ms linear' }}
         />
       </div>
-      <div className="flex items-center justify-center gap-2 sm:gap-3">
-        <Button variant="secondary" size={compact ? 'md' : 'lg'} onClick={props.onDraw} disabled={!canDraw || busy} title="Shortcut: D">
-          Draw card
-        </Button>
-        <Button variant="secondary" size={compact ? 'md' : 'lg'} onClick={props.onPass} disabled={!canPass || busy} title="Shortcut: P">
-          Pass
-        </Button>
-        <button
-          type="button"
-          onClick={props.onUno}
-          disabled={!canUno}
-          title="Shortcut: U"
-          aria-label={declared ? 'UNO called' : 'Call UNO'}
-          className={cn(
-            'relative grid place-items-center rounded-full font-display text-night transition-transform',
-            compact ? 'h-12 w-12 text-sm' : 'h-14 w-14 text-base',
-            canUno
-              ? 'animate-pulse-soft bg-card-yellow shadow-[0_5px_0_var(--color-shadow-yellow)]'
-              : declared
-                ? 'bg-card-green text-white'
-                : 'bg-veil/10 text-muted/60',
+      {pendingChallenge ? (
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
+          <Button variant="secondary" size={compact ? 'md' : 'lg'} onClick={props.onAccept} disabled={busy}>
+            Accept (draw {pendingChallenge.amount})
+          </Button>
+          {pendingChallenge.canChallenge && (
+            <Button variant="danger" size={compact ? 'md' : 'lg'} onClick={props.onChallenge} disabled={busy}>
+              Challenge
+            </Button>
           )}
-        >
-          UNO!
-        </button>
-      </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
+          <Button variant="secondary" size={compact ? 'md' : 'lg'} onClick={props.onDraw} disabled={!canDraw || busy} title="Shortcut: D">
+            Draw card
+          </Button>
+          <Button variant="secondary" size={compact ? 'md' : 'lg'} onClick={props.onPass} disabled={!canPass || busy} title="Shortcut: P">
+            Pass
+          </Button>
+          <button
+            type="button"
+            onClick={props.onUno}
+            disabled={!canUno}
+            title="Shortcut: U"
+            aria-label={declared ? 'UNO called' : 'Call UNO'}
+            className={cn(
+              'relative grid place-items-center rounded-full font-display text-night transition-transform',
+              compact ? 'h-12 w-12 text-sm' : 'h-14 w-14 text-base',
+              canUno
+                ? 'animate-pulse-soft bg-card-yellow shadow-[0_5px_0_var(--color-shadow-yellow)]'
+                : declared
+                  ? 'bg-card-green text-white'
+                  : 'bg-veil/10 text-muted/60',
+            )}
+          >
+            UNO!
+          </button>
+        </div>
+      )}
     </div>
   );
 }

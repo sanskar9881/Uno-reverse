@@ -1,9 +1,11 @@
 import {
   BOTTLE_SPIN_DURATION_MS,
+  DEFAULT_HOUSE_RULES,
   DEFAULT_SETTINGS,
   MAX_PLAYERS,
   MAX_PLAYERS_BY_GAME,
   MIN_PLAYERS,
+  WILD4_CHALLENGE_MS,
   type BottlePartySettings,
   type Card,
   type CardColor,
@@ -14,7 +16,7 @@ import {
   type GameType,
   type JoinResult,
   type ProfilePayload,
-  type RoomSettings,
+  type RoomSettingsPatch,
   type SessionEndReason,
   sameNickname,
   suggestFreeName,
@@ -47,6 +49,8 @@ import { uniqueRoomCode } from './roomCode';
 import type { PlayerRecord, Room } from './types';
 
 const DEFAULT_PARTY_SETTINGS: BottlePartySettings = { pack: 'party', canLandOnSelf: false, clockwiseTurns: false };
+/** How long a Wild +4 challenge reveal stays visible to the challenger. */
+const WILD4_REVEAL_MS = 5000;
 
 /** Transport-agnostic output. The Socket.IO layer implements this; tests use a fake. */
 export interface RoomNotifier {
@@ -91,6 +95,7 @@ export interface PlayInput {
   turnId: number;
   cardId: string;
   chosenColor?: CardColor;
+  targetPlayerId?: string;
 }
 
 /**
@@ -102,6 +107,8 @@ export interface PlayInput {
 export class RoomManager {
   private readonly sessions = new Map<string, Session>();
   private readonly turnTimers = new Map<string, NodeJS.Timeout>();
+  /** Fires when a Wild +4 challenge reveal has shown long enough. */
+  private readonly revealTimers = new Map<string, NodeJS.Timeout>();
   private readonly graceTimers = new Map<string, NodeJS.Timeout>();
   private readonly hostTimers = new Map<string, NodeJS.Timeout>();
   /** Fires when a bottle spin's duration elapses, so the server (not the client) decides when it lands. */
@@ -163,7 +170,7 @@ export class RoomManager {
       hostId: player.id,
       gameType,
       players: [player],
-      settings: { ...DEFAULT_SETTINGS },
+      settings: { ...DEFAULT_SETTINGS, houseRules: { ...DEFAULT_HOUSE_RULES } },
       status: 'lobby',
       game: null,
       partySettings: { ...DEFAULT_PARTY_SETTINGS },
@@ -173,6 +180,9 @@ export class RoomManager {
       lastRound: null,
       turnEndsAt: 0,
       turnDurationMs: 0,
+      revealViewerId: null,
+      revealOwnerId: null,
+      revealEndsAt: 0,
       starterSeed: this.rng(MAX_PLAYERS),
       createdAt: now,
       lastActivityAt: now,
@@ -282,11 +292,15 @@ export class RoomManager {
     this.notifier.roomUpdated(room, [{ type: 'playerDisconnected', playerId: player.id, nickname: player.nickname }]);
   }
 
-  updateSettings(socketId: string, patch: Partial<RoomSettings>): void {
+  updateSettings(socketId: string, patch: RoomSettingsPatch): void {
     const { room, player } = this.requireSession(socketId);
     this.requireHost(room, player);
     if (room.status === 'playing') throw new GameError('INVALID_STATE', "Settings can't change during a round.");
-    room.settings = { ...room.settings, ...patch };
+    room.settings = {
+      ...room.settings,
+      ...patch,
+      houseRules: patch.houseRules ? { ...room.settings.houseRules, ...patch.houseRules } : room.settings.houseRules,
+    };
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, [{ type: 'settingsChanged', settings: { ...room.settings } }]);
@@ -545,6 +559,30 @@ export class RoomManager {
     this.afterGameAction(room, events, game.turnId);
   }
 
+  acceptDraw(socketId: string, turnId: number): void {
+    const { room, player } = this.requireSession(socketId);
+    const game = this.requirePlaying(room);
+    const previousTurn = game.turnId;
+    const events = this.engine.acceptPendingDraw(game, player.id, turnId);
+    this.afterGameAction(room, events, previousTurn);
+  }
+
+  challenge(socketId: string, turnId: number): void {
+    const { room, player } = this.requireSession(socketId);
+    const game = this.requirePlaying(room);
+    const previousTurn = game.turnId;
+    const events = this.engine.challengeWild4(game, player.id, turnId);
+    this.afterGameAction(room, events, previousTurn);
+  }
+
+  jumpIn(socketId: string, input: { cardId: string; chosenColor?: CardColor; targetPlayerId?: string }): void {
+    const { room, player } = this.requireSession(socketId);
+    const game = this.requirePlaying(room);
+    const previousTurn = game.turnId;
+    const events = this.engine.jumpIn(game, player.id, input.cardId, input.chosenColor, input.targetPlayerId);
+    this.afterGameAction(room, events, previousTurn);
+  }
+
   // ------------------------------------------------------------------ introspection
 
   getRoom(code: string): Room | undefined {
@@ -569,6 +607,7 @@ export class RoomManager {
     clearInterval(this.sweepTimer);
     for (const timer of [
       ...this.turnTimers.values(),
+      ...this.revealTimers.values(),
       ...this.graceTimers.values(),
       ...this.hostTimers.values(),
       ...this.spinTimers.values(),
@@ -643,11 +682,18 @@ export class RoomManager {
     const ids = room.players.map((p) => p.id);
     const roundNumber = room.roundNumber + 1;
     const startIndex = (room.starterSeed + roundNumber - 1) % ids.length;
-    const { state, events } = this.engine.createGame(ids, { deck: this.deckFactory?.(room), startIndex });
+    const { state, events } = this.engine.createGame(ids, {
+      deck: this.deckFactory?.(room),
+      startIndex,
+      houseRules: room.settings.houseRules,
+    });
     room.roundNumber = roundNumber;
     room.game = state;
     room.status = 'playing';
     room.lastRound = null;
+    room.revealViewerId = null;
+    room.revealOwnerId = null;
+    room.revealEndsAt = 0;
     for (const id of ids) room.scores[id] ??= 0;
     this.scheduleTurnTimer(room);
     this.touch(room);
@@ -661,11 +707,38 @@ export class RoomManager {
 
   private afterGameAction(room: Room, events: GameEvent[], previousTurn: number): void {
     const game = room.game;
+    const challenge = events.find((e): e is Extract<GameEvent, { type: 'wild4Challenged' }> => e.type === 'wild4Challenged');
+    if (challenge) this.scheduleReveal(room, challenge.challengerId, challenge.challengedId);
     if (game?.finished) this.finishRound(room, events);
-    else if (game && game.turnId !== previousTurn) this.scheduleTurnTimer(room);
+    else if (game && game.turnId !== previousTurn) {
+      this.scheduleTurnTimer(room, game.pendingDraw ? WILD4_CHALLENGE_MS : undefined);
+    }
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, events);
+  }
+
+  /** Wild +4 challenge exception to hand privacy: the challenger briefly sees the challenged player's hand. */
+  private scheduleReveal(room: Room, viewerId: string, ownerId: string): void {
+    const existing = this.revealTimers.get(room.code);
+    if (existing) clearTimeout(existing);
+    room.revealViewerId = viewerId;
+    room.revealOwnerId = ownerId;
+    room.revealEndsAt = this.now() + WILD4_REVEAL_MS;
+    const timer = setTimeout(() => this.safely(() => this.clearReveal(room.code)), WILD4_REVEAL_MS);
+    timer.unref();
+    this.revealTimers.set(room.code, timer);
+  }
+
+  private clearReveal(code: string): void {
+    this.revealTimers.delete(code);
+    const room = this.store.get(code);
+    if (!room || !room.revealViewerId) return;
+    room.revealViewerId = null;
+    room.revealOwnerId = null;
+    room.revealEndsAt = 0;
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
   }
 
   /** Scores the round, updates the match and records stats. Mutates `events`. */

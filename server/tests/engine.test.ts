@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { CARD_COLORS, TOTAL_CARDS, canPlayCard, cardPoints, playableCardIds } from '@shared';
+import {
+  CARD_COLORS,
+  DEFAULT_HOUSE_RULES,
+  TOTAL_CARDS,
+  canPlayCard,
+  cardPoints,
+  playableCardIds,
+  wild4PlayWasLegal,
+  type HouseRules,
+} from '@shared';
 import { createDeck, shuffle } from '../src/game/deck';
 import { GameEngine, type GameState } from '../src/game/engine';
 import { GameError } from '../src/game/errors';
@@ -7,11 +16,15 @@ import { card, cards, fillerCards, riggedDeck } from './helpers/cards';
 
 const engine = new GameEngine(() => 0);
 
-function setup(handCodes: string[], startCode = 'r5', drawCodes = '', fillerCount = 20) {
+function setup(handCodes: string[], startCode = 'r5', drawCodes = '', fillerCount = 20, houseRules?: Partial<HouseRules>) {
   const hands = handCodes.map(cards);
   const deck = riggedDeck(hands, card(startCode), cards(drawCodes), fillerCards(fillerCount, 'g3'));
   const ids = hands.map((_, i) => `p${i}`);
-  const { state, events } = engine.createGame(ids, { deck, startIndex: 0 });
+  const { state, events } = engine.createGame(ids, {
+    deck,
+    startIndex: 0,
+    houseRules: { ...DEFAULT_HOUSE_RULES, ...houseRules },
+  });
   return { state, events, hands };
 }
 
@@ -80,11 +93,12 @@ describe('rules', () => {
     expect(canPlayCard(card('W'), top, 'green', [])).toBe(true);
   });
 
-  it('allows Wild +4 only without a card of the active color', () => {
+  it('a wild +4 is always playable — the official rule makes it a matter of honesty, checked only on challenge', () => {
     const w4 = card('W4');
-    expect(canPlayCard(w4, card('r5'), 'red', [w4, card('r1')])).toBe(false);
-    // A matching number of another color does not block it.
+    expect(canPlayCard(w4, card('r5'), 'red', [w4, card('r1')])).toBe(true);
     expect(canPlayCard(w4, card('r5'), 'red', [w4, card('b5')])).toBe(true);
+    expect(wild4PlayWasLegal(w4.id, 'red', [card('r1')])).toBe(false);
+    expect(wild4PlayWasLegal(w4.id, 'red', [card('b5')])).toBe(true);
   });
 
   it('restricts playable cards to the drawn card after drawing', () => {
@@ -102,29 +116,85 @@ describe('rules', () => {
 });
 
 describe('dealing', () => {
-  it('deals 7 cards each and flips a number card to start', () => {
+  it('deals 7 cards each with a real (unrigged) deck', () => {
     const game = new GameEngine();
     const { state, events } = game.createGame(['a', 'b', 'c']);
     for (const id of ['a', 'b', 'c']) expect(state.hands[id]).toHaveLength(7);
     expect(state.discardPile).toHaveLength(1);
-    expect(state.drawPile).toHaveLength(TOTAL_CARDS - 22);
-    expect(state.discardPile[0].color).not.toBe('wild');
-    expect(Number.isNaN(Number(state.discardPile[0].value))).toBe(false);
+    expect(state.discardPile[0].value).not.toBe('wild4');
     expect(totalCards(state)).toBe(TOTAL_CARDS);
-    expect(events).toEqual([{ type: 'turnChanged', playerId: 'a' }]);
-  });
-
-  it('puts action and wild cards flipped at the start back under the pile', () => {
-    const hands = [cards('b1 b2 b3 b4 b6 b7 b8'), cards('y1 y2 y3 y4 y6 y7 y8')];
-    const deck = riggedDeck(hands, card('rS'), cards('W g4'), fillerCards(5));
-    const { state } = engine.createGame(['p0', 'p1'], { deck });
-    expect(state.discardPile[0]).toMatchObject({ color: 'green', value: '4' });
-    expect(state.currentColor).toBe('green');
-    expect(state.drawPile.slice(0, 2).map((c) => c.value)).toEqual(['skip', 'wild']);
+    expect(events.length).toBeGreaterThan(0);
+    expect(events.at(-1)).toEqual({ type: 'turnChanged', playerId: state.players[state.currentIndex] });
   });
 
   it('needs at least two players', () => {
     expectCode(() => engine.createGame(['solo']), 'NOT_ENOUGH_PLAYERS');
+  });
+});
+
+// Every official start-card case: docs/PARTY_PLAN_2.md's Phase 10 table, verified against Mattel's rules.
+describe('start card', () => {
+  it('a number card starts normally', () => {
+    const hands = [cards('b1 b2 b3 b4 b6 b7 b8'), cards('y1 y2 y3 y4 y6 y7 y8')];
+    const { state, events } = engine.createGame(['p0', 'p1'], { deck: riggedDeck(hands, card('r5'), [], fillerCards(5)) });
+    expect(state.discardPile[0]).toMatchObject({ color: 'red', value: '5' });
+    expect(state.currentColor).toBe('red');
+    expect(state.direction).toBe(1);
+    expect(state.players[state.currentIndex]).toBe('p0');
+    expect(events).toEqual([{ type: 'turnChanged', playerId: 'p0' }]);
+  });
+
+  it('skip skips the first player', () => {
+    const hands = [cards('b1 b2 b3 b4 b6 b7 b8'), cards('y1 y2 y3 y4 y6 y7 y8'), cards('g1 g2 g3 g4 g6 g7 g8')];
+    const { state, events } = engine.createGame(['p0', 'p1', 'p2'], { deck: riggedDeck(hands, card('rS'), [], fillerCards(5)) });
+    expect(state.players[state.currentIndex]).toBe('p1');
+    expect(events).toEqual([
+      { type: 'skipped', playerId: 'p0' },
+      { type: 'turnChanged', playerId: 'p1' },
+    ]);
+  });
+
+  it('reverse makes the dealer (the seat before the starting seat) go first, the other way', () => {
+    const hands = [cards('b1 b2 b3 b4 b6 b7 b8'), cards('y1 y2 y3 y4 y6 y7 y8'), cards('g1 g2 g3 g4 g6 g7 g8')];
+    const { state, events } = engine.createGame(['p0', 'p1', 'p2'], { deck: riggedDeck(hands, card('rR'), [], fillerCards(5)) });
+    expect(state.direction).toBe(-1);
+    expect(state.players[state.currentIndex]).toBe('p2');
+    expect(events).toEqual([
+      { type: 'reversed', direction: -1 },
+      { type: 'turnChanged', playerId: 'p2' },
+    ]);
+  });
+
+  it('draw two makes the first player draw two and lose their turn', () => {
+    const hands = [cards('b1 b2 b3 b4 b6 b7 b8'), cards('y1 y2 y3 y4 y6 y7 y8')];
+    const { state, events } = engine.createGame(['p0', 'p1'], { deck: riggedDeck(hands, card('rD'), [], fillerCards(5)) });
+    expect(state.hands.p0).toHaveLength(9);
+    expect(state.players[state.currentIndex]).toBe('p1');
+    expect(events).toEqual([
+      { type: 'cardDrawn', playerId: 'p0', count: 2, reason: 'draw2' },
+      { type: 'skipped', playerId: 'p0' },
+      { type: 'turnChanged', playerId: 'p1' },
+    ]);
+  });
+
+  it('wild lets the first player choose the color and take the first turn', () => {
+    const hands = [cards('b1 b2 b3 b4 b6 b7 b8'), cards('y1 y2 y3 y4 y6 y7 y8')];
+    const { state, events } = engine.createGame(['p0', 'p1'], { deck: riggedDeck(hands, card('W'), [], fillerCards(5)) });
+    expect(state.discardPile[0].value).toBe('wild');
+    expect(CARD_COLORS as readonly string[]).toContain(state.currentColor);
+    expect(state.players[state.currentIndex]).toBe('p0');
+    expect(events).toEqual([{ type: 'turnChanged', playerId: 'p0' }]);
+  });
+
+  it('wild draw four is put back and reshuffled, then the next card applies normally', () => {
+    const hands = [cards('b1 b2 b3 b4 b6 b7 b8'), cards('y1 y2 y3 y4 y6 y7 y8')];
+    // Every non-wild4 card left is an identical green 4, so whichever one the reshuffle
+    // surfaces next is deterministic to assert on.
+    const deck = riggedDeck(hands, card('W4'), [], fillerCards(10, 'g4'));
+    const { state } = engine.createGame(['p0', 'p1'], { deck });
+    expect(state.discardPile[0]).toMatchObject({ color: 'green', value: '4' });
+    expect(state.currentColor).toBe('green');
+    expect(state.drawPile.some((c) => c.value === 'wild4')).toBe(true);
   });
 });
 
@@ -193,18 +263,59 @@ describe('playing cards', () => {
     expect(state.players[state.currentIndex]).toBe('p2');
   });
 
-  it('wild draw four gives four cards, skips, and sets the color', () => {
-    const { state } = setup(['W4 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g4 g6 g7 g8 g9']);
+  it('wild draw four is always legal to play, but only sets a pending draw (no cards move yet)', () => {
+    // p0 holds a red card — the play is illegal — but it's still allowed; only a challenge matters.
+    const { state } = setup(['W4 r1 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g4 g6 g7 g8 g9']);
     const events = play(state, 'p0', 'W4', 'blue');
-    expect(state.hands.p1).toHaveLength(11);
-    expect(state.players[state.currentIndex]).toBe('p2');
+    expect(state.hands.p1).toHaveLength(7);
     expect(state.currentColor).toBe('blue');
+    expect(state.players[state.currentIndex]).toBe('p1');
+    expect(state.pendingDraw).toEqual({ kind: 'wild4', amount: 4, fromPlayerId: 'p0', toPlayerId: 'p1', colorBeforePlay: 'red' });
+    expect(events).not.toContainEqual(expect.objectContaining({ type: 'cardDrawn' }));
+  });
+
+  it('accepting a pending wild draw four gives the cards and skips to the following player', () => {
+    const { state } = setup(['W4 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g4 g6 g7 g8 g9']);
+    play(state, 'p0', 'W4', 'blue');
+    const events = engine.acceptPendingDraw(state, 'p1', state.turnId);
+    expect(state.hands.p1).toHaveLength(11);
+    expect(state.pendingDraw).toBeNull();
+    expect(state.players[state.currentIndex]).toBe('p2');
     expect(events).toContainEqual({ type: 'cardDrawn', playerId: 'p1', count: 4, reason: 'wild4' });
   });
 
-  it('refuses wild draw four while holding the active color', () => {
-    const { state } = setup(['W4 r1 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8']);
-    expectCode(() => play(state, 'p0', 'W4', 'blue'), 'INVALID_PLAY');
+  it('challenging a legal wild draw four costs the challenger 6 cards and their turn', () => {
+    // p0 holds no red card: the play is legal.
+    const { state } = setup(['W4 b1 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g4 g6 g7 g8 g9']);
+    play(state, 'p0', 'W4', 'blue');
+    const events = engine.challengeWild4(state, 'p1', state.turnId);
+    expect(state.hands.p1).toHaveLength(13); // 7 + 4 + 2
+    expect(state.hands.p0).toHaveLength(6); // untouched, still down one for the play
+    expect(state.pendingDraw).toBeNull();
+    expect(state.players[state.currentIndex]).toBe('p2'); // the challenger loses their turn
+    expect(events).toContainEqual({ type: 'wild4Challenged', challengerId: 'p1', challengedId: 'p0', legal: true });
+  });
+
+  it('challenging an illegal wild draw four makes the challenged player draw instead, and the challenger keeps their turn', () => {
+    // p0 holds a red card: the play is illegal.
+    const { state } = setup(['W4 r1 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g4 g6 g7 g8 g9']);
+    play(state, 'p0', 'W4', 'blue');
+    const events = engine.challengeWild4(state, 'p1', state.turnId);
+    expect(state.hands.p0).toHaveLength(10); // 6 + 4
+    expect(state.hands.p1).toHaveLength(7); // untouched
+    expect(state.pendingDraw).toBeNull();
+    expect(state.players[state.currentIndex]).toBe('p1'); // the challenger keeps their turn
+    expect(events).toContainEqual({ type: 'wild4Challenged', challengerId: 'p1', challengedId: 'p0', legal: false });
+  });
+
+  it('the timer expiring on a pending draw accepts it automatically', () => {
+    const { state } = setup(['W4 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g4 g6 g7 g8 g9']);
+    play(state, 'p0', 'W4', 'blue');
+    const events = engine.timeoutTurn(state);
+    expect(state.hands.p1).toHaveLength(11);
+    expect(state.pendingDraw).toBeNull();
+    expect(state.players[state.currentIndex]).toBe('p2');
+    expect(events).toContainEqual({ type: 'turnTimedOut', playerId: 'p1' });
   });
 });
 
@@ -414,5 +525,142 @@ describe('removing players mid-round', () => {
     expect(state.finished).toBe(true);
     expect(state.forfeit).toBe(true);
     expect(state.winnerId).toBe('p1');
+  });
+});
+
+describe('house rules (all off by default)', () => {
+  it('stacking: a draw two can be answered with another, and the total falls on whoever can\'t', () => {
+    const { state } = setup(
+      ['rD b2 b3 b4 b6 b7 b8', 'yD y2 y3 y4 y6 y7 y8', 'g1 g2 g3 g4 g6 g7 g8'],
+      'r5',
+      '',
+      20,
+      { stacking: true },
+    );
+    play(state, 'p0', 'rD');
+    expect(state.pendingDraw).toMatchObject({ kind: 'draw2', amount: 2, fromPlayerId: 'p0', toPlayerId: 'p1' });
+    play(state, 'p1', 'yD');
+    expect(state.pendingDraw).toMatchObject({ kind: 'draw2', amount: 4, fromPlayerId: 'p1', toPlayerId: 'p2' });
+    expect(state.hands.p1).toHaveLength(6); // played, hasn't drawn
+    engine.acceptPendingDraw(state, 'p2', state.turnId);
+    expect(state.hands.p2).toHaveLength(11); // 7 + 4
+    expect(state.pendingDraw).toBeNull();
+    expect(state.players[state.currentIndex]).toBe('p0');
+  });
+
+  it('stacking is off by default: a second draw two cannot answer the first', () => {
+    const { state } = setup(['rD b2 b3 b4 b6 b7 b8', 'yD y2 y3 y4 y6 y7 y8']);
+    play(state, 'p0', 'rD');
+    expect(state.hands.p1).toHaveLength(9); // resolved immediately, no pendingDraw
+    expect(state.pendingDraw).toBeNull();
+    expectCode(() => play(state, 'p1', 'yD'), 'NOT_YOUR_TURN');
+  });
+
+  it('draw until playable: keeps drawing until a playable card turns up', () => {
+    const { state } = setup(
+      ['g1 g2 g3 g4 g6 g7 g8', 'y1 y2 y3 y4 y6 y7 y8'],
+      'r5',
+      'b1 b2 r9',
+      20,
+      { drawUntilPlayable: true },
+    );
+    const { events, playable } = engine.draw(state, 'p0', state.turnId);
+    expect(playable).toBe(true);
+    expect(state.hands.p0).toHaveLength(10); // 7 + 3 draws
+    expect(state.drawnCardId).toBe(state.hands.p0.find((c) => c.color === 'red' && c.value === '9')!.id);
+    expect(events.filter((e) => e.type === 'cardDrawn')).toHaveLength(3);
+  });
+
+  it('must play a drawn card: pass is blocked once a playable card was drawn', () => {
+    const { state } = setup(['g1 g2 g3 g4 g6 g7 g8', 'y1 y2 y3 y4 y6 y7 y8'], 'r5', 'r9', 20, { mustPlayDrawn: true });
+    engine.draw(state, 'p0', state.turnId);
+    expect(state.hasDrawn).toBe(true);
+    expectCode(() => engine.pass(state, 'p0', state.turnId), 'MUST_PLAY_DRAWN_CARD');
+    play(state, 'p0', 'r9');
+    expect(state.players[state.currentIndex]).toBe('p1');
+  });
+
+  it('seven-zero: playing a 7 swaps hands with the chosen player', () => {
+    const { state } = setup(
+      ['r7 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g3 g4 g6 g7 g8'],
+      'r5',
+      '',
+      20,
+      { sevenZero: true },
+    );
+    const playedId = find(state, 'p0', 'r7').id;
+    const p0Before = state.hands.p0.filter((c) => c.id !== playedId).map((c) => c.id).sort();
+    const p1Before = state.hands.p1.map((c) => c.id).sort();
+    const events = engine.play(state, 'p0', { cardId: playedId, turnId: state.turnId, targetPlayerId: 'p1' });
+    expect(state.hands.p1.map((c) => c.id).sort()).toEqual(p0Before);
+    expect(state.hands.p0.map((c) => c.id).sort()).toEqual(p1Before);
+    expect(events).toContainEqual({ type: 'handsSwapped', playerId: 'p0', targetPlayerId: 'p1' });
+  });
+
+  it('seven-zero requires a target for a 7', () => {
+    const { state } = setup(['r7 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8'], 'r5', '', 20, { sevenZero: true });
+    expectCode(
+      () => engine.play(state, 'p0', { cardId: find(state, 'p0', 'r7').id, turnId: state.turnId }),
+      'TARGET_REQUIRED',
+    );
+  });
+
+  it('seven-zero: playing a 0 rotates every hand one seat in the direction of play', () => {
+    const { state } = setup(
+      ['r0 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g3 g4 g6 g7 g8'],
+      'r5',
+      '',
+      20,
+      { sevenZero: true },
+    );
+    const before = {
+      p0: state.hands.p0.filter((c) => c.value !== '0').map((c) => c.id).sort(),
+      p1: state.hands.p1.map((c) => c.id).sort(),
+      p2: state.hands.p2.map((c) => c.id).sort(),
+    };
+    play(state, 'p0', 'r0');
+    // direction is +1: each hand moves one seat forward, so seat i receives seat (i-1)'s old hand.
+    expect(state.hands.p1.map((c) => c.id).sort()).toEqual(before.p0);
+    expect(state.hands.p2.map((c) => c.id).sort()).toEqual(before.p1);
+    expect(state.hands.p0.map((c) => c.id).sort()).toEqual(before.p2);
+  });
+
+  it('jump-in: an exact color-and-value match can be played out of turn', () => {
+    const { state } = setup(
+      ['b1 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'r5 g2 g3 g4 g6 g7 g8'],
+      'r5',
+      '',
+      20,
+      { jumpIn: true },
+    );
+    const events = engine.jumpIn(state, 'p2', find(state, 'p2', 'r5').id);
+    expect(state.discardPile.at(-1)).toMatchObject({ color: 'red', value: '5' });
+    expect(state.hands.p2).toHaveLength(6);
+    expect(state.players[state.currentIndex]).toBe('p0'); // a number card: play just continues from the jumper
+    expect(events).toContainEqual({ type: 'jumpedIn', playerId: 'p2' });
+  });
+
+  it('jump-in is off by default', () => {
+    const { state } = setup(['b1 b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'r5 g2 g3 g4 g6 g7 g8'], 'r5');
+    expectCode(() => engine.jumpIn(state, 'p2', find(state, 'p2', 'r5').id), 'CANNOT_JUMP_IN');
+  });
+
+  it('wild shuffle hands (modern deck): collects, shuffles and redeals every hand', () => {
+    const { state } = setup(
+      ['WS b2 b3 b4 b6 b7 b8', 'y1 y2 y3 y4 y6 y7 y8', 'g1 g2 g3 g4 g6 g7 g8'],
+      'r5',
+      '',
+      20,
+      { modernDeck: true },
+    );
+    const events = play(state, 'p0', 'WS', 'red');
+    const total = state.hands.p0.length + state.hands.p1.length + state.hands.p2.length;
+    expect(total).toBe(6 + 7 + 7); // p0 is down the one card it played
+    expect(events).toContainEqual({ type: 'handsShuffled', playerId: 'p0' });
+  });
+
+  it('scores the modern deck\'s extra wilds at 40 points', () => {
+    expect(cardPoints(card('WS'))).toBe(40);
+    expect(cardPoints(card('WC'))).toBe(40);
   });
 });

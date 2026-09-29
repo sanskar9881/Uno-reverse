@@ -14,6 +14,8 @@ export function card(code: string): Card {
   const id = `t${counter}`;
   if (code === 'W') return { id, color: 'wild', value: 'wild' };
   if (code === 'W4') return { id, color: 'wild', value: 'wild4' };
+  if (code === 'WS') return { id, color: 'wild', value: 'wildShuffle' };
+  if (code === 'WC') return { id, color: 'wild', value: 'wildCustom' };
   const color = COLORS[code[0]];
   const raw = code.slice(1);
   const value = VALUES[raw] ?? (raw as CardValue);

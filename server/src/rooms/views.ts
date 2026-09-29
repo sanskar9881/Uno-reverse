@@ -35,6 +35,10 @@ export function buildRoomView(room: Room): RoomView {
 /** The personalized snapshot for one player: public table info plus their own hand only. */
 export function buildClientState(room: Room, viewerId: string, events: GameEvent[], now: number): ClientState {
   const game = room.game;
+  const revealing =
+    room.revealViewerId === viewerId && room.revealOwnerId && now < room.revealEndsAt
+      ? game?.hands[room.revealOwnerId]
+      : undefined;
   return {
     serverTime: now,
     selfId: viewerId,
@@ -44,6 +48,7 @@ export function buildClientState(room: Room, viewerId: string, events: GameEvent
       : null,
     hand: game?.hands[viewerId] ? game.hands[viewerId].map((c) => ({ ...c })) : [],
     events,
+    revealedHand: revealing ? { ownerId: room.revealOwnerId!, cards: revealing.map((c) => ({ ...c })) } : null,
     party: buildPartyView(room),
   };
 }

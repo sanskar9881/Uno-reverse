@@ -21,6 +21,10 @@ function CenterGlyph({ card }: { card: Card }) {
       return <div className="uno-card__glyph uno-card__glyph--text">+2</div>;
     case 'wild4':
       return <div className="uno-card__glyph uno-card__glyph--text">+4</div>;
+    case 'wildShuffle':
+      return <div className="uno-card__glyph uno-card__glyph--text">⇄</div>;
+    case 'wildCustom':
+      return <div className="uno-card__glyph uno-card__glyph--text">?</div>;
     case 'wild':
       return null;
     default:
@@ -42,6 +46,10 @@ function CornerGlyph({ card }: { card: Card }) {
       return <>+2</>;
     case 'wild4':
       return <>+4</>;
+    case 'wildShuffle':
+      return <>⇄</>;
+    case 'wildCustom':
+      return <>?</>;
     case 'wild':
       return <span className="uno-card__mini-diamond" />;
     default:

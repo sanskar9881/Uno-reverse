@@ -1,4 +1,5 @@
 import type { ClientState, GameEvent } from '@shared';
+import { HOUSE_RULE_LABELS } from '../components/game/HouseRuleChips';
 import { toast } from '../store/toastStore';
 import { useFxStore } from '../store/fxStore';
 import { DRAW_PILE, centerOf, seatKey } from './domRegistry';
@@ -13,7 +14,7 @@ export function reactToState(prev: ClientState | null, next: ClientState): void 
   const penalized = new Set(
     next.events
       .filter((e): e is Extract<GameEvent, { type: 'cardDrawn' }> => e.type === 'cardDrawn')
-      .filter((e) => e.reason === 'draw2' || e.reason === 'wild4')
+      .filter((e) => e.reason === 'draw2' || e.reason === 'wild4' || e.reason === 'wild4Challenge')
       .map((e) => e.playerId),
   );
 
@@ -46,15 +47,27 @@ export function reactToState(prev: ClientState | null, next: ClientState): void 
       case 'hostChanged':
         toast(e.playerId === self ? "You're the host now" : `${e.nickname} is the host now`, 'info', '👑');
         break;
-      case 'settingsChanged':
-        toast(
-          `Settings updated: ${e.settings.turnSeconds}-second turns, ${
-            e.settings.targetScore ? `first to ${e.settings.targetScore} points wins` : 'no score limit'
-          }`,
-          'info',
-          '⚙️',
-        );
+      case 'settingsChanged': {
+        const before = prev?.room.settings;
+        if (!before || before.turnSeconds !== e.settings.turnSeconds || before.targetScore !== e.settings.targetScore) {
+          toast(
+            `Settings updated: ${e.settings.turnSeconds}-second turns, ${
+              e.settings.targetScore ? `first to ${e.settings.targetScore} points wins` : 'no score limit'
+            }`,
+            'info',
+            '⚙️',
+          );
+        }
+        if (before && before.houseRules !== e.settings.houseRules) {
+          const keys = Object.keys(HOUSE_RULE_LABELS) as (keyof typeof HOUSE_RULE_LABELS)[];
+          const changed = keys.find((key) => before.houseRules[key] !== e.settings.houseRules[key]);
+          if (changed) {
+            const on = e.settings.houseRules[changed];
+            toast(`${HOUSE_RULE_LABELS[changed]} turned ${on ? 'on' : 'off'}`, 'info', '📜');
+          }
+        }
         break;
+      }
       case 'gameStarted':
         playSound('draw');
         toast(
@@ -68,6 +81,10 @@ export function reactToState(prev: ClientState | null, next: ClientState): void 
         if (e.card.value === 'wild' && e.chosenColor) toast(`${who(e.playerId)} picked ${e.chosenColor}`, 'info', '🎨');
         if (e.card.value === 'wild4' && e.chosenColor) {
           toast(`${who(e.playerId)} played Wild +4 and picked ${e.chosenColor}`, 'info', '🎨');
+        }
+        if (e.card.value === 'wildCustom') {
+          const rule = next.room.settings.houseRules.customRuleText.trim();
+          toast(rule ? `${who(e.playerId)} played Wild Customizable: ${rule}` : `${who(e.playerId)} played Wild Customizable`, 'info', '❓');
         }
         break;
       case 'cardDrawn':
@@ -124,6 +141,48 @@ export function reactToState(prev: ClientState | null, next: ClientState): void 
         } else {
           playSound('turn');
         }
+        break;
+      case 'wild4Challenged': {
+        const amMe = e.challengerId === self || e.challengedId === self;
+        // The loser is whoever ends up drawing: the challenger if the play was legal, the challenged player if not.
+        const iLost = e.legal ? e.challengerId === self : e.challengedId === self;
+        playSound(e.legal ? 'error' : 'catch');
+        toast(
+          e.legal
+            ? e.challengerId === self
+              ? `You guessed wrong — ${nameOf(e.challengedId)} was honest. Draw 6 and lose your turn.`
+              : `${nameOf(e.challengerId)} challenged ${nameOf(e.challengedId)} and guessed wrong.`
+            : e.challengedId === self
+              ? `${nameOf(e.challengerId)} caught your bluff! Draw the cards.`
+              : e.challengerId === self
+                ? `Caught them bluffing! ${nameOf(e.challengedId)} draws instead.`
+                : `${nameOf(e.challengerId)} caught ${nameOf(e.challengedId)} bluffing.`,
+          iLost ? 'bad' : 'info',
+          '🔎',
+        );
+        if (amMe) navigator.vibrate?.(60);
+        break;
+      }
+      case 'drawStacked':
+        toast(`${who(e.playerId)} stacked it — up to ${e.amount} now`, 'info', '📚');
+        break;
+      case 'handsSwapped':
+        toast(
+          e.playerId === self || e.targetPlayerId === self
+            ? `${who(e.playerId)} swapped hands with ${who(e.targetPlayerId)}`
+            : `${nameOf(e.playerId)} swapped hands with ${nameOf(e.targetPlayerId)}`,
+          'info',
+          '🔁',
+        );
+        break;
+      case 'handsRotated':
+        toast('Every hand passed around the table', 'info', '🔁');
+        break;
+      case 'handsShuffled':
+        toast(`${who(e.playerId)} shuffled every hand together`, 'info', '🌀');
+        break;
+      case 'jumpedIn':
+        toast(`${who(e.playerId)} jumped in!`, 'info', '⚡');
         break;
       case 'roundOver':
         playSound('victory');

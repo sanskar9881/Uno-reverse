@@ -4,7 +4,12 @@ export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 8;
 export const HAND_SIZE = 7;
 export const TOTAL_CARDS = 108;
+/** The modern deck adds one Wild Shuffle Hands and three Wild Customizable cards. */
+export const TOTAL_CARDS_MODERN = 112;
 export const UNO_PENALTY_CARDS = 2;
+/** How long the player facing a Wild +4 has to accept, stack or challenge. */
+export const WILD4_CHALLENGE_MS = 10_000;
+export const CUSTOM_RULE_MAX_LENGTH = 120;
 
 export const GAME_TYPES = ['uno', 'bottle', 'couples'] as const;
 
@@ -33,10 +38,21 @@ export const NICKNAME_MAX_LENGTH = 16;
 export const AVATARS = ['🦊', '🐼', '🐸', '🐯', '🦄', '🐙', '🐵', '🐧', '🐨', '🦁', '🐲', '👾'] as const;
 
 export const TURN_SECONDS_OPTIONS = [15, 30, 45, 60] as const;
-/** 0 = no limit (scores just accumulate). */
+/** 0 = no limit (scores just accumulate). Official UNO plays to 500. */
 export const TARGET_SCORE_OPTIONS = [0, 100, 250, 500] as const;
 
-export const DEFAULT_SETTINGS = { turnSeconds: 30, targetScore: 0 };
+/** All off, per the official rules. */
+export const DEFAULT_HOUSE_RULES = {
+  stacking: false,
+  drawUntilPlayable: false,
+  mustPlayDrawn: false,
+  sevenZero: false,
+  jumpIn: false,
+  modernDeck: false,
+  customRuleText: '',
+};
+
+export const DEFAULT_SETTINGS = { turnSeconds: 30, targetScore: 500, houseRules: DEFAULT_HOUSE_RULES };
 
 export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

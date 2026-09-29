@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   AVATARS,
   CARD_COLORS,
+  CUSTOM_RULE_MAX_LENGTH,
   GAME_TYPES,
   NICKNAME_MAX_LENGTH,
   NICKNAME_MIN_LENGTH,
@@ -58,12 +59,29 @@ export const schemas = {
         .number()
         .refine((v) => (TARGET_SCORE_OPTIONS as readonly number[]).includes(v))
         .optional(),
+      houseRules: z
+        .object({
+          stacking: z.boolean().optional(),
+          drawUntilPlayable: z.boolean().optional(),
+          mustPlayDrawn: z.boolean().optional(),
+          sevenZero: z.boolean().optional(),
+          jumpIn: z.boolean().optional(),
+          modernDeck: z.boolean().optional(),
+          customRuleText: z.string().trim().max(CUSTOM_RULE_MAX_LENGTH).optional(),
+        })
+        .optional(),
     })
-    .refine((s) => s.turnSeconds !== undefined || s.targetScore !== undefined),
+    .refine((s) => s.turnSeconds !== undefined || s.targetScore !== undefined || s.houseRules !== undefined),
   kick: z.object({ playerId: idSchema }),
-  play: z.object({ turnId: turnIdSchema, cardId: idSchema, chosenColor: z.enum(CARD_COLORS).optional() }),
+  play: z.object({
+    turnId: turnIdSchema,
+    cardId: idSchema,
+    chosenColor: z.enum(CARD_COLORS).optional(),
+    targetPlayerId: idSchema.optional(),
+  }),
   turn: z.object({ turnId: turnIdSchema }),
   catch: z.object({ targetId: idSchema }),
+  jumpIn: z.object({ cardId: idSchema, chosenColor: z.enum(CARD_COLORS).optional(), targetPlayerId: idSchema.optional() }),
   bottleSettings: z
     .object({
       pack: z.enum(['off', 'party', 'flirty']).optional(),
