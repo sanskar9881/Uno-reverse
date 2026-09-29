@@ -1,3 +1,5 @@
+import { BOTTLE_MIN_PLAYERS } from './logic';
+
 export interface BottlePlayer {
   name: string;
   emoji: string;
@@ -17,8 +19,15 @@ export interface BottleOptions {
   flirtyConfirmed: boolean;
 }
 
+export interface LastLocalGame {
+  players: BottlePlayer[];
+  options: BottleOptions;
+  savedAt: number;
+}
+
 const GROUPS_KEY = 'uno-party:bottle-groups';
 const OPTIONS_KEY = 'uno-party:bottle-options';
+const LAST_GAME_KEY = 'uno-party:bottle-last-game';
 
 const DEFAULT_OPTIONS: BottleOptions = {
   pack: 'party',
@@ -68,4 +77,14 @@ export function loadBottleOptions(): BottleOptions {
 
 export function saveBottleOptions(options: BottleOptions): void {
   write(OPTIONS_KEY, options);
+}
+
+/** The players and settings from the last one-phone game started, so "Play again" is one tap. */
+export function loadLastLocalGame(): LastLocalGame | null {
+  const stored = read<LastLocalGame>(LAST_GAME_KEY);
+  return stored && stored.players.length >= BOTTLE_MIN_PLAYERS ? stored : null;
+}
+
+export function saveLastLocalGame(players: BottlePlayer[], options: BottleOptions): void {
+  write(LAST_GAME_KEY, { players, options, savedAt: Date.now() });
 }

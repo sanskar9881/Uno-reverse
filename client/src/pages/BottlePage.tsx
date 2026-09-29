@@ -7,16 +7,18 @@ import { useBottleSpin } from '../game/bottle/useBottleSpin';
 import {
   deleteSavedGroup,
   loadBottleOptions,
+  loadLastLocalGame,
   loadSavedGroups,
   saveBottleOptions,
   saveGroup,
+  saveLastLocalGame,
   type BottleOptions,
   type BottlePlayer,
   type SavedGroup,
 } from '../game/bottle/storage';
-import { BottleSvg } from '../components/bottle/BottleSvg';
+import { updateBottleSettings } from '../game/actions';
+import { BottleTable } from '../components/bottle/BottleTable';
 import { PlayerSetup } from '../components/bottle/PlayerSetup';
-import { BottleResultSheet } from '../components/bottle/ResultSheet';
 import { ProfileFields } from '../components/lobby/ProfileFields';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -27,7 +29,6 @@ import { playSound } from '../game/sounds';
 import { createRoom, joinRoom } from '../socket/lifecycle';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
-import { cn } from '../utils/cn';
 
 const PACKS = ['off', 'party', 'flirty'] as const;
 
@@ -92,7 +93,7 @@ function OnlineBottleEntry() {
 
   return (
     <Surface className="p-5">
-      <h2 className="font-display text-xl">Play online instead</h2>
+      <h2 className="font-display text-xl">Play online</h2>
       <p className="mt-1 text-sm text-muted">Everyone joins from their own phone or computer.</p>
       {mode === 'closed' ? (
         <div className="mt-4 flex gap-2">
@@ -150,15 +151,22 @@ function OnlineBottleEntry() {
   );
 }
 
+type Screen = 'choice' | 'setup' | 'table';
+
 export function BottlePage() {
+  const navigate = useNavigate();
+  const profile = useGameStore((s) => s.profile);
+  const [screen, setScreen] = useState<Screen>('choice');
+  const [lastGame] = useState(() => loadLastLocalGame());
   const [players, setPlayers] = useState<BottlePlayer[]>([]);
   const [savedGroups, setSavedGroups] = useState<SavedGroup[]>(() => loadSavedGroups());
   const [options, setOptions] = useState<BottleOptions>(() => loadBottleOptions());
-  const [started, setStarted] = useState(false);
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [resultOpen, setResultOpen] = useState(false);
   const [confirmFlirty, setConfirmFlirty] = useState(false);
+  const [takingOnline, setTakingOnline] = useState(false);
+  const [onlineNicknameOpen, setOnlineNicknameOpen] = useState(false);
   const usedPrompts = useRef<Record<BottlePromptPack, Set<string>>>({ off: new Set(), party: new Set(), flirty: new Set() });
   const [prompt, setPrompt] = useState<string | null>(null);
   const { rotation, spinning, spin } = useBottleSpin();
@@ -215,13 +223,75 @@ export function BottlePage() {
     persistOptions({ ...options, pack });
   };
 
-  if (!started) {
+  const startGame = (nextPlayers: BottlePlayer[], nextOptions: BottleOptions) => {
+    setPlayers(nextPlayers);
+    setOptions(nextOptions);
+    setSpinnerIndex(0);
+    setTargetIndex(null);
+    saveLastLocalGame(nextPlayers, nextOptions);
+    setScreen('table');
+  };
+
+  const takeOnline = async () => {
+    if (takingOnline) return;
+    setTakingOnline(true);
+    const res = await createRoom(profile, 'bottle');
+    if (!res.ok) {
+      setTakingOnline(false);
+      toast(res.error.message, 'bad');
+      return;
+    }
+    await updateBottleSettings({ pack: options.pack, canLandOnSelf: options.canLandOnSelf, clockwiseTurns: options.clockwiseTurns });
+    navigate(`/room/${res.roomCode}`);
+  };
+
+  const onTakeOnline = () => {
+    if (nicknameProblem(profile.nickname)) {
+      setOnlineNicknameOpen(true);
+      return;
+    }
+    void takeOnline();
+  };
+
+  const confirmOnlineNickname = () => {
+    if (nicknameProblem(profile.nickname)) return;
+    setOnlineNicknameOpen(false);
+    void takeOnline();
+  };
+
+  if (screen === 'choice') {
     return (
       <main className="mx-auto flex min-h-full max-w-2xl flex-col px-4 pb-10 pt-2">
         <PageHeader title="Spin the Bottle" />
-        <div className="mb-4">
+        <div className="mt-2 flex flex-col gap-4">
+          <Surface className="p-5">
+            <h2 className="font-display text-xl">Play on this phone</h2>
+            <p className="mt-1 text-sm text-muted">For a group sitting together. No room needed — it works offline.</p>
+            {lastGame ? (
+              <div className="mt-4 flex flex-col gap-2">
+                <Button size="lg" onClick={() => startGame(lastGame.players, lastGame.options)}>
+                  Play again ({lastGame.players.length} players)
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setScreen('setup')}>
+                  Different players
+                </Button>
+              </div>
+            ) : (
+              <Button className="mt-4" onClick={() => setScreen('setup')}>
+                Get started
+              </Button>
+            )}
+          </Surface>
           <OnlineBottleEntry />
         </div>
+      </main>
+    );
+  }
+
+  if (screen === 'setup') {
+    return (
+      <main className="mx-auto flex min-h-full max-w-2xl flex-col px-4 pb-10 pt-2">
+        <PageHeader title="Spin the Bottle" />
         <PlayerSetup
           players={players}
           onChange={setPlayers}
@@ -229,7 +299,7 @@ export function BottlePage() {
           onSaveGroup={(name) => setSavedGroups(saveGroup(name, players))}
           onLoadGroup={(g) => setPlayers(g.players)}
           onDeleteGroup={(name) => setSavedGroups(deleteSavedGroup(name))}
-          onStart={() => setStarted(true)}
+          onStart={() => startGame(players, options)}
         />
 
         <Surface className="mt-4 flex flex-col gap-4 p-5">
@@ -294,64 +364,52 @@ export function BottlePage() {
   return (
     <main className="mx-auto flex min-h-full max-w-5xl flex-col px-4 pb-10 pt-2">
       <PageHeader title="Spin the Bottle" />
-      <div className="-mt-2 flex justify-center lg:hidden">
-        <Button variant="ghost" size="sm" onClick={() => setStarted(false)}>
+      <div className="-mt-2 flex justify-center gap-2 lg:hidden">
+        <Button variant="ghost" size="sm" onClick={() => setScreen('setup')}>
           Edit players
+        </Button>
+        <Button variant="ghost" size="sm" loading={takingOnline} onClick={onTakeOnline}>
+          Take it online
         </Button>
       </div>
 
-      <div className="mt-2 grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="flex flex-col items-center">
-          <div
-            className="mx-auto w-full max-w-sm cursor-pointer touch-none select-none"
-            onClick={() => {
-              if (!spinning) playSound('click');
-              doSpin();
-            }}
-            onPointerDown={(e) => {
-              const startY = e.clientY;
-              const startT = performance.now();
-              const onUp = (ev: PointerEvent) => {
-                const dt = Math.max(1, performance.now() - startT);
-                const dy = startY - ev.clientY;
-                window.removeEventListener('pointerup', onUp);
-                if (Math.abs(dy) > 30) doSpin((dy / dt) * 100);
-              };
-              window.addEventListener('pointerup', onUp);
-            }}
-          >
-            <BottleSvg players={players} rotation={rotation} spinning={spinning} targetIndex={targetIndex} spinnerIndex={spinnerIndex} />
-          </div>
-
-          <p className="mt-2 text-center font-semibold text-muted">
-            {spinning ? 'Spinning…' : `${players[spinnerIndex]?.name ?? ''}'s turn to spin. Tap or flick the bottle.`}
-          </p>
-        </div>
-
-        <Surface className="hidden p-5 lg:block">
-          <h2 className="font-display text-lg">Players</h2>
-          <ul className="mt-3 flex flex-col gap-1.5">
-            {players.map((p, i) => (
-              <li key={i} className={cn('flex items-center gap-2 rounded-xl px-2 py-1.5', i === spinnerIndex && 'bg-veil/10')}>
-                <span className="text-lg">{p.emoji}</span>
-                <span className="min-w-0 flex-1 truncate font-semibold text-ink">{p.name}</span>
-              </li>
-            ))}
-          </ul>
-          <Button variant="ghost" size="sm" className="mt-4 w-full" onClick={() => setStarted(false)}>
-            Edit players &amp; settings
-          </Button>
-        </Surface>
-      </div>
-
-      <BottleResultSheet
-        open={resultOpen}
-        target={targetIndex !== null ? players[targetIndex] : null}
+      <BottleTable
+        players={players}
+        rotation={rotation}
+        spinning={spinning}
+        targetIndex={targetIndex}
+        spinnerIndex={spinnerIndex}
+        statusText={spinning ? 'Spinning…' : `${players[spinnerIndex]?.name ?? ''}'s turn to spin. Tap or flick the bottle.`}
+        onSpin={doSpin}
+        allowFlick
+        resultOpen={resultOpen}
+        resultTarget={targetIndex !== null ? players[targetIndex] : null}
         nextSpinner={players[nextSpinnerIndex()] ?? null}
         prompt={prompt}
-        onClose={() => setResultOpen(false)}
+        onCloseResult={() => setResultOpen(false)}
         onNextSpin={onNextSpin}
+        sidebarActions={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setScreen('setup')}>
+              Edit players &amp; settings
+            </Button>
+            <Button variant="ghost" size="sm" loading={takingOnline} onClick={onTakeOnline}>
+              Take it online
+            </Button>
+          </>
+        }
       />
+
+      <Modal open={onlineNicknameOpen} onClose={() => setOnlineNicknameOpen(false)} label="Your name for the room" className="max-w-sm">
+        <h2 className="font-display text-xl">What's your name?</h2>
+        <p className="mt-1 text-sm text-muted">You'll host the online room under this name.</p>
+        <div className="mt-4">
+          <ProfileFields showErrors onEnter={confirmOnlineNickname} />
+        </div>
+        <Button className="mt-4 w-full" loading={takingOnline} onClick={confirmOnlineNickname}>
+          Continue
+        </Button>
+      </Modal>
     </main>
   );
 }

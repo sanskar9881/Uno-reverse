@@ -9,8 +9,7 @@ import { toast } from '../../store/toastStore';
 import { copyText } from '../../utils/clipboard';
 import { SoundToggle } from '../ui/SoundToggle';
 import { ThemeToggle } from '../ui/ThemeToggle';
-import { BottleSvg } from './BottleSvg';
-import { BottleResultSheet } from './ResultSheet';
+import { BottleTable } from './BottleTable';
 
 export function OnlineBottleBoard({ state, onLeave }: { state: ClientState; onLeave: () => void }) {
   // Rendered only when state.room.gameType === 'bottle'.
@@ -73,27 +72,25 @@ export function OnlineBottleBoard({ state, onLeave }: { state: ClientState; onLe
         </div>
       </header>
 
-      <div
-        className="mx-auto mt-4 w-full max-w-sm cursor-pointer touch-none select-none"
-        onClick={doSpin}
-      >
-        <BottleSvg players={players} rotation={rotation} spinning={spinning} targetIndex={targetIndex} spinnerIndex={spinnerIndex} />
-      </div>
-
-      <p className="mt-2 text-center font-semibold text-muted">
-        {spinning
-          ? 'Spinning…'
-          : isSpinner
-            ? "It's your turn to spin. Tap the bottle."
-            : `Waiting for ${byId.get(party.spinnerId)?.nickname ?? 'the next player'} to spin…`}
-      </p>
-
-      <BottleResultSheet
-        open={resultOpen}
-        target={target ? { name: target.nickname, emoji: AVATARS[target.avatar] ?? AVATARS[0] } : null}
+      <BottleTable
+        players={players}
+        rotation={rotation}
+        spinning={spinning}
+        targetIndex={targetIndex}
+        spinnerIndex={spinnerIndex}
+        statusText={
+          spinning
+            ? 'Spinning…'
+            : isSpinner
+              ? "It's your turn to spin. Tap the bottle."
+              : `Waiting for ${byId.get(party.spinnerId)?.nickname ?? 'the next player'} to spin…`
+        }
+        onSpin={doSpin}
+        resultOpen={resultOpen}
+        resultTarget={target ? { name: target.nickname, emoji: AVATARS[target.avatar] ?? AVATARS[0] } : null}
         nextSpinner={nextSpinner ? { name: nextSpinner.nickname, emoji: AVATARS[nextSpinner.avatar] ?? AVATARS[0] } : null}
         prompt={party.prompt}
-        onClose={() => setResultOpen(false)}
+        onCloseResult={() => setResultOpen(false)}
         onNextSpin={() => setResultOpen(false)}
       />
     </main>

@@ -353,6 +353,10 @@ async def audit_bottle(browser: Browser):
     ctx, page = await new_page(browser)
     await page.goto(f"{BASE}/bottle")
     await page.wait_for_timeout(200)
+    await audit_state(page, "bottle-choice")
+
+    await page.get_by_role("button", name="Get started").click()
+    await page.wait_for_timeout(150)
     await audit_state(page, "bottle-setup")
 
     for n in ("Riya", "Sanskar"):
