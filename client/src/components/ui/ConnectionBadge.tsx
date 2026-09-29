@@ -23,7 +23,7 @@ export function ConnectionBadge({ className }: { className?: string }) {
       : connection === 'offline'
         ? "Can't reach the game server. Still trying…"
         : slow
-          ? 'Waking up the game server. On free hosting this can take up to a minute.'
+          ? 'Waking up the game server. On free hosting this can take a few minutes.'
           : 'Connecting to the game server…';
 
   return (

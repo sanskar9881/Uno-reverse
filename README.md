@@ -87,21 +87,21 @@ Open http://localhost:5173 in two or more tabs. Each tab is its own player (the 
 
 ## Environment variables
 
-Server (`server/.env`, copy from `server/.env.example`). Everything is optional for local development.
+Server (`server/.env`, copy from `server/.env.example`). Everything is optional — the single-service deploy below needs none of these.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `PORT` | `3001` | HTTP and Socket.IO port. Render sets this for you. |
-| `CLIENT_ORIGIN` | empty (any origin) | Comma-separated list of allowed browser origins, e.g. `https://party-night.vercel.app` |
+| `CLIENT_ORIGIN` | empty (any origin) | Only needed if the client is hosted separately from this server. Comma-separated allowed browser origins, e.g. `https://party-night.example.com`. The server always allows its own address in addition to this list, so it's never needed for a normal same-service deploy. |
 | `MONGODB_URI` | empty | MongoDB connection string for UNO stats. Without it, stats live in memory. |
 | `TRUST_PROXY` | `false` | Set `true` behind Render or any proxy so rate limits see real client IPs |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
 
-Client (`client/.env`, copy from `client/.env.example`):
+Client (`client/.env`, copy from `client/.env.example`) — only needed for `npm run dev`, or if you deploy the client separately from the server:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `VITE_SERVER_URL` | `http(s)://<page host>:3001` | Game server URL, e.g. `https://party-night-server.onrender.com` |
+| `VITE_SERVER_URL` | dev: `http(s)://<page host>:3001`. Production build: the page's own origin | Game server URL. Only set this if the client isn't served by this same service, e.g. `https://party-night-server.onrender.com` |
 
 ## Architecture
 
@@ -121,7 +121,8 @@ party-night/
 │   ├── src/socket/        zod schemas, rate limits, event handlers, per-player broadcasting
 │   ├── src/services/      Stats: MongoDB with in-memory fallback
 │   ├── src/routes/        GET /api/stats/:profileId, GET /api/leaderboard
-│   └── tests/             Engine, multiplayer, bottle and couples tests; rigged-deck helpers; e2e server
+│   ├── src/server.ts      In production, also serves client/dist (static files + SPA fallback)
+│   └── tests/             Engine, multiplayer, bottle, couples and config/static-serving tests; e2e server
 ├── client/
 │   ├── src/pages/         Hub, per-game pages (lazy-loaded), Room (lobby or table), 404
 │   ├── src/components/    cards/, lobby/, game/ (UNO table), bottle/, couples/, hub/, ui/ (shared design system)
@@ -129,8 +130,8 @@ party-night/
 │   ├── src/socket/        Typed Socket.IO client, connection and seat lifecycle
 │   └── src/store/         Zustand stores: game state, toasts, effects
 ├── e2e/                   Playwright browser tests and service script
-├── render.yaml            Render blueprint for the server
-└── client/vercel.json     Vercel settings for the client
+├── render.yaml            Render blueprint: builds and serves both client and server as one service
+└── client/vercel.json     Optional: Vercel settings, only if you deploy the client separately
 ```
 
 **How an online move flows** (UNO, Spin the Bottle and Couples all follow this shape)
@@ -187,28 +188,20 @@ For a local database instead of Atlas, run `docker run -d -p 27017:27017 mongo:7
 
 ## Deployment
 
-Deploy the server first, because the client needs its URL.
-
-### Server on Render
+The whole app deploys as **one Render service**. It builds the client and the server together, and the server serves the built client itself — same address for the site, the API and Socket.IO, so there's no CORS to configure and no `VITE_SERVER_URL` to set.
 
 1. Push the repo to GitHub.
-2. In Render, choose **New → Blueprint** and pick the repo. `render.yaml` sets up everything else.
-3. When asked, set `CLIENT_ORIGIN` to your client URL (you can come back to this after step 2 of the Vercel section) and, optionally, `MONGODB_URI`.
-4. Check that `https://<your-service>.onrender.com/health` returns `{"ok":true,…}`.
+2. In Render, choose **New → Blueprint** and pick the repo. `render.yaml` sets up everything: it installs and builds both `client/` and `server/`, then starts the server, which serves the built client and answers `/api`, `/socket.io` and `/health` itself.
+3. `CLIENT_ORIGIN` and `MONGODB_URI` are both optional — leave them blank for a working default deploy. The service always allows its own address, whatever `CLIENT_ORIGIN` says.
+4. Check that `https://<your-service>.onrender.com/health` returns `{"ok":true,…}`, then open the same URL — that's the app itself now, not a separate site.
 
-If you set up a Web Service by hand instead of using the blueprint, use these settings: root directory `server`, build command `npm ci --include=dev && npm run build`, start command `npm start`, health check path `/health`, and environment `NODE_VERSION=22`, `TRUST_PROXY=true`, `CLIENT_ORIGIN`, `MONGODB_URI`.
+If you set up a Web Service by hand instead of using the blueprint, use these settings: no root directory (the build needs both `client/` and `server/`), build command `npm --prefix server ci --include=dev && npm --prefix client ci --include=dev && npm run build`, start command `npm --prefix server start`, health check path `/health`, and environment `NODE_VERSION=22`, `TRUST_PROXY=true`.
 
-Two things to know about the free plan. It sleeps after 15 minutes without traffic, so the first visitor waits up to a minute; the client shows "Waking up the game server" meanwhile. Active games also live in memory, so a restart or redeploy ends them, while UNO stats in MongoDB are kept.
+Two things to know about the free plan. It sleeps after 15 minutes without traffic, so the first visitor waits — the client shows "Waking up the game server" and keeps waiting up to 3 minutes, then finishes creating or joining the game automatically once it connects. Active games also live in memory, so a restart or redeploy ends them, while UNO stats in MongoDB are kept.
 
-### Client on Vercel
+### Hosting the client separately
 
-1. In Vercel, choose **Add New → Project** and import the repo.
-2. Set **Root Directory** to `client`. The framework is detected as Vite, and `client/vercel.json` provides the build settings and the single-page-app rewrite.
-3. Add the environment variable `VITE_SERVER_URL=https://<your-service>.onrender.com`.
-4. Keep **Include files outside the root directory in the Build Step** turned on (it's the default). The client imports `../shared`.
-5. Deploy, then add the Vercel URL to `CLIENT_ORIGIN` on Render. Separate several with commas, such as the production domain plus a preview domain.
-
-Open the Vercel URL, create a room, and join it from your phone to confirm everything is connected.
+You don't need to — the single service above is the whole app. But if you'd rather host the client elsewhere (Vercel, a CDN, a second environment), the pieces are still there: set `VITE_SERVER_URL` on the client build to this service's URL, `client/vercel.json` has Vercel's build settings and single-page-app rewrite, and set `CLIENT_ORIGIN` on the server to that client's origin (comma-separate more than one, e.g. a production domain plus a preview domain).
 
 ## Replacing sounds
 

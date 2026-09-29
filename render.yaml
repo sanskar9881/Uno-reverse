@@ -1,19 +1,21 @@
-# Render Blueprint for the UNO Party game server.
-# Render → New → Blueprint → pick this repo. Then set CLIENT_ORIGIN (your Vercel URL)
-# and, optionally, MONGODB_URI in the dashboard.
+# Render Blueprint for UNO Party: one web service that builds and serves both the
+# client and the game server, so the site and the API/Socket.IO share one address.
+# Render → New → Blueprint → pick this repo. CLIENT_ORIGIN and MONGODB_URI are optional
+# (see README.md); the service always allows its own address regardless of CLIENT_ORIGIN.
 services:
   - type: web
-    name: uno-party-server
+    name: uno-party
     runtime: node
     plan: free
-    rootDir: server
-    # devDependencies (tsup, typescript) are needed to build, even with NODE_ENV=production
-    buildCommand: npm ci --include=dev && npm run build
-    startCommand: npm start
+    # No rootDir: the build needs both client/ and server/, so commands run from the repo root.
+    # devDependencies (tsup, vite, typescript) are needed to build, even with NODE_ENV=production.
+    buildCommand: npm --prefix server ci --include=dev && npm --prefix client ci --include=dev && npm run build
+    startCommand: npm --prefix server start
     healthCheckPath: /health
     autoDeploy: true
     buildFilter:
       paths:
+        - client/**
         - server/**
         - shared/**
     envVars:

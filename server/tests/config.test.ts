@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { loadConfig } from '../src/config';
-import { checkOrigin } from '../src/server';
+import { checkOrigin, resolveAllowedOrigins } from '../src/server';
 import { logger } from '../src/utils/logger';
 
 describe('loadConfig: CLIENT_ORIGIN normalization', () => {
@@ -27,6 +27,48 @@ describe('loadConfig: CLIENT_ORIGIN normalization', () => {
   it('"https://example.com/" in CLIENT_ORIGIN allows the origin "https://example.com"', () => {
     const config = loadConfig({ CLIENT_ORIGIN: '"https://example.com/"' });
     expect(config.clientOrigins).toContain('https://example.com');
+  });
+});
+
+describe('loadConfig: selfOrigin (RENDER_EXTERNAL_URL)', () => {
+  it('is null when RENDER_EXTERNAL_URL is unset', () => {
+    expect(loadConfig({}).selfOrigin).toBeNull();
+  });
+
+  it('normalizes RENDER_EXTERNAL_URL the same way as CLIENT_ORIGIN entries', () => {
+    const config = loadConfig({ RENDER_EXTERNAL_URL: ' "https://uno-party.onrender.com/" ' });
+    expect(config.selfOrigin).toBe('https://uno-party.onrender.com');
+  });
+});
+
+describe('resolveAllowedOrigins', () => {
+  const base = { port: 3001, mongoUri: null, trustProxy: false, isProduction: false };
+
+  it('allows any origin (empty list) when CLIENT_ORIGIN is unset, even with a selfOrigin', () => {
+    expect(resolveAllowedOrigins({ ...base, clientOrigins: [], selfOrigin: 'https://uno-party.onrender.com' })).toEqual([]);
+  });
+
+  it('always allows its own address, even when CLIENT_ORIGIN omits it', () => {
+    const allowed = resolveAllowedOrigins({
+      ...base,
+      clientOrigins: ['https://party-night.example'],
+      selfOrigin: 'https://uno-party.onrender.com',
+    });
+    expect(allowed).toEqual(['https://party-night.example', 'https://uno-party.onrender.com']);
+  });
+
+  it("doesn't duplicate selfOrigin when CLIENT_ORIGIN already includes it", () => {
+    const allowed = resolveAllowedOrigins({
+      ...base,
+      clientOrigins: ['https://uno-party.onrender.com'],
+      selfOrigin: 'https://uno-party.onrender.com',
+    });
+    expect(allowed).toEqual(['https://uno-party.onrender.com']);
+  });
+
+  it('is just CLIENT_ORIGIN when there is no selfOrigin', () => {
+    const allowed = resolveAllowedOrigins({ ...base, clientOrigins: ['https://party-night.example'], selfOrigin: null });
+    expect(allowed).toEqual(['https://party-night.example']);
   });
 });
 

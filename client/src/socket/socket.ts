@@ -6,6 +6,11 @@ export type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 function resolveServerUrl(): string {
   const fromEnv = import.meta.env.VITE_SERVER_URL?.trim();
   if (fromEnv) return fromEnv.replace(/\/+$/, '');
+  if (import.meta.env.PROD) {
+    // A production build with no VITE_SERVER_URL: the server serves this client itself
+    // (single-service deploy), so the game server is this same origin.
+    return window.location.origin;
+  }
   // Local dev default: same host as the page, port 3001 (also works from a phone on your Wi-Fi).
   return `${window.location.protocol}//${window.location.hostname}:3001`;
 }
@@ -50,8 +55,8 @@ export function request<E extends EventName>(
   });
 }
 
-/** Waits for a live connection (free hosting can take a while to wake up). */
-export function ensureConnected(timeoutMs = 60_000): Promise<boolean> {
+/** Waits for a live connection (free hosting can take a few minutes to wake up). */
+export function ensureConnected(timeoutMs = 180_000): Promise<boolean> {
   if (socket.connected) return Promise.resolve(true);
   if (!socket.active) socket.connect();
   return new Promise((resolve) => {

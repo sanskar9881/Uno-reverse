@@ -38,10 +38,9 @@ export default defineConfig({
         // Wheel, one-phone Spin the Bottle, Together-mode Couples) to work fully offline.
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         navigateFallback: '/index.html',
-        // Belt and suspenders: neither the API nor Socket.IO is same-origin as the client in
-        // any current deployment, so the service worker (scoped to its own origin) never sees
-        // these requests anyway. But navigateFallback matches by path, not origin, so this
-        // keeps it true even if the two are ever put behind one reverse-proxied domain.
+        // The server now serves this client too, so the API and Socket.IO ARE same-origin —
+        // navigateFallback matches by path, not origin, so this keeps the service worker from
+        // ever treating an /api or /socket.io request as a client-side route needing index.html.
         navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io\//],
         runtimeCaching: [
           {

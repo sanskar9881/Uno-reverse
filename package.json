@@ -9,8 +9,8 @@
     "build": "npm --prefix server run build && npm --prefix client run build",
     "test": "npm --prefix server test && npm --prefix client test",
     "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck",
-    "e2e": "npm --prefix client run build && sh e2e/services.sh start && python3 e2e/run_e2e.py; sh e2e/services.sh stop",
-    "audit:layout": "npm --prefix client run build && sh e2e/services.sh start && python3 e2e/layout_audit.py; sh e2e/services.sh stop"
+    "e2e": "VITE_SERVER_URL=http://localhost:3001 npm --prefix client run build && sh e2e/services.sh start && python3 e2e/run_e2e.py; sh e2e/services.sh stop",
+    "audit:layout": "VITE_SERVER_URL=http://localhost:3001 npm --prefix client run build && sh e2e/services.sh start && python3 e2e/layout_audit.py; sh e2e/services.sh stop"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
