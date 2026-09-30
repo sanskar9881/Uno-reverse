@@ -37,7 +37,7 @@ export function Sheet({ open, onClose, children, label, className }: SheetProps)
             aria-modal="true"
             aria-label={label}
             className={cn(
-              'w-full bg-night-2 shadow-[0_-20px_60px_rgb(0_0_0/0.6)] ring-1 ring-line',
+              'w-full max-h-[85vh] overflow-y-auto bg-night-2 shadow-[0_-20px_60px_rgb(0_0_0/0.6)] ring-1 ring-line',
               compact ? 'rounded-t-[28px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]' : 'max-w-md rounded-[28px] p-6 shadow-[0_30px_80px_rgb(0_0_0/0.6)]',
               className,
             )}

@@ -272,34 +272,34 @@ export function GroupPage() {
 
   if (screen === 'setup') {
     return (
-      <main className="mx-auto flex h-[100dvh] max-w-2xl flex-col px-4 pb-4 pt-2">
+      <main className="mx-auto flex min-h-full max-w-2xl flex-col px-4 pt-2">
         <PageHeader title="Truth and Dare Group" />
-        <div className="mt-2 flex min-h-0 flex-1 flex-col gap-3">
-          <div className="min-h-0 flex-1">
-            <GroupPlayerSetup players={players} onChange={setPlayers} />
-          </div>
-          <div className="min-h-0 flex-1">
-            <GroupOptionsPanel
-              className="min-h-0"
-              types={options.types}
-              onChangeTypes={(types) => persistOptions({ ...options, types })}
-              pickMode={options.pickMode}
-              noTouch={options.noTouch}
-              drinks={options.drinks}
-              passPenalty={options.passPenalty}
-              onChangeOption={(patch) => persistOptions({ ...options, ...patch })}
-              spicyConfirmed={options.spicyConfirmed}
-              onConfirmSpicy={() => persistOptions({ ...options, spicyConfirmed: true })}
-            />
-          </div>
-          <div className="mt-auto space-y-2">
-            <Button size="lg" onClick={() => setScreen('play')} disabled={players.length < GROUP_MIN_PLAYERS}>
-              Start
-            </Button>
-            {players.length < GROUP_MIN_PLAYERS && (
-              <p className="text-center text-sm text-muted">Add at least {GROUP_MIN_PLAYERS} players to start.</p>
-            )}
-          </div>
+        <div className="pn-setup">
+          <GroupPlayerSetup players={players} onChange={setPlayers} />
+          <GroupOptionsPanel
+            types={options.types}
+            onChangeTypes={(types) => persistOptions({ ...options, types })}
+            pickMode={options.pickMode}
+            noTouch={options.noTouch}
+            drinks={options.drinks}
+            passPenalty={options.passPenalty}
+            onChangeOption={(patch) => persistOptions({ ...options, ...patch })}
+            spicyConfirmed={options.spicyConfirmed}
+            onConfirmSpicy={() => persistOptions({ ...options, spicyConfirmed: true })}
+          />
+          {players.length < GROUP_MIN_PLAYERS && (
+            <p className="text-center text-sm text-muted">Add at least {GROUP_MIN_PLAYERS} players to start.</p>
+          )}
+        </div>
+        <div className="pn-sticky-actions" data-overlap-ok>
+          <button
+            type="button"
+            className="pn-btn pn-btn--primary pn-btn--lg"
+            onClick={() => setScreen('play')}
+            disabled={players.length < GROUP_MIN_PLAYERS}
+          >
+            Start
+          </button>
         </div>
       </main>
     );

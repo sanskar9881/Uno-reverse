@@ -1,6 +1,3 @@
-// Latin subsets only: the full packages ship every Korean/Devanagari subset too.
-import '@fontsource/bagel-fat-one/latin.css';
-import '@fontsource-variable/baloo-2/wght.css';
 import './index.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

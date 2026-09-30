@@ -202,6 +202,34 @@ CHECK_JS = """
     }
   }
 
+  // 5. No button (or other interactive control) hidden behind an ancestor's `overflow:
+  // hidden` with no way to scroll it into view. A scrollable ancestor makes it reachable
+  // even if it's currently outside that container's visible area; anything else that clips
+  // it is a dead end for the person using it.
+  const buttonSel = 'button, a, input, textarea, select, [role="button"], [role="switch"], [role="radio"], [role="checkbox"]';
+  for (const el of Array.from(scopeRoot.querySelectorAll(buttonSel)).filter(isVisible)) {
+    if (isOverlapOk(el)) continue;
+    const er = el.getBoundingClientRect();
+    let p = el.parentElement;
+    let clippedBy = null;
+    while (p && p !== scopeRoot.parentElement) {
+      const cs = getComputedStyle(p);
+      const clips = cs.overflow === 'hidden' || cs.overflowY === 'hidden' || cs.overflowX === 'hidden';
+      if (clips) {
+        const pr = p.getBoundingClientRect();
+        const contained = er.top >= pr.top - 0.5 && er.bottom <= pr.bottom + 0.5 && er.left >= pr.left - 0.5 && er.right <= pr.right + 0.5;
+        if (!contained) {
+          clippedBy = p;
+          break;
+        }
+      }
+      p = p.parentElement;
+    }
+    if (clippedBy && !scrollableAncestor(el)) {
+      out.push({ check: 'clipped-button', path: cssPath(el), detail: 'clipped by ' + cssPath(clippedBy) + ', unreachable by scrolling' });
+    }
+  }
+
   return out;
 }
 """
@@ -513,7 +541,7 @@ async def audit_group(browser: Browser):
     await page.wait_for_timeout(150)
     await audit_state(page, "group-options")
     # Turn on Spin to pick, then trigger it from the play screen.
-    await page.locator('label:has-text("Spin to pick who\'s next") input[type="checkbox"]').check()
+    await page.get_by_role("switch", name="Spin to pick who's next").click()
     await close_sheet(page, "Options")
 
     await page.get_by_role("button", name="Done", exact=True).click()
@@ -525,7 +553,7 @@ async def audit_group(browser: Browser):
     # Turn Spin to pick back off so the rest of this audit can advance turns predictably.
     await page.get_by_role("button", name="Options", exact=True).click()
     await page.wait_for_timeout(150)
-    await page.locator('label:has-text("Spin to pick who\'s next") input[type="checkbox"]').uncheck()
+    await page.get_by_role("switch", name="Spin to pick who's next").click()
     await close_sheet(page, "Options")
 
     await page.get_by_role("button", name="Custom cards", exact=True).click()

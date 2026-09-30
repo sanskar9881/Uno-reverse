@@ -1,5 +1,9 @@
 @import "tailwindcss";
+@import "./styles/cardroom/tailwind-theme.css";
+@import "./styles/cardroom/index.css";
 @import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/manrope";
 
 /*
  * Colors live in exactly two places: the dark values below (the default), and the light

@@ -3,7 +3,6 @@ import { GROUP_CARD_TYPES, GROUP_CARD_TYPE_HINT, GROUP_CARD_TYPE_LABEL } from '@
 import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
-import { Surface } from '../ui/Surface';
 
 interface GroupOptionsPanelProps {
   types: GroupCardType[];
@@ -16,7 +15,20 @@ interface GroupOptionsPanelProps {
   spicyConfirmed: boolean;
   onConfirmSpicy: () => void;
   disabled?: boolean;
-  className?: string;
+}
+
+function Switch({ label, checked, onChange, disabled }: { label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className="pn-switch"
+    />
+  );
 }
 
 /** Which card types are in play, plus No-touch, Drinks, a fun Pass penalty, and how the next player is picked. */
@@ -31,7 +43,6 @@ export function GroupOptionsPanel({
   spicyConfirmed,
   onConfirmSpicy,
   disabled,
-  className,
 }: GroupOptionsPanelProps) {
   const [confirmSpicyOpen, setConfirmSpicyOpen] = useState(false);
 
@@ -46,82 +57,53 @@ export function GroupOptionsPanel({
   };
 
   return (
-    <Surface className={className ? `p-4 ${className}` : 'p-4'}>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden pr-0.5">
-        <div>
-          <h2 className="font-display text-xl">Card types</h2>
-          <div className="mt-2 flex flex-col gap-1.5">
-            {GROUP_CARD_TYPES.map((type) => (
-              <label key={type} className="flex items-center justify-between gap-3 rounded-2xl bg-veil/5 px-3 py-2">
-                <span>
-                  <span className="block text-sm font-semibold text-ink">{GROUP_CARD_TYPE_LABEL[type]}</span>
-                  <span className="block text-[11px] leading-4 text-muted">{GROUP_CARD_TYPE_HINT[type]}</span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={types.includes(type)}
-                  onChange={() => toggleType(type)}
-                  disabled={disabled}
-                  className="mt-1 h-5 w-5 shrink-0 accent-group-violet"
-                />
-              </label>
-            ))}
+    <div className="pn-panel">
+      <h2 className="pn-panel__title">Card types</h2>
+      <div className="pn-toggle-list" style={{ marginTop: 10 }}>
+        {GROUP_CARD_TYPES.map((type) => (
+          <div key={type} className="pn-toggle-row">
+            <span className="pn-toggle-row__text">
+              <span className="pn-toggle-row__title">{GROUP_CARD_TYPE_LABEL[type]}</span>
+              <span className="pn-toggle-row__desc">{GROUP_CARD_TYPE_HINT[type]}</span>
+            </span>
+            <Switch label={GROUP_CARD_TYPE_LABEL[type]} checked={types.includes(type)} onChange={() => toggleType(type)} disabled={disabled} />
           </div>
-        </div>
+        ))}
+      </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className="flex items-center justify-between gap-3 rounded-xl bg-veil/5 px-3 py-2">
-            <span>
-              <span className="block text-sm font-semibold text-ink">No-touch mode</span>
-              <span className="block text-[11px] leading-4 text-muted">Hides touch dares.</span>
-            </span>
-            <input
-              type="checkbox"
-              checked={noTouch}
-              onChange={(e) => onChangeOption({ noTouch: e.target.checked })}
-              disabled={disabled}
-              className="h-5 w-5 shrink-0 accent-group-violet"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-xl bg-veil/5 px-3 py-2">
-            <span>
-              <span className="block text-sm font-semibold text-ink">Drinks</span>
-              <span className="block text-[11px] leading-4 text-muted">Alcoholic or non-alcoholic.</span>
-            </span>
-            <input
-              type="checkbox"
-              checked={drinks}
-              onChange={(e) => onChangeOption({ drinks: e.target.checked })}
-              disabled={disabled}
-              className="h-5 w-5 shrink-0 accent-group-violet"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-xl bg-veil/5 px-3 py-2">
-            <span>
-              <span className="block text-sm font-semibold text-ink">Fun penalty for Pass</span>
-              <span className="block text-[11px] leading-4 text-muted">Shows a silly penalty, like 10 squats.</span>
-            </span>
-            <input
-              type="checkbox"
-              checked={passPenalty}
-              onChange={(e) => onChangeOption({ passPenalty: e.target.checked })}
-              disabled={disabled}
-              className="h-5 w-5 shrink-0 accent-group-violet"
-            />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-xl bg-veil/5 px-3 py-2">
-            <span>
-              <span className="block text-sm font-semibold text-ink">Spin to pick who's next</span>
-              <span className="block text-[11px] leading-4 text-muted">Off: seat order. On: bottle spin.</span>
-            </span>
-            <input
-              type="checkbox"
-              checked={pickMode === 'spin'}
-              onChange={(e) => onChangeOption({ pickMode: e.target.checked ? 'spin' : 'order' })}
-              disabled={disabled}
-              className="h-5 w-5 shrink-0 accent-group-violet"
-            />
-          </label>
+      <div className="pn-toggle-list" style={{ marginTop: 16 }}>
+        <div className="pn-toggle-row">
+          <span className="pn-toggle-row__text">
+            <span className="pn-toggle-row__title">No-touch mode</span>
+            <span className="pn-toggle-row__desc">Hides dares that involve touching someone.</span>
+          </span>
+          <Switch label="No-touch mode" checked={noTouch} onChange={(v) => onChangeOption({ noTouch: v })} disabled={disabled} />
+        </div>
+        <div className="pn-toggle-row">
+          <span className="pn-toggle-row__text">
+            <span className="pn-toggle-row__title">Drinks</span>
+            <span className="pn-toggle-row__desc">Off by default. Every drink dare offers a non-alcoholic swap.</span>
+          </span>
+          <Switch label="Drinks" checked={drinks} onChange={(v) => onChangeOption({ drinks: v })} disabled={disabled} />
+        </div>
+        <div className="pn-toggle-row">
+          <span className="pn-toggle-row__text">
+            <span className="pn-toggle-row__title">Fun penalty for Pass</span>
+            <span className="pn-toggle-row__desc">Passing still always works — this just shows a silly penalty, like 10 squats.</span>
+          </span>
+          <Switch label="Fun penalty for Pass" checked={passPenalty} onChange={(v) => onChangeOption({ passPenalty: v })} disabled={disabled} />
+        </div>
+        <div className="pn-toggle-row">
+          <span className="pn-toggle-row__text">
+            <span className="pn-toggle-row__title">Spin to pick who's next</span>
+            <span className="pn-toggle-row__desc">Off: goes around in seat order. On: a small bottle spin decides.</span>
+          </span>
+          <Switch
+            label="Spin to pick who's next"
+            checked={pickMode === 'spin'}
+            onChange={(v) => onChangeOption({ pickMode: v ? 'spin' : 'order' })}
+            disabled={disabled}
+          />
         </div>
       </div>
 
@@ -143,6 +125,6 @@ export function GroupOptionsPanel({
           </Button>
         </div>
       </Modal>
-    </Surface>
+    </div>
   );
 }

@@ -1,8 +1,14 @@
 import { GROUP_MAX_PLAYERS, GROUP_MIN_PLAYERS } from '@shared';
 import { useState } from 'react';
 import { isDuplicateName } from '../../utils/names';
-import { Button } from '../ui/Button';
-import { Surface } from '../ui/Surface';
+
+function RemoveIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
 
 /** Names in seating order, 2 to 12, no repeats. */
 export function GroupPlayerSetup({ players, onChange }: { players: string[]; onChange: (players: string[]) => void }) {
@@ -22,28 +28,32 @@ export function GroupPlayerSetup({ players, onChange }: { players: string[]; onC
   };
 
   return (
-    <Surface className="p-5">
-      <h2 className="font-display text-xl">Who's playing?</h2>
-      <p className="mt-1 text-sm text-muted">
+    <div className="pn-panel">
+      <h2 className="pn-panel__title">Who's playing?</h2>
+      <p className="pn-panel__desc">
         Add {GROUP_MIN_PLAYERS} to {GROUP_MAX_PLAYERS} players, in seating order.
       </p>
 
-      <ul className="mt-4 flex flex-col gap-2">
-        {players.map((p, i) => (
-          <li key={i} className="flex items-center gap-2 rounded-xl bg-veil/5 px-3 py-2">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-veil/10 text-xs font-bold text-muted">{i + 1}</span>
-            <span className="min-w-0 flex-1 truncate font-semibold text-ink">{p}</span>
-            <button
-              type="button"
-              aria-label={`Remove ${p}`}
-              onClick={() => onChange(players.filter((_, idx) => idx !== i))}
-              className="shrink-0 rounded-lg px-2 py-1 text-muted hover:bg-card-red/20 hover:text-card-red"
-            >
-              ✕
-            </button>
-          </li>
-        ))}
-      </ul>
+      {players.length > 0 && (
+        <ul className="pn-name-list" style={{ marginTop: 14 }}>
+          {players.map((p, i) => (
+            <li key={i} className="pn-name-row">
+              <span className="pn-name-row__num">{i + 1}</span>
+              <span className="pn-name-row__name" title={p}>
+                {p}
+              </span>
+              <button
+                type="button"
+                aria-label={`Remove ${p}`}
+                onClick={() => onChange(players.filter((_, idx) => idx !== i))}
+                className="pn-icon-btn"
+              >
+                <RemoveIcon />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="mt-3 flex gap-2">
         <input
@@ -55,17 +65,15 @@ export function GroupPlayerSetup({ players, onChange }: { players: string[]; onC
           onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
           placeholder="Player name"
           aria-invalid={duplicateError || undefined}
-          className="h-11 min-w-0 flex-1 rounded-xl bg-night px-3.5 text-ink ring-1 ring-line placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-group-violet"
+          className="pn-input"
         />
-        <Button variant="secondary" onClick={addPlayer} disabled={!name.trim() || players.length >= GROUP_MAX_PLAYERS}>
+        <button type="button" className="pn-btn" onClick={addPlayer} disabled={!name.trim() || players.length >= GROUP_MAX_PLAYERS}>
           Add
-        </Button>
+        </button>
       </div>
-      {duplicateError && (
-        <p className="mt-1.5 text-sm text-card-red" role="alert">
-          Someone's already called {name.trim()}. Try another name.
-        </p>
-      )}
-    </Surface>
+      <p className={duplicateError ? 'pn-hint pn-hint--error' : 'pn-hint'} role={duplicateError ? 'alert' : undefined}>
+        {duplicateError ? `Someone's already called ${name.trim()}. Try another name.` : ''}
+      </p>
+    </div>
   );
 }
