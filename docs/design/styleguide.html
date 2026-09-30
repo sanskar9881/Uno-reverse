@@ -1,0 +1,2395 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Party Night design kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&amp;family=Fraunces:opsz,wght@9..144,500..700&amp;family=Manrope:wght@500..800&amp;display=swap">
+<style>
+/*
+ * Party Night "card room" design tokens.
+ * Dark is the default. <html data-theme="light"> switches to the daylight version.
+ * Every color in the app should come from these variables.
+ */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Room (page background) */
+  --pn-room-top: #14161a;
+  --pn-room-bottom: #0e0f12;
+  --pn-lamp: rgba(255, 205, 140, 0.08);
+
+  /* Surfaces */
+  --pn-surface: rgba(20, 22, 25, 0.95);
+  --pn-surface-solid: #16181c;
+  --pn-surface-raised: #1c1f24;
+  --pn-surface-2: rgba(244, 241, 234, 0.07);
+  --pn-surface-2-hover: rgba(244, 241, 234, 0.12);
+  --pn-field: rgba(0, 0, 0, 0.28);
+
+  /* Text and lines */
+  --pn-ink: #f4f1ea;
+  --pn-muted: #b4ada0;
+  --pn-subtle: #8f887b;
+  --pn-line: rgba(244, 241, 234, 0.12);
+  --pn-line-strong: rgba(244, 241, 234, 0.2);
+
+  /* Accents */
+  --pn-brass: #e3b35a;
+  --pn-brass-hover: #f0c572;
+  --pn-on-brass: #1a1406;
+  --pn-brass-text: #e3b35a;
+  --pn-danger: #f08a7a;
+  --pn-success: #5bd39a;
+
+  /* Elevation */
+  --pn-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --pn-shadow-2: 0 10px 24px rgba(0, 0, 0, 0.45);
+  --pn-shadow-3: 0 30px 80px rgba(0, 0, 0, 0.55);
+  --pn-backdrop: rgba(6, 6, 8, 0.62);
+
+  /* Wood */
+  --pn-wood-1: #6e4a33;
+  --pn-wood-2: #4e3222;
+  --pn-wood-3: #38241a;
+  --pn-wood-grain: rgba(0, 0, 0, 0.1);
+
+  /* Felt (green by default, see [data-felt] below) */
+  --pn-felt-1: #1f6b52;
+  --pn-felt-2: #155441;
+  --pn-felt-3: #0e3e30;
+  --pn-felt-lamp: rgba(255, 226, 170, 0.13);
+  --pn-felt-ink: #f4f1ea;
+  --pn-felt-muted: rgba(255, 255, 255, 0.74);
+  --pn-stitch: rgba(255, 255, 255, 0.09);
+  --pn-print: rgba(255, 255, 255, 0.12);
+
+  /* Cards */
+  --pn-red: #e5484d;
+  --pn-red-l: #f07a7d;
+  --pn-red-d: #b3323a;
+  --pn-red-ink: #b02c35;
+  --pn-yellow: #f2b90c;
+  --pn-yellow-l: #ffd24a;
+  --pn-yellow-d: #c99000;
+  --pn-yellow-ink: #9e7200;
+  --pn-green: #2fa36b;
+  --pn-green-l: #55c48c;
+  --pn-green-d: #1e7a4e;
+  --pn-green-ink: #1b6e46;
+  --pn-blue: #2f7fe0;
+  --pn-blue-l: #5e9ef0;
+  --pn-blue-d: #1e5cae;
+  --pn-blue-ink: #1c56a3;
+  --pn-wild: #202026;
+  --pn-wild-l: #3a3a44;
+  --pn-wild-d: #121216;
+  --pn-card-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 10px 22px rgba(0, 0, 0, 0.45);
+
+  /* Avatar tones (the saved avatar number 0-11 picks one) */
+  --pn-tone-0: #9cc5a1;
+  --pn-tone-1: #a9b8e8;
+  --pn-tone-2: #e7a88b;
+  --pn-tone-3: #e8c77a;
+  --pn-tone-4: #c9a5d8;
+  --pn-tone-5: #e7c3a0;
+  --pn-tone-6: #8fd1cf;
+  --pn-tone-7: #f2a7b8;
+  --pn-tone-8: #b7d38a;
+  --pn-tone-9: #d6b38a;
+  --pn-tone-10: #9fb4c7;
+  --pn-tone-11: #e0b0e8;
+  --pn-on-tone: #111315;
+
+  /* Shape and type */
+  --pn-r-sm: 10px;
+  --pn-r-md: 14px;
+  --pn-r-lg: 20px;
+  --pn-r-xl: 28px;
+  --pn-font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", "Manrope Variable", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --pn-font-ui: "Manrope Variable", "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pn-font-serif: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* Layers */
+  --pn-z-seat: 10;
+  --pn-z-hand: 20;
+  --pn-z-header: 30;
+  --pn-z-sheet: 40;
+  --pn-z-modal: 50;
+  --pn-z-toast: 60;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --pn-room-top: #f3eee5;
+  --pn-room-bottom: #e8e1d4;
+  --pn-lamp: rgba(255, 244, 222, 0.7);
+
+  --pn-surface: rgba(255, 255, 255, 0.94);
+  --pn-surface-solid: #ffffff;
+  --pn-surface-raised: #ffffff;
+  --pn-surface-2: rgba(29, 27, 23, 0.05);
+  --pn-surface-2-hover: rgba(29, 27, 23, 0.09);
+  --pn-field: #ffffff;
+
+  --pn-ink: #1d1b17;
+  --pn-muted: #625b50;
+  --pn-subtle: #756d61;
+  --pn-line: rgba(29, 27, 23, 0.12);
+  --pn-line-strong: rgba(29, 27, 23, 0.22);
+
+  --pn-brass: #c9952f;
+  --pn-brass-hover: #d6a33c;
+  --pn-on-brass: #1a1406;
+  --pn-brass-text: #8a6116;
+  --pn-danger: #c2412d;
+  --pn-success: #1e7a4e;
+
+  --pn-shadow-1: 0 1px 2px rgba(60, 40, 20, 0.12);
+  --pn-shadow-2: 0 10px 24px rgba(60, 40, 20, 0.14);
+  --pn-shadow-3: 0 30px 70px rgba(60, 40, 20, 0.22);
+  --pn-backdrop: rgba(40, 30, 20, 0.35);
+
+  --pn-wood-1: #8a6243;
+  --pn-wood-2: #6a4730;
+  --pn-wood-3: #573a28;
+  --pn-felt-lamp: rgba(255, 240, 205, 0.2);
+  --pn-card-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 8px 18px rgba(60, 40, 20, 0.28);
+}
+
+/* Felt colors: put data-felt on the table (or any ancestor) */
+[data-felt="green"] {
+  --pn-felt-1: #1f6b52;
+  --pn-felt-2: #155441;
+  --pn-felt-3: #0e3e30;
+}
+[data-felt="teal"] {
+  --pn-felt-1: #1a6577;
+  --pn-felt-2: #0f4c5c;
+  --pn-felt-3: #0a3542;
+}
+[data-felt="burgundy"] {
+  --pn-felt-1: #74303d;
+  --pn-felt-2: #5a1f2b;
+  --pn-felt-3: #3d131c;
+}
+[data-felt="navy"] {
+  --pn-felt-1: #2c3b63;
+  --pn-felt-2: #1e2a4a;
+  --pn-felt-3: #141c33;
+}
+
+/* Page-level defaults. Lives in @layer base so Tailwind utilities still win. */
+@layer base {
+  html {
+    background: var(--pn-room-bottom);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    color: var(--pn-ink);
+    font-family: var(--pn-font-ui);
+    font-size: 16px;
+    line-height: 1.5;
+    background: transparent;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The room: a fixed layer, so iOS doesn't jank on scroll */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 36%, var(--pn-lamp), transparent 70%),
+      linear-gradient(180deg, var(--pn-room-top), var(--pn-room-bottom));
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-family: var(--pn-font-display);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--pn-brass);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--pn-brass) 38%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Shared components. Class names start with pn- so they never clash with Tailwind. */
+@layer components {
+  /* ------------------------------------------------------------ buttons */
+  .pn-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 20px;
+    border-radius: var(--pn-r-md);
+    border: 1px solid var(--pn-line-strong);
+    background: var(--pn-surface-2);
+    color: var(--pn-ink);
+    font-family: var(--pn-font-ui);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, translate 0.1s ease, box-shadow 0.15s ease;
+  }
+  .pn-btn:hover:not(:disabled) {
+    background: var(--pn-surface-2-hover);
+  }
+  .pn-btn:active:not(:disabled) {
+    translate: 0 1px;
+  }
+  .pn-btn:disabled {
+    opacity: 0.4;
+  }
+  .pn-btn--primary {
+    border-color: transparent;
+    background: var(--pn-brass);
+    color: var(--pn-on-brass);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 6px 18px color-mix(in oklab, var(--pn-brass) 30%, transparent);
+  }
+  .pn-btn--primary:hover:not(:disabled) {
+    background: var(--pn-brass-hover);
+  }
+  .pn-btn--danger {
+    border-color: color-mix(in oklab, var(--pn-danger) 45%, transparent);
+    background: color-mix(in oklab, var(--pn-danger) 16%, transparent);
+    color: var(--pn-danger);
+  }
+  .pn-btn--danger:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--pn-danger) 24%, transparent);
+  }
+  .pn-btn--ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--pn-muted);
+  }
+  .pn-btn--ghost:hover:not(:disabled) {
+    color: var(--pn-ink);
+    background: var(--pn-surface-2);
+  }
+  .pn-btn--sm {
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+  .pn-btn--lg {
+    height: 56px;
+    padding: 0 28px;
+    border-radius: 16px;
+    font-size: 17px;
+  }
+  .pn-btn--block {
+    width: 100%;
+  }
+  .pn-btn--round {
+    min-width: 76px;
+    border-radius: 999px;
+    font-family: var(--pn-font-display);
+    font-weight: 800;
+    font-size: 16px;
+  }
+  /* The UNO! button when it can be pressed */
+  .pn-btn--call {
+    border-color: transparent;
+    background: var(--pn-brass);
+    color: var(--pn-on-brass);
+    animation: pn-pulse 1.4s ease-in-out infinite;
+  }
+  .pn-btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  .pn-btn[aria-busy="true"]::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: pn-spin 0.7s linear infinite;
+  }
+
+  .pn-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--pn-muted);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .pn-icon-btn:hover {
+    color: var(--pn-ink);
+    background: var(--pn-surface-2);
+  }
+  .pn-icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .pn-text-btn {
+    height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--pn-muted);
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .pn-text-btn:hover {
+    color: var(--pn-ink);
+    background: var(--pn-surface-2);
+  }
+
+  /* ------------------------------------------------------------ small pieces */
+  .pn-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--pn-surface-2);
+    color: var(--pn-ink);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .pn-chip--brass {
+    background: var(--pn-brass);
+    color: var(--pn-on-brass);
+  }
+  .pn-chip--on-felt {
+    background: rgba(0, 0, 0, 0.28);
+    color: var(--pn-felt-ink);
+  }
+  .pn-chip__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  }
+  .pn-chip__dot[data-color="red"] { background: var(--pn-red); }
+  .pn-chip__dot[data-color="yellow"] { background: var(--pn-yellow); }
+  .pn-chip__dot[data-color="green"] { background: var(--pn-green); }
+  .pn-chip__dot[data-color="blue"] { background: var(--pn-blue); }
+
+  .pn-badge-uno {
+    display: inline-block;
+    flex-shrink: 0;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: var(--pn-brass);
+    color: var(--pn-on-brass);
+    font-family: var(--pn-font-display);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .pn-code {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--pn-r-sm);
+    border: 1px solid var(--pn-line-strong);
+    background: var(--pn-surface-2);
+    color: var(--pn-ink);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+  }
+
+  .pn-mark {
+    display: inline-grid;
+    grid-template: repeat(2, 6px) / repeat(2, 6px);
+    gap: 2px;
+    margin: 4px;
+    rotate: 45deg;
+    flex-shrink: 0;
+  }
+  .pn-mark > span { border-radius: 1.5px; }
+  .pn-mark > span:nth-child(1) { background: var(--pn-red); }
+  .pn-mark > span:nth-child(2) { background: var(--pn-yellow); }
+  .pn-mark > span:nth-child(3) { background: var(--pn-blue); }
+  .pn-mark > span:nth-child(4) { background: var(--pn-green); }
+
+  .pn-divider-v {
+    width: 1px;
+    height: 22px;
+    background: var(--pn-line-strong);
+    flex-shrink: 0;
+  }
+
+  .pn-meta {
+    color: var(--pn-muted);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ------------------------------------------------------------ surfaces */
+  .pn-surface {
+    border-radius: var(--pn-r-lg);
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-solid);
+    box-shadow: var(--pn-shadow-2);
+  }
+  .pn-panel {
+    border-radius: 24px;
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-solid);
+    box-shadow: var(--pn-shadow-2);
+    padding: 20px;
+  }
+  @media (min-width: 640px) {
+    .pn-panel { padding: 28px; }
+  }
+  .pn-panel__title {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .pn-panel__desc {
+    color: var(--pn-muted);
+    font-size: 14px;
+  }
+
+  /* ------------------------------------------------------------ forms */
+  .pn-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--pn-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .pn-input {
+    width: 100%;
+    height: 48px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    border-radius: var(--pn-r-md);
+    border: 1px solid var(--pn-line-strong);
+    background: var(--pn-field);
+    color: var(--pn-ink);
+    font-size: 16px; /* 16px stops iOS from zooming */
+    font-weight: 600;
+    transition: border-color 0.15s ease;
+  }
+  .pn-input::placeholder {
+    color: var(--pn-subtle);
+  }
+  .pn-input:focus {
+    outline: none;
+    border-color: var(--pn-brass);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--pn-brass) 30%, transparent);
+  }
+  .pn-input[aria-invalid="true"] {
+    border-color: var(--pn-danger);
+  }
+  .pn-input--code {
+    height: 56px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-family: var(--pn-font-display);
+    font-size: 24px;
+    font-weight: 800;
+  }
+  textarea.pn-input {
+    height: auto;
+    min-height: 120px;
+    padding: 12px 16px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .pn-hint {
+    margin-top: 6px;
+    min-height: 20px;
+    color: var(--pn-subtle);
+    font-size: 13px;
+  }
+  .pn-hint--error {
+    color: var(--pn-danger);
+  }
+
+  .pn-segmented {
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--pn-r-md);
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-2);
+  }
+  .pn-segmented--block {
+    display: grid;
+    width: 100%;
+  }
+  .pn-segmented__item {
+    height: 36px;
+    min-width: 0;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--pn-r-sm);
+    background: transparent;
+    color: var(--pn-muted);
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pn-segmented__item:hover:not(:disabled) {
+    color: var(--pn-ink);
+  }
+  .pn-segmented__item[aria-checked="true"],
+  .pn-segmented__item[aria-selected="true"],
+  .pn-segmented__item.is-active {
+    background: var(--pn-brass);
+    color: var(--pn-on-brass);
+  }
+
+  .pn-switch {
+    position: relative;
+    width: 46px;
+    height: 28px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--pn-line-strong);
+    transition: background-color 0.15s ease;
+  }
+  .pn-switch::after {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: var(--pn-shadow-1);
+    transition: translate 0.15s ease;
+  }
+  .pn-switch[aria-checked="true"] {
+    background: var(--pn-brass);
+  }
+  .pn-switch[aria-checked="true"]::after {
+    translate: 18px 0;
+  }
+
+  .pn-range {
+    width: 100%;
+    height: 28px;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .pn-range::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--pn-brass) 0 var(--pn-fill, 50%), var(--pn-line-strong) var(--pn-fill, 50%) 100%);
+  }
+  .pn-range::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--pn-line-strong);
+  }
+  .pn-range::-moz-range-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--pn-brass);
+  }
+  .pn-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -8px;
+    border-radius: 50%;
+    border: 3px solid var(--pn-surface-solid);
+    background: var(--pn-brass);
+    box-shadow: var(--pn-shadow-1);
+  }
+  .pn-range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--pn-surface-solid);
+    background: var(--pn-brass);
+  }
+
+  /* ------------------------------------------------------------ avatars and seats */
+  .pn-avatar {
+    --pn-avatar-size: 40px;
+    --pn-avatar-tone: var(--pn-tone-0);
+    display: inline-grid;
+    place-items: center;
+    width: var(--pn-avatar-size);
+    height: var(--pn-avatar-size);
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--pn-avatar-tone);
+    color: var(--pn-on-tone);
+    font-family: var(--pn-font-display);
+    font-size: calc(var(--pn-avatar-size) * 0.42);
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+    user-select: none;
+  }
+  .pn-avatar[data-tone="0"] { --pn-avatar-tone: var(--pn-tone-0); }
+  .pn-avatar[data-tone="1"] { --pn-avatar-tone: var(--pn-tone-1); }
+  .pn-avatar[data-tone="2"] { --pn-avatar-tone: var(--pn-tone-2); }
+  .pn-avatar[data-tone="3"] { --pn-avatar-tone: var(--pn-tone-3); }
+  .pn-avatar[data-tone="4"] { --pn-avatar-tone: var(--pn-tone-4); }
+  .pn-avatar[data-tone="5"] { --pn-avatar-tone: var(--pn-tone-5); }
+  .pn-avatar[data-tone="6"] { --pn-avatar-tone: var(--pn-tone-6); }
+  .pn-avatar[data-tone="7"] { --pn-avatar-tone: var(--pn-tone-7); }
+  .pn-avatar[data-tone="8"] { --pn-avatar-tone: var(--pn-tone-8); }
+  .pn-avatar[data-tone="9"] { --pn-avatar-tone: var(--pn-tone-9); }
+  .pn-avatar[data-tone="10"] { --pn-avatar-tone: var(--pn-tone-10); }
+  .pn-avatar[data-tone="11"] { --pn-avatar-tone: var(--pn-tone-11); }
+  .pn-avatar.is-offline {
+    filter: grayscale(0.85);
+    opacity: 0.6;
+  }
+
+  /* Timer ring around an avatar. Set --pn-progress from 0 to 1 (time left). */
+  .pn-avatar-ring {
+    --pn-progress: 1;
+    --pn-ring: var(--pn-brass);
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    padding: 4px;
+    border-radius: 50%;
+    background: conic-gradient(var(--pn-ring) 0 calc(var(--pn-progress) * 1turn), var(--pn-line) 0 1turn);
+  }
+  .pn-avatar-ring.is-low {
+    --pn-ring: var(--pn-danger);
+  }
+  .pn-avatar-ring > .pn-avatar {
+    box-shadow: 0 0 0 3px var(--pn-room-bottom);
+  }
+
+  .pn-seat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 176px;
+    height: 64px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border-radius: 22px;
+    background: var(--pn-surface);
+    box-shadow: var(--pn-shadow-2), inset 0 0 0 1px var(--pn-line);
+    color: var(--pn-ink);
+  }
+  .pn-seat__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+  .pn-seat__name {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .pn-seat__meta {
+    color: var(--pn-muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .pn-seat.is-offline {
+    opacity: 0.62;
+  }
+  .pn-seat.is-offline .pn-seat__meta {
+    color: var(--pn-danger);
+  }
+  .pn-seat.is-current {
+    box-shadow: var(--pn-shadow-2), inset 0 0 0 2px var(--pn-brass);
+  }
+  .pn-seat--compact {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: auto;
+    height: 84px;
+    padding: 8px;
+    border-radius: 18px;
+    text-align: center;
+  }
+  .pn-seat--compact .pn-seat__text {
+    align-items: center;
+    flex: 0 1 auto;
+    max-width: 100%;
+  }
+  .pn-seat--compact .pn-seat__name {
+    max-width: 100%;
+    font-size: 13px;
+  }
+  .pn-seat--compact .pn-seat__meta {
+    font-size: 12px;
+  }
+  .pn-seat--compact .pn-badge-uno {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  /* Timer bar: set --pn-progress from 0 to 1 */
+  .pn-timer-bar {
+    --pn-progress: 1;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: var(--pn-line);
+  }
+  .pn-timer-bar::before {
+    content: "";
+    display: block;
+    width: calc(var(--pn-progress) * 100%);
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--pn-green), var(--pn-brass));
+    transition: width 0.1s linear;
+  }
+  .pn-timer-bar.is-low::before {
+    background: var(--pn-danger);
+  }
+
+  /* ------------------------------------------------------------ page chrome */
+  .pn-topbar {
+    position: relative;
+    z-index: var(--pn-z-header);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 56px;
+    padding: 0 max(8px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  }
+  @media (min-width: 1024px) {
+    .pn-topbar {
+      height: 64px;
+      padding: 0 32px;
+    }
+  }
+  .pn-topbar__group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .pn-topbar__group--tight {
+    gap: 2px;
+  }
+  .pn-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--pn-ink);
+    font-family: var(--pn-font-display);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .pn-page {
+    width: min(1120px, 100% - 32px);
+    margin: 0 auto;
+    padding: 16px 0 48px;
+  }
+  .pn-page--narrow {
+    width: min(560px, 100% - 32px);
+  }
+  .pn-page-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+  }
+  .pn-page-header__title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 22px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* ------------------------------------------------------------ sheets, modals, toasts */
+  .pn-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--pn-z-sheet);
+    display: grid;
+    align-items: end;
+    justify-items: center;
+    background: var(--pn-backdrop);
+    backdrop-filter: blur(3px);
+  }
+  @media (min-width: 640px) {
+    .pn-backdrop {
+      align-items: center;
+      padding: 24px;
+    }
+  }
+  .pn-sheet {
+    width: 100%;
+    max-width: 520px;
+    max-height: min(88dvh, 760px);
+    box-sizing: border-box;
+    overflow: auto;
+    padding: 12px 20px max(20px, env(safe-area-inset-bottom));
+    border-radius: 28px 28px 0 0;
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-solid);
+    box-shadow: var(--pn-shadow-3);
+  }
+  @media (min-width: 640px) {
+    .pn-sheet {
+      padding: 28px;
+      border-radius: 28px;
+    }
+  }
+  .pn-sheet__grabber {
+    width: 40px;
+    height: 4px;
+    margin: 0 auto 16px;
+    border-radius: 2px;
+    background: var(--pn-line-strong);
+  }
+  @media (min-width: 640px) {
+    .pn-sheet__grabber { display: none; }
+  }
+  .pn-sheet__title {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+  .pn-sheet__desc {
+    color: var(--pn-muted);
+  }
+  .pn-sheet__actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .pn-toasts {
+    position: fixed;
+    z-index: var(--pn-z-toast);
+    left: 12px;
+    right: 12px;
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--pn-toast-offset, 0px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+  @media (min-width: 1024px) {
+    .pn-toasts {
+      left: auto;
+      right: 24px;
+      top: 76px;
+      bottom: auto;
+      width: 380px;
+      align-items: flex-end;
+    }
+  }
+  .pn-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-raised);
+    box-shadow: var(--pn-shadow-2);
+    color: var(--pn-ink);
+    font-size: 15px;
+    font-weight: 600;
+    pointer-events: auto;
+  }
+  .pn-toast--good { border-color: color-mix(in oklab, var(--pn-success) 50%, transparent); }
+  .pn-toast--bad { border-color: color-mix(in oklab, var(--pn-danger) 55%, transparent); }
+  .pn-toast--uno {
+    border-color: transparent;
+    background: var(--pn-brass);
+    color: var(--pn-on-brass);
+    font-family: var(--pn-font-display);
+    font-size: 17px;
+    font-weight: 800;
+  }
+  .pn-toast svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .pn-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-raised);
+    color: var(--pn-muted);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .pn-banner__dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--pn-brass);
+    animation: pn-blink 1.2s ease-in-out infinite;
+  }
+  .pn-banner--error .pn-banner__dot {
+    background: var(--pn-danger);
+    animation: none;
+  }
+
+  /* Avatar color picker (profile, join) */
+  .pn-tone-picker {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    justify-items: center;
+  }
+  @media (min-width: 640px) {
+    .pn-tone-picker { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  }
+  .pn-tone-option {
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    transition: scale 0.15s ease;
+  }
+  .pn-tone-option[aria-checked="true"] {
+    box-shadow: 0 0 0 3px var(--pn-surface-solid), 0 0 0 5px var(--pn-brass);
+    scale: 1.06;
+  }
+
+  /* Color picker for wilds */
+  .pn-color-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pn-color-option {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    aspect-ratio: 4 / 3;
+    border: 0;
+    border-radius: 22px;
+    color: #ffffff;
+    font-family: var(--pn-font-display);
+    font-size: 22px;
+    font-weight: 800;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 18px rgba(0, 0, 0, 0.3);
+    transition: translate 0.12s ease;
+  }
+  .pn-color-option:hover { translate: 0 -2px; }
+  .pn-color-option small {
+    font-family: var(--pn-font-ui);
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.8;
+  }
+  .pn-color-option[data-color="red"] { background: linear-gradient(160deg, var(--pn-red-l), var(--pn-red) 46%, var(--pn-red-d)); }
+  .pn-color-option[data-color="yellow"] { background: linear-gradient(160deg, var(--pn-yellow-l), var(--pn-yellow) 46%, var(--pn-yellow-d)); color: #1a1406; }
+  .pn-color-option[data-color="green"] { background: linear-gradient(160deg, var(--pn-green-l), var(--pn-green) 46%, var(--pn-green-d)); }
+  .pn-color-option[data-color="blue"] { background: linear-gradient(160deg, var(--pn-blue-l), var(--pn-blue) 46%, var(--pn-blue-d)); }
+
+  /* ------------------------------------------------------------ lobby */
+  .pn-code-tiles {
+    display: flex;
+    justify-content: center;
+    gap: clamp(6px, 1.6vw, 10px);
+  }
+  .pn-code-tile {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: clamp(40px, 11vw, 58px);
+    aspect-ratio: 5 / 7;
+    border-radius: 11% / 7.86%;
+    color: #fff;
+    font-family: var(--pn-font-display);
+    font-size: clamp(22px, 6vw, 30px);
+    font-weight: 800;
+    box-shadow: var(--pn-card-shadow);
+  }
+  .pn-code-tile::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    border-radius: 7px;
+  }
+  .pn-code-tile:nth-child(4n + 1) { background: linear-gradient(160deg, var(--pn-red-l), var(--pn-red) 46%, var(--pn-red-d)); }
+  .pn-code-tile:nth-child(4n + 2) { background: linear-gradient(160deg, var(--pn-yellow-l), var(--pn-yellow) 46%, var(--pn-yellow-d)); color: #1a1406; }
+  .pn-code-tile:nth-child(4n + 3) { background: linear-gradient(160deg, var(--pn-green-l), var(--pn-green) 46%, var(--pn-green-d)); }
+  .pn-code-tile:nth-child(4n + 4) { background: linear-gradient(160deg, var(--pn-blue-l), var(--pn-blue) 46%, var(--pn-blue-d)); }
+
+  .pn-players {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  @media (min-width: 640px) {
+    .pn-players { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  .pn-player-slot {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 6px;
+    height: 96px;
+    box-sizing: border-box;
+    padding: 8px;
+    border-radius: var(--pn-r-lg);
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-solid);
+    text-align: center;
+  }
+  .pn-player-slot__name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .pn-player-slot.is-you {
+    border-color: color-mix(in oklab, var(--pn-brass) 65%, transparent);
+  }
+  .pn-player-slot.is-empty {
+    border: 2px dashed var(--pn-line-strong);
+    background: transparent;
+    color: var(--pn-subtle);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .pn-player-slot__kick {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+  }
+
+  /* ------------------------------------------------------------ results */
+  .pn-result {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+  .pn-result__title {
+    margin-top: 6px;
+    font-size: clamp(26px, 5vw, 34px);
+  }
+  .pn-result__desc {
+    color: var(--pn-muted);
+  }
+  .pn-scoreboard {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .pn-scoreboard th {
+    padding: 8px 0;
+    color: var(--pn-muted);
+    font-weight: 700;
+    text-align: left;
+  }
+  .pn-scoreboard td {
+    padding: 10px 0;
+    border-top: 1px solid var(--pn-line);
+  }
+  .pn-scoreboard .is-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .pn-scoreboard tr.is-you td {
+    color: var(--pn-brass-text);
+  }
+  .pn-scoreboard__player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    font-weight: 700;
+  }
+
+  /* ------------------------------------------------------------ hub */
+  .pn-hub {
+    width: min(1180px, 100% - 32px);
+    margin: 0 auto;
+    padding: 8px 0 48px;
+  }
+  .pn-hub__hero {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    margin: 28px 0 32px;
+    text-align: center;
+  }
+  .pn-hub__title {
+    font-size: clamp(38px, 7vw, 64px);
+    letter-spacing: -0.025em;
+  }
+  .pn-hub__sub {
+    color: var(--pn-muted);
+    font-size: clamp(16px, 2.2vw, 19px);
+  }
+  .pn-hub__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  @media (min-width: 640px) {
+    .pn-hub__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1024px) {
+    .pn-hub__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+    }
+  }
+  .pn-hub__join {
+    display: flex;
+    gap: 10px;
+    width: min(460px, 100%);
+    margin: 32px auto 0;
+  }
+  .pn-tile {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 24px;
+    border: 1px solid var(--pn-line);
+    background: var(--pn-surface-solid);
+    box-shadow: var(--pn-shadow-2);
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+    transition: translate 0.2s ease, box-shadow 0.2s ease;
+  }
+  .pn-tile:hover {
+    translate: 0 -4px;
+    box-shadow: var(--pn-shadow-3);
+  }
+  .pn-tile__art {
+    position: relative;
+    height: 168px;
+    overflow: hidden;
+  }
+  .pn-tile__body {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 16px 18px 18px;
+  }
+  .pn-tile__title {
+    font-size: 21px;
+  }
+  .pn-tile__desc {
+    color: var(--pn-muted);
+    font-size: 14px;
+  }
+  .pn-tile__badge {
+    justify-self: start;
+    margin-top: 6px;
+  }
+
+  /* ------------------------------------------------------------ motion */
+  @keyframes pn-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--pn-brass) 55%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 10px color-mix(in oklab, var(--pn-brass) 0%, transparent);
+    }
+  }
+  @keyframes pn-spin {
+    to { rotate: 1turn; }
+  }
+  @keyframes pn-blink {
+    50% { opacity: 0.35; }
+  }
+}
+
+/*
+ * Original card design: full-bleed color, a thin inner frame, and a white
+ * rounded diamond holding the symbol. Everything scales with the card width
+ * (container units are used on children only, never on .pn-card itself).
+ * Size a card with --pn-card-w or any width utility.
+ */
+@layer components {
+  .pn-card {
+    --c: var(--pn-wild);
+    --c-l: var(--pn-wild-l);
+    --c-d: var(--pn-wild-d);
+    --c-ink: #ffffff;
+    container-type: inline-size;
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+    width: var(--pn-card-w, 96px);
+    aspect-ratio: 5 / 7;
+    overflow: hidden;
+    border-radius: 11% / 7.86%;
+    background: linear-gradient(160deg, var(--c-l) 0%, var(--c) 46%, var(--c-d) 100%);
+    box-shadow: var(--pn-card-shadow);
+    user-select: none;
+    transition: box-shadow 0.18s ease, filter 0.18s ease;
+  }
+  .pn-card[data-color="red"] { --c: var(--pn-red); --c-l: var(--pn-red-l); --c-d: var(--pn-red-d); --c-ink: var(--pn-red-ink); }
+  .pn-card[data-color="yellow"] { --c: var(--pn-yellow); --c-l: var(--pn-yellow-l); --c-d: var(--pn-yellow-d); --c-ink: var(--pn-yellow-ink); }
+  .pn-card[data-color="green"] { --c: var(--pn-green); --c-l: var(--pn-green-l); --c-d: var(--pn-green-d); --c-ink: var(--pn-green-ink); }
+  .pn-card[data-color="blue"] { --c: var(--pn-blue); --c-l: var(--pn-blue-l); --c-d: var(--pn-blue-d); --c-ink: var(--pn-blue-ink); }
+
+  .pn-card__frame {
+    position: absolute;
+    inset: 5.5cqw;
+    border: max(1px, 1.4cqw) solid rgba(255, 255, 255, 0.62);
+    border-radius: 7.5cqw;
+    pointer-events: none;
+  }
+  .pn-card[data-color="wild"] .pn-card__frame {
+    border-color: rgba(255, 255, 255, 0.38);
+  }
+
+  .pn-card__diamond {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 56cqw;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    rotate: 45deg;
+    border-radius: 13cqw;
+    background: #fffbf3;
+    box-shadow: inset 0 -2cqw 0 rgba(0, 0, 0, 0.08), 0 2cqw 6cqw rgba(0, 0, 0, 0.25);
+  }
+  .pn-card[data-color="wild"] .pn-card__diamond {
+    background: conic-gradient(var(--pn-red) 0 25%, var(--pn-yellow) 0 50%, var(--pn-green) 0 75%, var(--pn-blue) 0 100%);
+    box-shadow: 0 0 0 max(2px, 2.2cqw) #ffffff, 0 2cqw 6cqw rgba(0, 0, 0, 0.35);
+  }
+
+  .pn-card__symbol {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--c-ink);
+    font-family: var(--pn-font-display);
+    font-size: 44cqw;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .pn-card__symbol--small {
+    font-size: 32cqw;
+  }
+  .pn-card[data-color="wild"] .pn-card__symbol {
+    color: #ffffff;
+    -webkit-text-stroke: max(1px, 2cqw) #121216;
+    paint-order: stroke fill;
+  }
+  .pn-card__symbol svg {
+    width: 36cqw;
+    height: 36cqw;
+  }
+
+  .pn-card__corner {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    font-family: var(--pn-font-display);
+    font-size: 17cqw;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 0.8cqw 0 rgba(0, 0, 0, 0.3);
+  }
+  .pn-card__corner svg {
+    width: 15cqw;
+    height: 15cqw;
+    filter: drop-shadow(0 0.8cqw 0 rgba(0, 0, 0, 0.3));
+  }
+  .pn-card__corner--tl {
+    left: 10cqw;
+    top: 8.5cqw;
+  }
+  .pn-card__corner--br {
+    right: 10cqw;
+    bottom: 8.5cqw;
+    rotate: 180deg;
+  }
+  .pn-card__mini-wild {
+    display: block;
+    width: 10cqw;
+    aspect-ratio: 1;
+    margin: 2.5cqw;
+    rotate: 45deg;
+    border-radius: 2cqw;
+    background: conic-gradient(var(--pn-red) 0 25%, var(--pn-yellow) 0 50%, var(--pn-green) 0 75%, var(--pn-blue) 0 100%);
+    box-shadow: 0 0 0 1.2cqw #ffffff;
+  }
+  /* 6 and 9 get an underline so they read the right way up */
+  .pn-card__underline {
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.08em;
+  }
+
+  /* A light sweep on hover and when selected */
+  .pn-card__sheen {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.26) 46%, transparent 60%);
+    translate: -120% 0;
+    transition: translate 0.6s ease;
+    pointer-events: none;
+  }
+  .pn-card:hover .pn-card__sheen,
+  .pn-card.is-selected .pn-card__sheen {
+    translate: 120% 0;
+  }
+
+  /* Back */
+  .pn-card--back {
+    background: radial-gradient(circle at 50% 40%, #2b2e35 0%, #17191d 74%);
+  }
+  .pn-card--back .pn-card__frame {
+    border-color: rgba(227, 179, 90, 0.55);
+  }
+  .pn-card__ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 66cqw;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: max(1px, 1.4cqw) solid rgba(227, 179, 90, 0.42);
+  }
+  .pn-card__emblem {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+    gap: 3cqw;
+    width: 36cqw;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    rotate: 45deg;
+  }
+  .pn-card__emblem > span {
+    border-radius: 3.5cqw;
+    box-shadow: inset 0 -1cqw 0 rgba(0, 0, 0, 0.18);
+  }
+  .pn-card__emblem > span:nth-child(1) { background: var(--pn-red); }
+  .pn-card__emblem > span:nth-child(2) { background: var(--pn-yellow); }
+  .pn-card__emblem > span:nth-child(3) { background: var(--pn-blue); }
+  .pn-card__emblem > span:nth-child(4) { background: var(--pn-green); }
+
+  /* States in your hand */
+  .pn-card.is-playable {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 14px 26px rgba(0, 0, 0, 0.5);
+  }
+  .pn-card.is-selected {
+    box-shadow: 0 0 0 4px var(--pn-brass), 0 0 26px color-mix(in oklab, var(--pn-brass) 55%, transparent), 0 16px 30px rgba(0, 0, 0, 0.55);
+  }
+  .pn-card.is-dim {
+    filter: saturate(0.35) brightness(0.72);
+  }
+  /* On the light room, a dark ring reads better than a white one */
+  :root[data-theme="light"] .pn-card.is-playable {
+    box-shadow: 0 0 0 3px rgba(29, 27, 23, 0.8), 0 12px 22px rgba(60, 40, 20, 0.3);
+  }
+}
+
+/* The UNO table: wood rim, felt, piles, seats, your controls and hand. */
+@layer components {
+  .pn-table {
+    --pn-table-r: 84px;
+    --pn-rim: 24px;
+    --pn-stitch-inset: 18px;
+    position: relative;
+    box-sizing: border-box;
+    padding: var(--pn-rim);
+    border-radius: var(--pn-table-r);
+    background:
+      repeating-linear-gradient(96deg, var(--pn-wood-grain) 0 2px, transparent 2px 11px),
+      linear-gradient(180deg, var(--pn-wood-1) 0%, var(--pn-wood-2) 52%, var(--pn-wood-3) 100%);
+    box-shadow: var(--pn-shadow-3), inset 0 2px 0 rgba(255, 255, 255, 0.14), inset 0 -3px 0 rgba(0, 0, 0, 0.4);
+  }
+  .pn-table--tablet {
+    --pn-table-r: 64px;
+    --pn-rim: 18px;
+    --pn-stitch-inset: 14px;
+  }
+  .pn-table--compact {
+    --pn-table-r: 44px;
+    --pn-rim: 12px;
+    --pn-stitch-inset: 10px;
+  }
+  .pn-table--mini {
+    --pn-table-r: 28px;
+    --pn-rim: 8px;
+    --pn-stitch-inset: 6px;
+  }
+
+  .pn-felt {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: calc(var(--pn-table-r) - var(--pn-rim));
+    background:
+      radial-gradient(ellipse 60% 55% at 50% 45%, var(--pn-felt-lamp), transparent 70%),
+      radial-gradient(ellipse at 50% 42%, var(--pn-felt-1) 0%, var(--pn-felt-2) 55%, var(--pn-felt-3) 100%);
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.28), inset 0 20px 44px rgba(0, 0, 0, 0.38);
+    color: var(--pn-felt-ink);
+  }
+  /* Stitched edge */
+  .pn-felt::before {
+    content: "";
+    position: absolute;
+    inset: var(--pn-stitch-inset);
+    border: 2px dashed var(--pn-stitch);
+    border-radius: calc(var(--pn-table-r) - var(--pn-rim) - var(--pn-stitch-inset));
+    pointer-events: none;
+  }
+  /* Faint fabric texture */
+  .pn-felt::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+  .pn-felt__center {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(24px, 5vw, 64px);
+  }
+
+  /* Direction of play, printed on the felt. Flip with .is-reversed */
+  .pn-direction {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(560px, 80%);
+    height: min(280px, 70%);
+    translate: -50% -50%;
+    color: var(--pn-print);
+    pointer-events: none;
+    transition: scale 0.4s ease;
+  }
+  .pn-direction.is-reversed {
+    scale: -1 1;
+  }
+
+  .pn-pile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .pn-pile__stack {
+    position: relative;
+    width: var(--pn-card-w, 104px);
+    aspect-ratio: 5 / 7;
+  }
+  .pn-pile__stack > .pn-card {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .pn-pile__label {
+    color: var(--pn-felt-muted);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  /* The draw pile as a button */
+  .pn-draw {
+    position: relative;
+    padding: 0;
+    border: 0;
+    border-radius: 12%/9%;
+    background: none;
+  }
+  .pn-draw.is-available::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 18px;
+    border: 2px solid color-mix(in oklab, var(--pn-brass) 70%, transparent);
+    pointer-events: none;
+  }
+  .pn-draw.is-available:hover .pn-pile__stack {
+    translate: 0 -3px;
+  }
+
+  /* Seats: put each seat in a slot positioned by JavaScript */
+  .pn-seat-slot {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    z-index: var(--pn-z-seat);
+    translate: -50% -50%;
+  }
+
+  /* Game screen skeleton: top bar, table area, controls, hand */
+  .pn-game {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .pn-game__stage {
+    position: relative;
+    min-height: 0;
+  }
+
+  .pn-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 16px;
+    width: min(960px, 100% - 32px);
+    margin: 0 auto;
+    padding-top: 12px;
+  }
+  .pn-controls__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pn-controls__timer {
+    grid-column: 1 / -1;
+  }
+  .pn-me {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .pn-me__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .pn-me__name {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .pn-me__meta {
+    color: var(--pn-muted);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pn-status {
+    min-width: 0;
+    color: var(--pn-ink);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .pn-status.is-my-turn {
+    color: var(--pn-brass-text);
+  }
+  .pn-seconds {
+    color: var(--pn-ink);
+    font-family: var(--pn-font-display);
+    font-size: 18px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .pn-seconds.is-low {
+    color: var(--pn-danger);
+  }
+
+  /* Phone: status next to you, actions in a full-width row.
+     The same rules apply inside any .pn-compact container. */
+  @media (max-width: 639px) {
+    .pn-controls {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 10px 12px;
+      width: calc(100% - 32px);
+    }
+    .pn-controls .pn-me__text {
+      display: none;
+    }
+    .pn-status {
+      font-size: 15px;
+      text-align: left;
+    }
+    .pn-controls__actions {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .pn-controls__actions .pn-btn {
+      padding: 0 8px;
+    }
+    .pn-controls__timer { order: 1; }
+    .pn-controls__actions { order: 2; }
+  }
+  .pn-compact .pn-controls {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    width: calc(100% - 32px);
+  }
+  .pn-compact .pn-controls .pn-me__text {
+    display: none;
+  }
+  .pn-compact .pn-status {
+    font-size: 15px;
+    text-align: left;
+  }
+  .pn-compact .pn-controls__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .pn-compact .pn-controls__actions .pn-btn {
+    padding: 0 8px;
+  }
+  .pn-compact .pn-controls__timer { order: 1; }
+  .pn-compact .pn-controls__actions { order: 2; }
+
+  .pn-hand {
+    position: relative;
+    width: min(1000px, 100% - 16px);
+    margin: 0 auto;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pn-hand__card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 11%/7.86%;
+    transform-origin: 50% 100%;
+  }
+
+  /* Opponents on phones: a row above the table */
+  .pn-opponents {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(96px, 1fr);
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 12px 8px;
+    scrollbar-width: none;
+  }
+  .pn-opponents::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Looks for Spin It (wheel and bottle), Couples, Truth and Dare Group, and the hub tile art. */
+@layer components {
+  /* ------------------------------------------------------------ Spin It */
+  .pn-floor {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 132px),
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 16px),
+      linear-gradient(180deg, var(--pn-wood-2), var(--pn-wood-3));
+    box-shadow: inset 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+  .pn-rug {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(92%, 640px);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, var(--pn-felt-lamp), transparent 65%),
+      radial-gradient(circle, var(--pn-felt-1) 0%, var(--pn-felt-2) 60%, var(--pn-felt-3) 100%);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 0 0 10px rgba(0, 0, 0, 0.14);
+  }
+  .pn-rug::before {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    border: 2px dashed var(--pn-stitch);
+  }
+
+  .pn-wheel {
+    position: relative;
+    width: min(88vw, 520px);
+    aspect-ratio: 1;
+  }
+  .pn-wheel__rim {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 14px;
+    background: conic-gradient(from 20deg, #e3b35a, #a9772a, #f0c572, #a9772a, #e3b35a, #a9772a, #f0c572, #a9772a, #e3b35a);
+    box-shadow: var(--pn-shadow-3), inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+  }
+  .pn-wheel__face {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25);
+  }
+  .pn-wheel__hub {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 22%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #3a3d44, #16181c 75%);
+    box-shadow: 0 0 0 4px #e3b35a, 0 8px 18px rgba(0, 0, 0, 0.5);
+    color: #f4f1ea;
+    font-family: var(--pn-font-display);
+    font-weight: 800;
+    font-size: clamp(12px, 2.4vw, 16px);
+    text-align: center;
+  }
+  .pn-wheel__pointer {
+    position: absolute;
+    left: 50%;
+    top: -6px;
+    z-index: 2;
+    width: 34px;
+    height: 44px;
+    translate: -50% 0;
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    background: linear-gradient(180deg, #f0c572, #b8862e);
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+    transform-origin: 50% 20%;
+  }
+  .pn-wheel__bulb {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #fff4d6;
+    box-shadow: 0 0 8px rgba(255, 220, 150, 0.9);
+  }
+  .pn-wheel__bulb.is-off {
+    background: #8a6a3a;
+    box-shadow: none;
+  }
+  .pn-wheel__stand {
+    width: 44%;
+    height: 22px;
+    margin: -6px auto 0;
+    border-radius: 0 0 16px 16px;
+    background: linear-gradient(180deg, var(--pn-wood-1), var(--pn-wood-3));
+    box-shadow: var(--pn-shadow-2);
+  }
+
+  .pn-bottle {
+    width: 64px;
+    height: 200px;
+    filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.45));
+  }
+
+  .pn-name-list {
+    display: grid;
+    gap: 8px;
+  }
+  .pn-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 8px 0 12px;
+    border-radius: var(--pn-r-md);
+    background: var(--pn-surface-2);
+  }
+  .pn-name-row__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* ------------------------------------------------------------ Couples (candlelit) */
+  .pn-theme-couples {
+    --pn-room-top: #2a0f1e;
+    --pn-room-bottom: #14070f;
+    --pn-lamp: rgba(246, 193, 119, 0.14);
+    --pn-surface: rgba(38, 14, 27, 0.94);
+    --pn-surface-solid: #26101d;
+    --pn-surface-raised: #301425;
+    --pn-surface-2: rgba(248, 233, 224, 0.07);
+    --pn-surface-2-hover: rgba(248, 233, 224, 0.12);
+    --pn-ink: #f8e9e0;
+    --pn-muted: #caa9b0;
+    --pn-subtle: #a88a92;
+    --pn-line: rgba(246, 193, 119, 0.16);
+    --pn-line-strong: rgba(246, 193, 119, 0.28);
+    --pn-brass: #f6c177;
+    --pn-brass-hover: #ffd296;
+    --pn-brass-text: #f6c177;
+    --pn-on-brass: #2a0f1e;
+    --pn-rose: #ff6f91;
+    position: relative;
+    min-height: 100dvh;
+    color: var(--pn-ink);
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255, 111, 145, 0.14), transparent 22%),
+      radial-gradient(circle at 82% 18%, rgba(246, 193, 119, 0.16), transparent 20%),
+      radial-gradient(circle at 70% 80%, rgba(255, 111, 145, 0.1), transparent 24%),
+      radial-gradient(circle at 25% 85%, rgba(246, 193, 119, 0.1), transparent 22%),
+      radial-gradient(ellipse 70% 60% at 50% 40%, var(--pn-lamp), transparent 70%),
+      linear-gradient(180deg, var(--pn-room-top), var(--pn-room-bottom));
+  }
+  :root[data-theme="light"] .pn-theme-couples {
+    --pn-room-top: #fbefef;
+    --pn-room-bottom: #f3dcdd;
+    --pn-lamp: rgba(255, 236, 214, 0.8);
+    --pn-surface: rgba(255, 255, 255, 0.94);
+    --pn-surface-solid: #ffffff;
+    --pn-surface-raised: #ffffff;
+    --pn-surface-2: rgba(58, 20, 38, 0.05);
+    --pn-surface-2-hover: rgba(58, 20, 38, 0.09);
+    --pn-ink: #3a1426;
+    --pn-muted: #7a4b5e;
+    --pn-subtle: #8c6070;
+    --pn-line: rgba(58, 20, 38, 0.12);
+    --pn-line-strong: rgba(58, 20, 38, 0.2);
+    --pn-brass: #c98a3a;
+    --pn-brass-hover: #d69a4c;
+    --pn-brass-text: #8e5a1c;
+    --pn-on-brass: #2a0f1e;
+    --pn-rose: #d9466b;
+  }
+  .pn-theme-couples h1,
+  .pn-theme-couples h2,
+  .pn-theme-couples .pn-serif {
+    font-family: var(--pn-font-serif);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* Tarot-style card. Size with --pn-tarot-w */
+  .pn-tarot {
+    container-type: inline-size;
+    position: relative;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    width: var(--pn-tarot-w, 300px);
+    aspect-ratio: 3 / 4.4;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 6% / 4.1%;
+    background: linear-gradient(160deg, #3b1628 0%, #230c18 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(246, 193, 119, 0.55),
+      inset 0 0 0 7px #230c18,
+      inset 0 0 0 8.5px rgba(246, 193, 119, 0.5),
+      0 30px 60px rgba(0, 0, 0, 0.5),
+      0 0 60px rgba(255, 111, 145, 0.12);
+    color: #f8e9e0;
+    text-align: center;
+  }
+  :root[data-theme="light"] .pn-tarot {
+    background: linear-gradient(160deg, #fffdf8 0%, #f6ece4 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(201, 138, 58, 0.6),
+      inset 0 0 0 7px #fffdf8,
+      inset 0 0 0 8.5px rgba(201, 138, 58, 0.55),
+      0 24px 50px rgba(120, 60, 70, 0.22);
+    color: #3a1426;
+  }
+  .pn-tarot__kind {
+    margin-bottom: 5cqw;
+    color: var(--pn-rose);
+    font-size: 5.6cqw;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .pn-tarot__text {
+    padding: 0 11cqw;
+    font-family: var(--pn-font-serif);
+    font-size: 8.4cqw;
+    font-weight: 600;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+  .pn-tarot__footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 9cqw;
+    display: flex;
+    justify-content: center;
+    gap: 3cqw;
+    color: var(--pn-muted);
+    font-size: 4.6cqw;
+    font-weight: 700;
+  }
+  .pn-tarot--back {
+    background:
+      repeating-conic-gradient(from 45deg at 50% 50%, rgba(246, 193, 119, 0.09) 0 10deg, transparent 10deg 20deg),
+      linear-gradient(160deg, #3b1628 0%, #230c18 100%);
+  }
+  .pn-tarot__seal {
+    width: 30cqw;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: max(1px, 0.8cqw) solid rgba(246, 193, 119, 0.6);
+    display: grid;
+    place-items: center;
+    color: var(--pn-brass);
+  }
+  .pn-tarot__seal svg {
+    width: 45%;
+    height: 45%;
+  }
+
+  /* One-screen couples layout */
+  .pn-couples-screen {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .pn-level {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    width: min(420px, 100% - 32px);
+    margin: 0 auto;
+    color: var(--pn-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .pn-card-stage {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    padding: 8px 16px;
+  }
+  .pn-card-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: min(460px, 100% - 32px);
+    margin: 0 auto;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  /* Countdown ring for timed cards: set --pn-progress 0..1 */
+  .pn-countdown {
+    --pn-progress: 1;
+    display: grid;
+    place-items: center;
+    width: 112px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: conic-gradient(var(--pn-brass) 0 calc(var(--pn-progress) * 1turn), var(--pn-line) 0 1turn);
+  }
+  .pn-countdown__inner {
+    display: grid;
+    place-items: center;
+    width: calc(100% - 12px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--pn-surface-solid);
+    font-family: var(--pn-font-display);
+    font-size: 30px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ------------------------------------------------------------ Truth and Dare Group */
+  .pn-dare-card {
+    --t: var(--pn-green);
+    container-type: inline-size;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    width: var(--pn-dare-w, 320px);
+    aspect-ratio: 5 / 7;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 7% / 5%;
+    background: var(--pn-surface-solid);
+    box-shadow: var(--pn-card-shadow), inset 0 0 0 1px var(--pn-line);
+    color: var(--pn-ink);
+  }
+  .pn-dare-card[data-type="normal"] { --t: var(--pn-green); }
+  .pn-dare-card[data-type="spicy"] { --t: var(--pn-red); }
+  .pn-dare-card[data-type="revealing"] { --t: var(--pn-blue); }
+  .pn-dare-card__band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5cqw 7cqw;
+    background: linear-gradient(160deg, color-mix(in oklab, var(--t) 80%, white), var(--t));
+    color: #ffffff;
+    font-family: var(--pn-font-display);
+    font-size: 6cqw;
+    font-weight: 800;
+  }
+  .pn-dare-card__text {
+    display: grid;
+    place-items: center;
+    padding: 6cqw 8cqw;
+    font-family: var(--pn-font-display);
+    font-size: 8cqw;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .pn-dare-card__foot {
+    padding: 0 7cqw 6cqw;
+    color: var(--pn-muted);
+    font-size: 4.6cqw;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* ------------------------------------------------------------ hub tile art */
+  .pn-art {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  .pn-art--uno {
+    background:
+      repeating-linear-gradient(96deg, var(--pn-wood-grain) 0 2px, transparent 2px 11px),
+      linear-gradient(180deg, var(--pn-wood-1), var(--pn-wood-3));
+    padding: 12px;
+  }
+  .pn-art--uno .pn-felt {
+    width: 100%;
+    border-radius: 18px;
+  }
+  .pn-art--spin {
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 64px),
+      linear-gradient(180deg, var(--pn-wood-2), var(--pn-wood-3));
+  }
+  .pn-art--couples {
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255, 111, 145, 0.35), transparent 30%),
+      radial-gradient(circle at 80% 25%, rgba(246, 193, 119, 0.35), transparent 26%),
+      linear-gradient(160deg, #3b1628, #14070f);
+  }
+  .pn-art--group {
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(255, 226, 170, 0.14), transparent 65%),
+      radial-gradient(ellipse at 50% 42%, #2c3b63 0%, #1e2a4a 55%, #141c33 100%);
+  }
+  .pn-art__fan {
+    position: relative;
+    width: 150px;
+    height: 110px;
+  }
+  .pn-art__fan > * {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform-origin: 50% 100%;
+  }
+}
+
+/* ---- style guide only ---- */
+.sg { width: min(1340px, 100% - 32px); margin: 0 auto; padding: 8px 0 80px; }
+.sg-head { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; margin: 0 -16px; background: color-mix(in oklab, var(--pn-room-top) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--pn-line); }
+.sg-section { margin-top: 56px; }
+.sg-section > h2 { font-size: 28px; margin-bottom: 6px; }
+.sg-section > p { color: var(--pn-muted); margin-bottom: 20px; max-width: 70ch; }
+.sg-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 14px 0; }
+.sg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.sg-swatch { display: grid; gap: 8px; font-size: 13px; }
+.sg-swatch span { height: 64px; border-radius: 14px; border: 1px solid var(--pn-line); }
+.sg-frame { position: relative; overflow: hidden; border-radius: 28px; border: 1px solid var(--pn-line); background: radial-gradient(ellipse 70% 60% at 50% 36%, var(--pn-lamp), transparent 70%), linear-gradient(180deg, var(--pn-room-top), var(--pn-room-bottom)); flex-shrink: 0; }
+.sg-scroll { overflow-x: auto; padding-bottom: 12px; }
+.sg-pair { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+.sg-static .pn-backdrop { position: relative; inset: auto; min-height: 420px; border-radius: 28px; }
+.sg-static .pn-toasts { position: relative; inset: auto; width: auto; align-items: flex-start; }
+.sg-type-1 { font-family: var(--pn-font-display); font-weight: 800; font-size: 56px; line-height: 1; letter-spacing: -0.025em; }
+.sg-type-2 { font-family: var(--pn-font-display); font-weight: 800; font-size: 28px; }
+.sg-type-3 { font-size: 16px; }
+.sg-type-4 { font-size: 13px; color: var(--pn-muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="sg">
+<div class="sg-head">
+<a class="pn-brand" href="#"><span class="pn-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>Party Night design kit</a>
+<div class="pn-topbar__group">
+<div class="pn-segmented" role="radiogroup" aria-label="Felt color">
+<button type="button" class="pn-segmented__item" role="radio" aria-checked="true" data-felt-pick="green">Green</button>
+<button type="button" class="pn-segmented__item" role="radio" aria-checked="false" data-felt-pick="teal">Teal</button>
+<button type="button" class="pn-segmented__item" role="radio" aria-checked="false" data-felt-pick="burgundy">Burgundy</button>
+<button type="button" class="pn-segmented__item" role="radio" aria-checked="false" data-felt-pick="navy">Navy</button>
+</div>
+<button type="button" class="pn-btn pn-btn--sm" id="theme-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg><span>Light theme</span></button>
+</div>
+</div>
+
+<section class="sg-section"><h2>Colors</h2><p>Every color comes from a token in tokens.css, and the light theme redefines them all. Components never hard-code a color.</p>
+<div class="sg-grid"><div class="sg-swatch"><span style="background:var(--pn-room-bottom)"></span><b>Room</b></div><div class="sg-swatch"><span style="background:var(--pn-surface-solid)"></span><b>Surface</b></div><div class="sg-swatch"><span style="background:var(--pn-surface-2)"></span><b>Surface 2</b></div><div class="sg-swatch"><span style="background:var(--pn-ink)"></span><b>Ink</b></div><div class="sg-swatch"><span style="background:var(--pn-muted)"></span><b>Muted</b></div><div class="sg-swatch"><span style="background:var(--pn-line-strong)"></span><b>Line</b></div><div class="sg-swatch"><span style="background:var(--pn-brass)"></span><b>Brass</b></div><div class="sg-swatch"><span style="background:var(--pn-danger)"></span><b>Danger</b></div><div class="sg-swatch"><span style="background:linear-gradient(180deg,var(--pn-wood-1),var(--pn-wood-3))"></span><b>Wood</b></div><div class="sg-swatch"><span style="background:radial-gradient(var(--pn-felt-1),var(--pn-felt-3))"></span><b>Felt</b></div><div class="sg-swatch"><span style="background:var(--pn-red)"></span><b>Red</b></div><div class="sg-swatch"><span style="background:var(--pn-yellow)"></span><b>Yellow</b></div><div class="sg-swatch"><span style="background:var(--pn-green)"></span><b>Green</b></div><div class="sg-swatch"><span style="background:var(--pn-blue)"></span><b>Blue</b></div><div class="sg-swatch"><span style="background:var(--pn-wild)"></span><b>Wild</b></div></div>
+<div class="sg-row" style="margin-top:20px"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:40px" aria-hidden="true">R</span><span class="pn-avatar" data-tone="1" style="--pn-avatar-size:40px" aria-hidden="true">A</span><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:40px" aria-hidden="true">Z</span><span class="pn-avatar" data-tone="3" style="--pn-avatar-size:40px" aria-hidden="true">K</span><span class="pn-avatar" data-tone="4" style="--pn-avatar-size:40px" aria-hidden="true">M</span><span class="pn-avatar" data-tone="5" style="--pn-avatar-size:40px" aria-hidden="true">S</span><span class="pn-avatar" data-tone="6" style="--pn-avatar-size:40px" aria-hidden="true">N</span><span class="pn-avatar" data-tone="7" style="--pn-avatar-size:40px" aria-hidden="true">T</span><span class="pn-avatar" data-tone="8" style="--pn-avatar-size:40px" aria-hidden="true">O</span><span class="pn-avatar" data-tone="9" style="--pn-avatar-size:40px" aria-hidden="true">D</span><span class="pn-avatar" data-tone="10" style="--pn-avatar-size:40px" aria-hidden="true">V</span><span class="pn-avatar" data-tone="11" style="--pn-avatar-size:40px" aria-hidden="true">E</span></div></section>
+
+<section class="sg-section"><h2>Type</h2><p>Bricolage Grotesque for headings, numbers and card symbols. Manrope for everything else. Fraunces only in the couples game.</p>
+<div class="sg-type-1">Party Night</div><div class="sg-type-2" style="margin-top:10px">Round 2. Zoya wins.</div>
+<p class="sg-type-3" style="margin-top:10px">Pick a nickname and grab a seat. Friends will see it at the table.</p><p class="sg-type-4" style="margin-top:6px">7 cards, 120 points</p></section>
+
+<section class="sg-section"><h2>Controls</h2><p>Buttons are 48 px tall (40 small, 56 large). Primary is brass; there is at most one per screen.</p>
+<div class="sg-row"><button type="button" class="pn-btn pn-btn--primary">Create Game</button><button type="button" class="pn-btn">Join Game</button><button type="button" class="pn-btn pn-btn--ghost">Cancel</button><button type="button" class="pn-btn pn-btn--danger">Leave game</button><button type="button" class="pn-btn" disabled>Pass</button><button type="button" class="pn-btn pn-btn--primary" aria-busy="true">Creating</button></div>
+<div class="sg-row"><button type="button" class="pn-btn pn-btn--sm">Copy code</button><button type="button" class="pn-btn pn-btn--lg pn-btn--primary">Start Game</button><button type="button" class="pn-btn pn-btn--round pn-btn--call">UNO!</button><button type="button" class="pn-btn pn-btn--round" disabled>UNO!</button><button type="button" class="pn-icon-btn" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button><button type="button" class="pn-icon-btn" aria-label="Theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></button><button type="button" class="pn-text-btn">Scores</button></div>
+<div class="sg-row"><span class="pn-code">X7K92P</span><span class="pn-chip">2 to 8 players</span><span class="pn-chip pn-chip--brass">Your turn</span><span class="pn-badge-uno">UNO!</span>
+<div class="pn-segmented" role="radiogroup" aria-label="Turn time"><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">15s</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="true">30s</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">45s</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">60s</button></div>
+<button type="button" class="pn-switch" role="switch" aria-checked="true" aria-label="Drinks"></button><button type="button" class="pn-switch" role="switch" aria-checked="false" aria-label="No-touch"></button></div>
+<div class="sg-pair" style="margin-top:18px">
+<div style="width:320px"><label class="pn-label" for="n1">Your nickname</label><input id="n1" class="pn-input" placeholder="e.g. Sanskar"><p class="pn-hint">Friends will see this at the table.</p></div>
+<div style="width:320px"><label class="pn-label" for="n2">Your nickname</label><input id="n2" class="pn-input" value="Riya" aria-invalid="true"><p class="pn-hint pn-hint--error">Riya is taken. Try Riya 2.</p></div>
+<div style="width:320px"><label class="pn-label" for="n3">Room code</label><input id="n3" class="pn-input pn-input--code" value="X7K92P"></div>
+<div style="width:320px"><label class="pn-label" for="r1">Level</label><input id="r1" class="pn-range" type="range" min="0" max="2" value="1" style="--pn-fill:50%"></div>
+</div></section>
+
+<section class="sg-section"><h2>Players</h2><p>Initials on a color instead of emoji. The current player gets a brass ring that empties as their time runs out.</p>
+<div class="sg-row"><div class="pn-seat"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:40px" aria-hidden="true">R</span><span class="pn-seat__text"><span class="pn-seat__name">Riya</span><span class="pn-seat__meta">5 cards</span></span></div><div class="pn-seat"><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:40px" aria-hidden="true">Z</span><span class="pn-seat__text"><span class="pn-seat__name">Zoya</span><span class="pn-seat__meta">1 card</span></span><span class="pn-badge-uno">UNO!</span></div><div class="pn-seat is-current"><span class="pn-avatar-ring" style="--pn-progress:0.45"><span class="pn-avatar" data-tone="1" style="--pn-avatar-size:40px" aria-hidden="true">A</span></span><span class="pn-seat__text"><span class="pn-seat__name">Amit</span><span class="pn-seat__meta">4 cards</span></span></div><div class="pn-seat is-offline"><span class="pn-avatar is-offline" data-tone="3" style="--pn-avatar-size:40px" aria-hidden="true">K</span><span class="pn-seat__text"><span class="pn-seat__name">Kabir</span><span class="pn-seat__meta">Reconnecting</span></span></div></div>
+<div class="sg-row"><div style="display:grid;grid-template-columns:repeat(3,110px);gap:8px"><div class="pn-seat pn-seat--compact"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:34px" aria-hidden="true">R</span><span class="pn-seat__text"><span class="pn-seat__name">Riya</span><span class="pn-seat__meta">5 cards</span></span></div><div class="pn-seat pn-seat--compact is-current"><span class="pn-avatar-ring" style="--pn-progress:0.45"><span class="pn-avatar" data-tone="1" style="--pn-avatar-size:34px" aria-hidden="true">A</span></span><span class="pn-seat__text"><span class="pn-seat__name">Amit</span><span class="pn-seat__meta">4 cards</span></span></div><div class="pn-seat pn-seat--compact"><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:34px" aria-hidden="true">Z</span><span class="pn-seat__text"><span class="pn-seat__name">Zoya</span><span class="pn-seat__meta">1 card</span></span><span class="pn-badge-uno">UNO!</span></div></div>
+<div style="width:320px;display:grid;gap:10px"><div class="pn-timer-bar" style="--pn-progress:.7"></div><div class="pn-timer-bar is-low" style="--pn-progress:.15"></div></div></div></section>
+
+<section class="sg-section"><h2>Cards</h2><p>An original design with real card proportions. Numbers 6 and 9 are underlined. Playable cards get a white ring, the selected card a brass ring, and cards you can't play are desaturated.</p>
+<div class="sg-row"><div class="pn-card " data-color="red" style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="yellow" style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="pn-card__underline">6</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__underline">6</span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__underline">6</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="green" style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="blue" style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="red" style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol pn-card__symbol--small"><span class="">+2</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">+2</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">+2</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="wild" style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__mini-wild"></span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__mini-wild"></span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="wild" style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol pn-card__symbol--small"><span class="">+4</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">+4</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">+4</span></span><span class="pn-card__sheen"></span></div><div class="pn-card pn-card--back " style="--pn-card-w:110px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__ring"></span><span class="pn-card__emblem"><span></span><span></span><span></span><span></span></span></div></div><div class="sg-row"><div class="pn-card " data-color="blue" style="--pn-card-w:56px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__underline">9</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="blue" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__underline">9</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="blue" style="--pn-card-w:96px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__underline">9</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="blue" style="--pn-card-w:128px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__underline">9</span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__underline">9</span></span><span class="pn-card__sheen"></span></div></div><div class="sg-row" style="gap:24px"><div class="pn-card is-playable" data-color="green" style="--pn-card-w:96px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">4</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">4</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">4</span></span><span class="pn-card__sheen"></span></div><div class="pn-card is-selected" data-color="blue" style="--pn-card-w:96px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__sheen"></span></div><div class="pn-card is-dim" data-color="yellow" style="--pn-card-w:96px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">3</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">3</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">3</span></span><span class="pn-card__sheen"></span></div></div></section>
+
+<section class="sg-section"><h2>UNO table, desktop</h2><p>Seats sit on the table edge. Piles in the middle of the felt, your controls and hand below. Try the felt colors in the header.</p>
+<div class="sg-scroll"><div class="sg-frame" style="width:1280px;height:880px">
+<header class="pn-topbar"><div class="pn-topbar__group"><a class="pn-brand" href="#"><span class="pn-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>Party Night</a><span class="pn-divider-v"></span><button type="button" class="pn-code">X7K92P</button><span class="pn-meta">Round 2</span></div>
+<div class="pn-topbar__group pn-topbar__group--tight"><button type="button" class="pn-text-btn">Scores</button><button type="button" class="pn-icon-btn" aria-label="Switch theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></button><button type="button" class="pn-icon-btn" aria-label="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"></path><path d="M15.5 9a4 4 0 0 1 0 6"></path><path d="M18.5 6.5a7.5 7.5 0 0 1 0 11"></path></svg></button><button type="button" class="pn-text-btn">Leave</button></div></header>
+<div style="position:absolute;left:0;right:0;top:64px;height:816px">
+<div class="pn-table" data-felt="green" style="position:absolute;left:120px;top:36px;width:1040px;height:470px">
+<div class="pn-felt"><svg class="pn-direction" viewBox="0 0 560 280" aria-hidden="true"><defs><marker id="arrow-d" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="currentColor"></path></marker></defs><path d="M60 112 A 230 110 0 0 1 500 112" fill="none" stroke="currentColor" stroke-width="2.5" marker-end="url(#arrow-d)"></path><path d="M500 168 A 230 110 0 0 1 60 168" fill="none" stroke="currentColor" stroke-width="2.5" marker-end="url(#arrow-d)"></path></svg><div class="pn-felt__center"><button type="button" class="pn-draw is-available pn-pile" aria-label="Draw a card, 38 left"><span class="pn-pile__stack" style="--pn-card-w:104px"><div class="pn-card pn-card--back " style="--pn-card-w:104px;translate:-4px 4px;filter:brightness(.78)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__ring"></span><span class="pn-card__emblem"><span></span><span></span><span></span><span></span></span></div><div class="pn-card pn-card--back " style="--pn-card-w:104px;translate:-2px 2px;filter:brightness(.88)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__ring"></span><span class="pn-card__emblem"><span></span><span></span><span></span><span></span></span></div><div class="pn-card pn-card--back " style="--pn-card-w:104px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__ring"></span><span class="pn-card__emblem"><span></span><span></span><span></span><span></span></span></div></span><span class="pn-pile__label">38 left</span></button><div class="pn-pile"><div class="pn-pile__stack" style="--pn-card-w:104px"><div class="pn-card " data-color="blue" style="--pn-card-w:104px;rotate:-14deg;translate:-8px 4px;filter:brightness(.85)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">2</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="green" style="--pn-card-w:104px;rotate:9deg;translate:8px -6px;filter:brightness(.9)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="blue" style="--pn-card-w:104px;rotate:-4deg" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div></div><span class="pn-chip pn-chip--on-felt"><span class="pn-chip__dot" data-color="blue"></span>Blue</span></div></div></div>
+</div>
+<div class="pn-seat-slot" style="--x:380px;--y:36px"><div class="pn-seat"><span class="pn-avatar" data-tone="1" style="--pn-avatar-size:40px" aria-hidden="true">A</span><span class="pn-seat__text"><span class="pn-seat__name">Amit</span><span class="pn-seat__meta">4 cards</span></span></div></div>
+<div class="pn-seat-slot" style="--x:640px;--y:36px"><div class="pn-seat"><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:40px" aria-hidden="true">Z</span><span class="pn-seat__text"><span class="pn-seat__name">Zoya</span><span class="pn-seat__meta">1 card</span></span><span class="pn-badge-uno">UNO!</span></div></div>
+<div class="pn-seat-slot" style="--x:900px;--y:36px"><div class="pn-seat is-offline"><span class="pn-avatar is-offline" data-tone="3" style="--pn-avatar-size:40px" aria-hidden="true">K</span><span class="pn-seat__text"><span class="pn-seat__name">Kabir</span><span class="pn-seat__meta">Reconnecting</span></span></div></div>
+<div class="pn-seat-slot" style="--x:120px;--y:280px"><div class="pn-seat"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:40px" aria-hidden="true">R</span><span class="pn-seat__text"><span class="pn-seat__name">Riya</span><span class="pn-seat__meta">5 cards</span></span></div></div>
+<div class="pn-seat-slot" style="--x:1160px;--y:280px"><div class="pn-seat"><span class="pn-avatar" data-tone="4" style="--pn-avatar-size:40px" aria-hidden="true">M</span><span class="pn-seat__text"><span class="pn-seat__name">Meera</span><span class="pn-seat__meta">6 cards</span></span></div></div>
+<div style="position:absolute;left:0;right:0;top:524px"><div class="pn-controls">
+<div class="pn-me"><span class="pn-avatar-ring" style="--pn-progress:0.62"><span class="pn-avatar" data-tone="5" style="--pn-avatar-size:44px" aria-hidden="true">S</span></span><span class="pn-me__text"><span class="pn-me__name">Sanskar (you)</span><span class="pn-me__meta">7 cards, 120 points</span></span></div>
+<p class="pn-status is-my-turn">Your turn. Tap Blue Reverse again to play it.</p>
+<span class="pn-seconds">18s</span>
+<div class="pn-controls__actions"><button type="button" class="pn-btn">Draw card</button><button type="button" class="pn-btn" disabled>Pass</button><button type="button" class="pn-btn pn-btn--round" disabled aria-label="Call UNO">UNO!</button></div>
+<div class="pn-timer-bar pn-controls__timer" style="--pn-progress:.62"></div>
+</div></div>
+<div class="pn-hand" style="position:absolute;left:0;right:0;top:640px;height:160px"><button type="button" class="pn-hand__card" style="left:258px;top:9px;rotate:-12.0deg;z-index:10" aria-label="red 7"><div class="pn-card is-playable" data-color="red" style="--pn-card-w:100px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:322px;top:17px;rotate:-8.0deg;z-index:11" aria-label="red draw2"><div class="pn-card is-dim" data-color="red" style="--pn-card-w:100px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol pn-card__symbol--small"><span class="">+2</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">+2</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">+2</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:386px;top:15px;rotate:-4.0deg;z-index:12" aria-label="yellow 3"><div class="pn-card is-dim" data-color="yellow" style="--pn-card-w:100px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">3</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">3</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">3</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:450px;top:14px;rotate:0.0deg;z-index:13" aria-label="green skip"><div class="pn-card is-dim" data-color="green" style="--pn-card-w:100px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:514px;top:3px;rotate:4.0deg;z-index:14" aria-label="blue 2"><div class="pn-card is-playable" data-color="blue" style="--pn-card-w:100px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">2</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:578px;top:-13px;rotate:8.0deg;z-index:40" aria-label="blue reverse"><div class="pn-card is-selected" data-color="blue" style="--pn-card-w:100px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:642px;top:9px;rotate:12.0deg;z-index:16" aria-label="wild wild"><div class="pn-card is-playable" data-color="wild" style="--pn-card-w:100px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__mini-wild"></span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__mini-wild"></span></span><span class="pn-card__sheen"></span></div></button></div>
+</div>
+</div></div></section>
+
+<section class="sg-section"><h2>UNO table, phone</h2><p>Opponents in a row on top, a compact table, and actions in one full-width row. The same layout is used below 640 px wide.</p>
+<div class="sg-pair"><div class="sg-frame pn-compact" style="width:390px;height:844px">
+<header class="pn-topbar"><div class="pn-topbar__group"><button type="button" class="pn-code">X7K92P</button><span class="pn-meta">Round 2</span></div>
+<div class="pn-topbar__group pn-topbar__group--tight"><button type="button" class="pn-icon-btn" aria-label="Scores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"></path><path d="M8 6H5a3 3 0 0 0 3 4"></path><path d="M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4"></path><path d="M8 20h8"></path></svg></button><button type="button" class="pn-icon-btn" aria-label="Switch theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></button><button type="button" class="pn-icon-btn" aria-label="Leave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l-4-4 4-4"></path><path d="M6 12h10"></path></svg></button></div></header>
+<div class="pn-opponents" style="position:absolute;left:0;right:0;top:58px;grid-auto-columns:minmax(0,1fr)"><div class="pn-seat pn-seat--compact"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:34px" aria-hidden="true">R</span><span class="pn-seat__text"><span class="pn-seat__name">Riya</span><span class="pn-seat__meta">5 cards</span></span></div><div class="pn-seat pn-seat--compact"><span class="pn-avatar" data-tone="1" style="--pn-avatar-size:34px" aria-hidden="true">A</span><span class="pn-seat__text"><span class="pn-seat__name">Amit</span><span class="pn-seat__meta">4 cards</span></span></div><div class="pn-seat pn-seat--compact"><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:34px" aria-hidden="true">Z</span><span class="pn-seat__text"><span class="pn-seat__name">Zoya</span><span class="pn-seat__meta">1 card</span></span><span class="pn-badge-uno">UNO!</span></div></div>
+<div class="pn-table pn-table--compact" data-felt="green" style="position:absolute;left:12px;top:158px;width:366px;height:340px">
+<div class="pn-felt"><svg class="pn-direction" viewBox="0 0 560 280" aria-hidden="true"><defs><marker id="arrow-p" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="currentColor"></path></marker></defs><path d="M60 112 A 230 110 0 0 1 500 112" fill="none" stroke="currentColor" stroke-width="2.5" marker-end="url(#arrow-p)"></path><path d="M500 168 A 230 110 0 0 1 60 168" fill="none" stroke="currentColor" stroke-width="2.5" marker-end="url(#arrow-p)"></path></svg><div class="pn-felt__center" style="gap:28px"><button type="button" class="pn-draw is-available pn-pile" aria-label="Draw a card, 38 left"><span class="pn-pile__stack" style="--pn-card-w:76px"><div class="pn-card pn-card--back " style="--pn-card-w:76px;translate:-4px 4px;filter:brightness(.78)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__ring"></span><span class="pn-card__emblem"><span></span><span></span><span></span><span></span></span></div><div class="pn-card pn-card--back " style="--pn-card-w:76px;translate:-2px 2px;filter:brightness(.88)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__ring"></span><span class="pn-card__emblem"><span></span><span></span><span></span><span></span></span></div><div class="pn-card pn-card--back " style="--pn-card-w:76px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__ring"></span><span class="pn-card__emblem"><span></span><span></span><span></span><span></span></span></div></span><span class="pn-pile__label">38 left</span></button><div class="pn-pile"><div class="pn-pile__stack" style="--pn-card-w:76px"><div class="pn-card " data-color="blue" style="--pn-card-w:76px;rotate:-14deg;translate:-8px 4px;filter:brightness(.85)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">2</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="green" style="--pn-card-w:76px;rotate:9deg;translate:8px -6px;filter:brightness(.9)" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="blue" style="--pn-card-w:76px;rotate:-4deg" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div></div><span class="pn-chip pn-chip--on-felt"><span class="pn-chip__dot" data-color="blue"></span>Blue</span></div></div></div>
+</div>
+<div style="position:absolute;left:0;right:0;top:512px"><div class="pn-controls">
+<div class="pn-me"><span class="pn-avatar-ring" style="--pn-progress:0.62"><span class="pn-avatar" data-tone="5" style="--pn-avatar-size:40px" aria-hidden="true">S</span></span><span class="pn-me__text"><span class="pn-me__name">Sanskar (you)</span><span class="pn-me__meta">7 cards, 120 points</span></span></div>
+<p class="pn-status is-my-turn">Your turn. Tap Blue Reverse again to play it.</p>
+<span class="pn-seconds">18s</span>
+<div class="pn-controls__actions"><button type="button" class="pn-btn">Draw card</button><button type="button" class="pn-btn" disabled>Pass</button><button type="button" class="pn-btn pn-btn--round" disabled aria-label="Call UNO">UNO!</button></div>
+<div class="pn-timer-bar pn-controls__timer" style="--pn-progress:.62"></div>
+</div></div>
+<div class="pn-hand" style="position:absolute;left:0;right:0;top:656px;height:130px"><button type="button" class="pn-hand__card" style="left:19px;top:7px;rotate:-10.5deg;z-index:10" aria-label="red 7"><div class="pn-card is-playable" data-color="red" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:63px;top:13px;rotate:-7.0deg;z-index:11" aria-label="red draw2"><div class="pn-card is-dim" data-color="red" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol pn-card__symbol--small"><span class="">+2</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">+2</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">+2</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:107px;top:11px;rotate:-3.5deg;z-index:12" aria-label="yellow 3"><div class="pn-card is-dim" data-color="yellow" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">3</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">3</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">3</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:151px;top:10px;rotate:0.0deg;z-index:13" aria-label="green skip"><div class="pn-card is-dim" data-color="green" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"></circle><path d="M6.4 17.6 17.6 6.4"></path></svg></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:195px;top:1px;rotate:3.5deg;z-index:14" aria-label="blue 2"><div class="pn-card is-playable" data-color="blue" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">2</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">2</span></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:239px;top:-9px;rotate:7.0deg;z-index:40" aria-label="blue reverse"><div class="pn-card is-selected" data-color="blue" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__sheen"></span></div></button><button type="button" class="pn-hand__card" style="left:283px;top:7px;rotate:10.5deg;z-index:16" aria-label="wild wild"><div class="pn-card is-playable" data-color="wild" style="--pn-card-w:72px;" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"></span><span class="pn-card__corner pn-card__corner--tl"><span class="pn-card__mini-wild"></span></span><span class="pn-card__corner pn-card__corner--br"><span class="pn-card__mini-wild"></span></span><span class="pn-card__sheen"></span></div></button></div>
+</div></div></section>
+
+<section class="sg-section"><h2>Hub</h2><p>One tile per game, each with its own material.</p>
+<div class="pn-hub__grid">
+<a class="pn-tile" href="#"><div class="pn-tile__art"><div class="pn-art pn-art--uno"><div class="pn-felt" style="--pn-table-r:26px;--pn-rim:8px;--pn-stitch-inset:8px"><div class="pn-felt__center"><div class="pn-art__fan"><div class="pn-card " data-color="red" style="--pn-card-w:58px;translate:-110% 0;rotate:-14deg" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">7</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">7</span></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="blue" style="--pn-card-w:58px;translate:-50% -8px" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__corner pn-card__corner--br"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8.5h13"></path><path d="M13.5 4.5l4 4-4 4"></path><path d="M19.5 15.5h-13"></path><path d="M10.5 11.5l-4 4 4 4"></path></svg></span><span class="pn-card__sheen"></span></div><div class="pn-card " data-color="wild" style="--pn-card-w:58px;translate:10% 0;rotate:14deg" aria-hidden="true"><span class="pn-card__frame"></span><span class="pn-card__diamond"></span><span class="pn-card__symbol pn-card__symbol--small"><span class="">+4</span></span><span class="pn-card__corner pn-card__corner--tl"><span class="">+4</span></span><span class="pn-card__corner pn-card__corner--br"><span class="">+4</span></span><span class="pn-card__sheen"></span></div></div></div></div></div></div><div class="pn-tile__body"><h3 class="pn-tile__title">UNO</h3><p class="pn-tile__desc">The classic card game at a real table.</p><span class="pn-chip pn-tile__badge">2 to 8 players, online</span></div></a>
+<a class="pn-tile" href="#"><div class="pn-tile__art"><div class="pn-art pn-art--spin"><div style="position:relative;width:132px;height:132px"><div class="pn-wheel__rim" style="padding:7px"><div class="pn-wheel__face" style="background:conic-gradient(var(--pn-red) 0 25%,var(--pn-yellow) 0 50%,var(--pn-green) 0 75%,var(--pn-blue) 0 100%)"></div></div><svg class="pn-bottle" style="position:absolute;left:50%;top:50%;width:28px;height:88px;translate:-50% -50%;rotate:35deg" viewBox="0 0 64 200" aria-hidden="true"><defs><linearGradient id="glass" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#145a52"></stop><stop offset="0.38" stop-color="#3fb8a9"></stop><stop offset="0.7" stop-color="#2a8c80"></stop><stop offset="1" stop-color="#0f4a43"></stop></linearGradient><linearGradient id="cap" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#a9772a"></stop><stop offset="0.5" stop-color="#f0c572"></stop><stop offset="1" stop-color="#a9772a"></stop></linearGradient></defs><path d="M26 14 H38 V58 C38 70 56 76 56 98 V184 C56 192 50 196 42 196 H22 C14 196 8 192 8 184 V98 C8 76 26 70 26 58 Z" fill="url(#glass)" stroke="rgba(255,255,255,0.35)" stroke-width="1"></path><rect x="8" y="120" width="48" height="30" fill="rgba(227,179,90,0.55)"></rect><rect x="14" y="100" width="6" height="78" rx="3" fill="#ffffff" opacity="0.35"></rect><rect x="29" y="18" width="3" height="36" rx="1.5" fill="#ffffff" opacity="0.3"></rect><rect x="24" y="0" width="16" height="16" rx="3" fill="url(#cap)"></rect></svg></div></div></div><div class="pn-tile__body"><h3 class="pn-tile__title">Spin It</h3><p class="pn-tile__desc">Spin the wheel or flip the bottle.</p><span class="pn-chip pn-tile__badge">One phone or online</span></div></a>
+<a class="pn-tile" href="#"><div class="pn-tile__art"><div class="pn-art pn-art--couples"><div style="position:relative;width:160px;height:130px"><div class="pn-tarot pn-tarot--back" style="--pn-tarot-w:78px"><span class="pn-tarot__seal"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"></path></svg></span></div><div style="position:absolute;left:64px;top:8px;rotate:10deg"><div class="pn-tarot" style="--pn-tarot-w:78px"><span class="pn-tarot__kind">Truth</span></div></div></div></div></div><div class="pn-tile__body"><h3 class="pn-tile__title">Couples</h3><p class="pn-tile__desc">Truth or dare for two.</p><span class="pn-chip pn-tile__badge">2 players, 18+</span></div></a>
+<a class="pn-tile" href="#"><div class="pn-tile__art"><div class="pn-art pn-art--group"><div style="display:grid;justify-items:center;gap:10px"><div style="display:flex;gap:6px"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:30px" aria-hidden="true">R</span><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:30px" aria-hidden="true">A</span><span class="pn-avatar" data-tone="4" style="--pn-avatar-size:30px" aria-hidden="true">Z</span><span class="pn-avatar" data-tone="6" style="--pn-avatar-size:30px" aria-hidden="true">K</span></div><div class="pn-dare-card" data-type="spicy" style="--pn-dare-w:84px"><div class="pn-dare-card__band"><span>Dare</span><span>Spicy</span></div><p class="pn-dare-card__text">Hook step!</p></div></div></div></div><div class="pn-tile__body"><h3 class="pn-tile__title">Truth and Dare Group</h3><p class="pn-tile__desc">Normal, spicy and revealing cards.</p><span class="pn-chip pn-tile__badge">2 to 12 players</span></div></a>
+</div>
+<div class="pn-hub__join"><input class="pn-input pn-input--code" placeholder="CODE" aria-label="Room code"><button type="button" class="pn-btn pn-btn--lg">Join</button></div></section>
+
+<section class="sg-section"><h2>Lobby</h2><p>The room code as mini cards, players in slots, host settings, and one primary button.</p>
+<div class="pn-panel" style="max-width:880px;display:grid;gap:22px">
+<div style="display:grid;justify-items:center;gap:12px"><span class="pn-meta">Room code</span><div class="pn-code-tiles"><span class="pn-code-tile">X</span><span class="pn-code-tile">7</span><span class="pn-code-tile">K</span><span class="pn-code-tile">9</span><span class="pn-code-tile">2</span><span class="pn-code-tile">P</span></div>
+<div class="sg-row" style="justify-content:center;margin:0"><button type="button" class="pn-btn pn-btn--sm">Copy code</button><button type="button" class="pn-btn pn-btn--sm">Copy invite link</button><button type="button" class="pn-btn pn-btn--sm">Share</button></div></div>
+<div class="pn-players"><div class="pn-player-slot is-you"><span class="pn-avatar" data-tone="5" style="--pn-avatar-size:44px" aria-hidden="true">S</span><span class="pn-player-slot__name">Sanskar (you)</span></div><div class="pn-player-slot"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:44px" aria-hidden="true">R</span><span class="pn-player-slot__name">Riya</span></div><div class="pn-player-slot"><span class="pn-avatar" data-tone="1" style="--pn-avatar-size:44px" aria-hidden="true">A</span><span class="pn-player-slot__name">Amit</span></div><div class="pn-player-slot is-empty">Open seat</div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px"><div><span class="pn-label">Time per turn</span><div class="pn-segmented pn-segmented--block" role="radiogroup" aria-label="Time per turn"><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">15s</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="true">30s</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">45s</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">60s</button></div></div>
+<div><span class="pn-label">Table felt</span><div class="pn-segmented pn-segmented--block" role="radiogroup" aria-label="Table felt"><button type="button" class="pn-segmented__item" role="radio" aria-checked="true">Green</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">Teal</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">Burgundy</button><button type="button" class="pn-segmented__item" role="radio" aria-checked="false">Navy</button></div></div></div>
+<button type="button" class="pn-btn pn-btn--primary pn-btn--lg pn-btn--block">Start Game</button></div></section>
+
+<section class="sg-section"><h2>Round over, sheets and toasts</h2><p>Sheets rise from the bottom on phones and sit in the middle on desktop. Toasts sit above the action row on phones and top right on desktop.</p>
+<div class="sg-pair sg-static">
+<div class="pn-backdrop" style="width:560px"><div class="pn-sheet"><div class="pn-sheet__grabber"></div><div class="pn-result"><span class="pn-avatar-ring" style="--pn-progress:1"><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:80px" aria-hidden="true">Z</span></span><h2 class="pn-result__title">Zoya wins round 2!</h2><p class="pn-result__desc">+82 points from the cards left in other hands.</p></div>
+<table class="pn-scoreboard" style="margin-top:18px"><thead><tr><th>Player</th><th class="is-num">Cards left</th><th class="is-num">Total</th></tr></thead><tbody>
+<tr><td><span class="pn-scoreboard__player"><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:28px" aria-hidden="true">Z</span>Zoya</span></td><td class="is-num">0</td><td class="is-num">164</td></tr>
+<tr class="is-you"><td><span class="pn-scoreboard__player"><span class="pn-avatar" data-tone="5" style="--pn-avatar-size:28px" aria-hidden="true">S</span>Sanskar (you)</span></td><td class="is-num">4</td><td class="is-num">120</td></tr>
+<tr><td><span class="pn-scoreboard__player"><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:28px" aria-hidden="true">R</span>Riya</span></td><td class="is-num">6</td><td class="is-num">35</td></tr></tbody></table>
+<div class="pn-sheet__actions"><button type="button" class="pn-btn pn-btn--primary">Next Round</button><button type="button" class="pn-btn">Rematch</button></div></div></div>
+<div class="pn-toasts" style="width:380px"><div class="pn-toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Riya joined</div><div class="pn-toast pn-toast--bad">Kabir lost connection. Saving their seat.</div><div class="pn-toast pn-toast--uno">Zoya called UNO!</div><div class="pn-banner"><span class="pn-banner__dot"></span>Waking up the game server. This can take up to a minute.</div></div>
+</div></section>
+
+<section class="sg-section"><h2>Spin It</h2><p>The wheel on a brass rim with chasing bulbs, and the bottle on a rug. Both use the same shared list of names.</p>
+<div class="sg-pair"><div style="display:grid;justify-items:center"><div class="pn-wheel" style="width:360px"><div class="pn-wheel__rim"><div class="pn-wheel__face" style="position:relative;background:conic-gradient(var(--pn-red) 0deg 45deg, var(--pn-yellow) 45deg 90deg, var(--pn-green) 90deg 135deg, var(--pn-blue) 135deg 180deg, var(--pn-red) 180deg 225deg, var(--pn-yellow) 225deg 270deg, var(--pn-green) 270deg 315deg, var(--pn-blue) 315deg 360deg)"><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:-67.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#fff">Riya</span><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:-22.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#1a1406">Amit</span><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:22.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#fff">Zoya</span><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:67.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#fff">Kabir</span><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:112.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#fff">Meera</span><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:157.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#1a1406">Sanskar</span><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:202.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#fff">Neel</span><span style="position:absolute;left:50%;top:50%;width:42%;translate:0 -50%;transform-origin:0 50%;rotate:247.5deg;text-align:right;padding-right:14px;box-sizing:border-box;font-family:var(--pn-font-display);font-weight:800;font-size:17px;color:#fff">Tara</span></div></div><span class="pn-wheel__bulb" style="left:98.20%;top:50.00%"></span><span class="pn-wheel__bulb is-off" style="left:94.53%;top:68.45%"></span><span class="pn-wheel__bulb" style="left:84.08%;top:84.08%"></span><span class="pn-wheel__bulb is-off" style="left:68.45%;top:94.53%"></span><span class="pn-wheel__bulb" style="left:50.00%;top:98.20%"></span><span class="pn-wheel__bulb is-off" style="left:31.55%;top:94.53%"></span><span class="pn-wheel__bulb" style="left:15.92%;top:84.08%"></span><span class="pn-wheel__bulb is-off" style="left:5.47%;top:68.45%"></span><span class="pn-wheel__bulb" style="left:1.80%;top:50.00%"></span><span class="pn-wheel__bulb is-off" style="left:5.47%;top:31.55%"></span><span class="pn-wheel__bulb" style="left:15.92%;top:15.92%"></span><span class="pn-wheel__bulb is-off" style="left:31.55%;top:5.47%"></span><span class="pn-wheel__bulb" style="left:50.00%;top:1.80%"></span><span class="pn-wheel__bulb is-off" style="left:68.45%;top:5.47%"></span><span class="pn-wheel__bulb" style="left:84.08%;top:15.92%"></span><span class="pn-wheel__bulb is-off" style="left:94.53%;top:31.55%"></span><span class="pn-wheel__pointer"></span><span class="pn-wheel__hub">Who<br>pays?</span></div><div class="pn-wheel__stand" style="width:160px"></div></div><div class="pn-floor" data-felt="burgundy" style="position:relative;width:420px;height:420px"><div class="pn-rug"></div><div style="position:absolute;left:50.0%;top:9.0%;translate:-50% -50%;display:grid;justify-items:center;gap:4px"><span><span class="pn-avatar" data-tone="0" style="--pn-avatar-size:48px" aria-hidden="true">R</span></span><span class="pn-chip">Riya</span></div><div style="position:absolute;left:85.5%;top:29.5%;translate:-50% -50%;display:grid;justify-items:center;gap:4px"><span><span class="pn-avatar" data-tone="1" style="--pn-avatar-size:48px" aria-hidden="true">A</span></span><span class="pn-chip">Amit</span></div><div style="position:absolute;left:85.5%;top:70.5%;translate:-50% -50%;display:grid;justify-items:center;gap:4px"><span style="box-shadow:0 0 0 3px var(--pn-brass),0 0 24px color-mix(in oklab,var(--pn-brass) 60%,transparent);border-radius:50%"><span class="pn-avatar" data-tone="2" style="--pn-avatar-size:48px" aria-hidden="true">Z</span></span><span class="pn-chip">Zoya</span></div><div style="position:absolute;left:50.0%;top:91.0%;translate:-50% -50%;display:grid;justify-items:center;gap:4px"><span><span class="pn-avatar" data-tone="3" style="--pn-avatar-size:48px" aria-hidden="true">K</span></span><span class="pn-chip">Kabir</span></div><div style="position:absolute;left:14.5%;top:70.5%;translate:-50% -50%;display:grid;justify-items:center;gap:4px"><span><span class="pn-avatar" data-tone="4" style="--pn-avatar-size:48px" aria-hidden="true">M</span></span><span class="pn-chip">Meera</span></div><div style="position:absolute;left:14.5%;top:29.5%;translate:-50% -50%;display:grid;justify-items:center;gap:4px"><span><span class="pn-avatar" data-tone="5" style="--pn-avatar-size:48px" aria-hidden="true">S</span></span><span class="pn-chip">Sanskar</span></div><svg class="pn-bottle" style="position:absolute;left:50%;top:50%;translate:-50% -50%;rotate:60deg" viewBox="0 0 64 200" aria-hidden="true"><defs><linearGradient id="glass" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#145a52"></stop><stop offset="0.38" stop-color="#3fb8a9"></stop><stop offset="0.7" stop-color="#2a8c80"></stop><stop offset="1" stop-color="#0f4a43"></stop></linearGradient><linearGradient id="cap" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#a9772a"></stop><stop offset="0.5" stop-color="#f0c572"></stop><stop offset="1" stop-color="#a9772a"></stop></linearGradient></defs><path d="M26 14 H38 V58 C38 70 56 76 56 98 V184 C56 192 50 196 42 196 H22 C14 196 8 192 8 184 V98 C8 76 26 70 26 58 Z" fill="url(#glass)" stroke="rgba(255,255,255,0.35)" stroke-width="1"></path><rect x="8" y="120" width="48" height="30" fill="rgba(227,179,90,0.55)"></rect><rect x="14" y="100" width="6" height="78" rx="3" fill="#ffffff" opacity="0.35"></rect><rect x="29" y="18" width="3" height="36" rx="1.5" fill="#ffffff" opacity="0.3"></rect><rect x="24" y="0" width="16" height="16" rx="3" fill="url(#cap)"></rect></svg></div></div></section>
+
+<section class="sg-section"><h2>Couples</h2><p>Its own candlelit look (blush and ivory in light mode), with tarot-style cards and a small level slider in the header.</p>
+<div class="pn-theme-couples" style="min-height:0;border-radius:28px;padding:28px;display:grid;justify-items:center;gap:20px">
+<div class="pn-level"><span>Sweet</span><input class="pn-range" type="range" min="0" max="2" value="1" style="--pn-fill:50%" aria-label="Level"><span>Spicy</span></div>
+<div class="sg-pair" style="justify-content:center"><div class="pn-tarot" style="--pn-tarot-w:280px"><span class="pn-tarot__kind">Dare</span><p class="pn-tarot__text">Give Riya a slow two-minute shoulder massage.</p><div class="pn-tarot__footer"><span>Flirty</span><span>2 min</span></div></div>
+<div class="pn-tarot pn-tarot--back" style="--pn-tarot-w:200px"><span class="pn-tarot__seal"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"></path></svg></span></div>
+<div class="pn-countdown" style="--pn-progress:.7"><span class="pn-countdown__inner">1:24</span></div></div>
+<div class="pn-card-actions"><button type="button" class="pn-btn">Pass</button><button type="button" class="pn-btn pn-btn--primary">Done</button><button type="button" class="pn-btn" aria-label="Save to favourites"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"></path></svg></button></div></div></section>
+
+<section class="sg-section"><h2>Truth and Dare Group</h2><p>Three types, told apart by the colored band and its label, not by color alone.</p>
+<div class="sg-row" style="gap:24px"><div class="pn-dare-card" data-type="normal" style="--pn-dare-w:260px"><div class="pn-dare-card__band"><span>Truth</span><span>Normal</span></div><p class="pn-dare-card__text">What's the most useless talent you have?</p><p class="pn-dare-card__foot">Riya's turn</p></div>
+<div class="pn-dare-card" data-type="spicy" style="--pn-dare-w:260px"><div class="pn-dare-card__band"><span>Dare</span><span>Spicy</span></div><p class="pn-dare-card__text">Dance the hook step of an item song for 30 seconds.</p><p class="pn-dare-card__foot">Amit's turn, 30 s</p></div>
+<div class="pn-dare-card" data-type="revealing" style="--pn-dare-w:260px"><div class="pn-dare-card__band"><span>Dare</span><span>Revealing</span></div><p class="pn-dare-card__text">Open your screenshots and show the group the latest one.</p><p class="pn-dare-card__foot">Zoya's turn</p></div></div></section>
+</div>
+<script>
+const root = document.documentElement;
+const btn = document.getElementById('theme-toggle');
+btn.addEventListener('click', () => {
+  const light = root.dataset.theme !== 'light';
+  root.dataset.theme = light ? 'light' : 'dark';
+  btn.querySelector('span').textContent = light ? 'Dark theme' : 'Light theme';
+});
+document.querySelectorAll('[data-felt-pick]').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-felt-pick]').forEach((o) => o.setAttribute('aria-checked', String(o === b)));
+  document.querySelectorAll('.sg-frame .pn-table').forEach((t) => (t.dataset.felt = b.dataset.feltPick));
+}));
+</script>
+</body>
+</html>

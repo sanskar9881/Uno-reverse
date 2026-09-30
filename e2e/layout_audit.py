@@ -475,6 +475,100 @@ async def audit_intimacy(browser: Browser):
     await ctx.close()
 
 
+async def add_group_player(page: Page, name: str):
+    await page.fill('input[placeholder="Player name"]', name)
+    await page.get_by_role("button", name="Add", exact=True).click()
+
+
+async def close_sheet(page: Page, label: str):
+    """Clicks a corner of the backdrop itself (not just those page coordinates) to close it."""
+    await page.locator(".z-overlay").click(position={"x": 5, "y": 5})
+    await page.get_by_role("dialog", name=label).wait_for(state="detached", timeout=5000)
+
+
+async def audit_group(browser: Browser):
+    ctx, page = await new_page(browser)
+    await page.goto(f"{BASE}/group")
+    await page.wait_for_timeout(200)
+    await audit_state(page, "group-choice")
+
+    await page.get_by_role("button", name="Get started", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "group-setup-empty")
+
+    for name in ["Alex", "Blair", "Casey"]:
+        await add_group_player(page, name)
+    await page.wait_for_timeout(150)
+    await audit_state(page, "group-setup-players")
+
+    await page.get_by_role("button", name="Start", exact=True).click()
+    await page.wait_for_timeout(200)
+    await audit_state(page, "group-play-idle")
+
+    await page.get_by_role("button", name="Truth", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "group-play-card")
+
+    await page.get_by_role("button", name="Options", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "group-options")
+    # Turn on Spin to pick, then trigger it from the play screen.
+    await page.locator('label:has-text("Spin to pick who\'s next") input[type="checkbox"]').check()
+    await close_sheet(page, "Options")
+
+    await page.get_by_role("button", name="Done", exact=True).click()
+    await page.wait_for_timeout(200)
+    await audit_state(page, "group-spin")
+    await page.get_by_role("button", name="Spin", exact=True).click()
+    await page.wait_for_timeout(200)
+
+    # Turn Spin to pick back off so the rest of this audit can advance turns predictably.
+    await page.get_by_role("button", name="Options", exact=True).click()
+    await page.wait_for_timeout(150)
+    await page.locator('label:has-text("Spin to pick who\'s next") input[type="checkbox"]').uncheck()
+    await close_sheet(page, "Options")
+
+    await page.get_by_role("button", name="Custom cards", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "group-customcards")
+    await page.get_by_role("button", name="+ Add a card", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "group-customcards-composer")
+    await close_sheet(page, "Custom cards")
+
+    # Draw dares (Normal has several timed ones) until a Start button turns up.
+    found_timer = False
+    for i in range(60):
+        if i > 0:
+            done_btn = page.get_by_role("button", name="Done", exact=True)
+            if await done_btn.count() > 0:
+                await done_btn.click()
+                await page.wait_for_timeout(60)
+        dare_btn = page.get_by_role("button", name="Dare", exact=True)
+        if await dare_btn.count() > 0:
+            await dare_btn.click()
+        else:
+            pass_btn = page.get_by_role("button", name="Pass", exact=True)
+            if await pass_btn.count() > 0:
+                await pass_btn.click()
+        await page.wait_for_timeout(60)
+        if await page.get_by_role("button", name="Start", exact=True).count() > 0:
+            found_timer = True
+            break
+    if not found_timer:
+        print("  warning: no timed group card turned up in 60 draws")
+    await audit_state(page, "group-card-timer-start")
+
+    start_btn = page.get_by_role("button", name="Start", exact=True)
+    if await start_btn.count() > 0:
+        await start_btn.click()
+        await page.wait_for_timeout(150)
+        await audit_state(page, "group-card-timer-ready")
+        await page.wait_for_timeout(2400)
+        await audit_state(page, "group-card-timer-running")
+    await ctx.close()
+
+
 async def main():
     async with async_playwright() as pw:
         browser = await pw.chromium.launch()
@@ -485,6 +579,7 @@ async def main():
         await audit_bottle(browser)
         await audit_couples(browser)
         await audit_intimacy(browser)
+        await audit_group(browser)
         await browser.close()
 
     print()

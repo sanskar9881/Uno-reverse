@@ -1,4 +1,13 @@
-import type { BottlePartySettings, CardColor, CouplesKind, CouplesLevel, IntimacyCategory, RoomSettingsPatch } from '@shared';
+import type {
+  BottlePartySettings,
+  CardColor,
+  CouplesKind,
+  CouplesLevel,
+  GroupCardType,
+  GroupPickMode,
+  IntimacyCategory,
+  RoomSettingsPatch,
+} from '@shared';
 import { request, type ClientErrorCode, type RequestResult } from '../socket/socket';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
@@ -79,6 +88,16 @@ export const intimacyAddCard = (level: CouplesLevel, category: IntimacyCategory,
   send(() => request('intimacy:addCard', { level, category, text, photo }));
 export const intimacySetOnlyOurs = (value: boolean) =>
   send(() => request('intimacy:onlyOurs', { value }), { allowWhileBusy: true });
+
+export const groupChoose = (kind: CouplesKind) => send(() => request('group:choose', { kind, turnId: partyTurnId() }));
+export const groupPass = () => send(() => request('group:pass', { turnId: partyTurnId() }));
+export const groupDone = () => send(() => request('group:done', { turnId: partyTurnId() }));
+export const groupSpin = () => send(() => request('group:spin', { turnId: partyTurnId() }));
+export const groupSetTypes = (types: GroupCardType[]) => send(() => request('group:types', { types }), { allowWhileBusy: true });
+export const groupSetOptions = (patch: { noTouch?: boolean; drinks?: boolean; passPenalty?: boolean; pickMode?: GroupPickMode }) =>
+  send(() => request('group:options', patch), { allowWhileBusy: true });
+export const groupAddCard = (cardType: GroupCardType, kind: CouplesKind, text: string, timerSeconds: number | null = null) =>
+  send(() => request('group:addCard', { cardType, kind, text, timerSeconds }));
 
 export const nextRound = () => send(() => request('game:nextRound', {}));
 export const rematch = () => send(() => request('game:rematch', {}));

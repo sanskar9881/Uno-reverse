@@ -1,0 +1,192 @@
+/*
+ * Original card design: full-bleed color, a thin inner frame, and a white
+ * rounded diamond holding the symbol. Everything scales with the card width
+ * (container units are used on children only, never on .pn-card itself).
+ * Size a card with --pn-card-w or any width utility.
+ */
+@layer components {
+  .pn-card {
+    --c: var(--pn-wild);
+    --c-l: var(--pn-wild-l);
+    --c-d: var(--pn-wild-d);
+    --c-ink: #ffffff;
+    container-type: inline-size;
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+    width: var(--pn-card-w, 96px);
+    aspect-ratio: 5 / 7;
+    overflow: hidden;
+    border-radius: 11% / 7.86%;
+    background: linear-gradient(160deg, var(--c-l) 0%, var(--c) 46%, var(--c-d) 100%);
+    box-shadow: var(--pn-card-shadow);
+    user-select: none;
+    transition: box-shadow 0.18s ease, filter 0.18s ease;
+  }
+  .pn-card[data-color="red"] { --c: var(--pn-red); --c-l: var(--pn-red-l); --c-d: var(--pn-red-d); --c-ink: var(--pn-red-ink); }
+  .pn-card[data-color="yellow"] { --c: var(--pn-yellow); --c-l: var(--pn-yellow-l); --c-d: var(--pn-yellow-d); --c-ink: var(--pn-yellow-ink); }
+  .pn-card[data-color="green"] { --c: var(--pn-green); --c-l: var(--pn-green-l); --c-d: var(--pn-green-d); --c-ink: var(--pn-green-ink); }
+  .pn-card[data-color="blue"] { --c: var(--pn-blue); --c-l: var(--pn-blue-l); --c-d: var(--pn-blue-d); --c-ink: var(--pn-blue-ink); }
+
+  .pn-card__frame {
+    position: absolute;
+    inset: 5.5cqw;
+    border: max(1px, 1.4cqw) solid rgba(255, 255, 255, 0.62);
+    border-radius: 7.5cqw;
+    pointer-events: none;
+  }
+  .pn-card[data-color="wild"] .pn-card__frame {
+    border-color: rgba(255, 255, 255, 0.38);
+  }
+
+  .pn-card__diamond {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 56cqw;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    rotate: 45deg;
+    border-radius: 13cqw;
+    background: #fffbf3;
+    box-shadow: inset 0 -2cqw 0 rgba(0, 0, 0, 0.08), 0 2cqw 6cqw rgba(0, 0, 0, 0.25);
+  }
+  .pn-card[data-color="wild"] .pn-card__diamond {
+    background: conic-gradient(var(--pn-red) 0 25%, var(--pn-yellow) 0 50%, var(--pn-green) 0 75%, var(--pn-blue) 0 100%);
+    box-shadow: 0 0 0 max(2px, 2.2cqw) #ffffff, 0 2cqw 6cqw rgba(0, 0, 0, 0.35);
+  }
+
+  .pn-card__symbol {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--c-ink);
+    font-family: var(--pn-font-display);
+    font-size: 44cqw;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .pn-card__symbol--small {
+    font-size: 32cqw;
+  }
+  .pn-card[data-color="wild"] .pn-card__symbol {
+    color: #ffffff;
+    -webkit-text-stroke: max(1px, 2cqw) #121216;
+    paint-order: stroke fill;
+  }
+  .pn-card__symbol svg {
+    width: 36cqw;
+    height: 36cqw;
+  }
+
+  .pn-card__corner {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    font-family: var(--pn-font-display);
+    font-size: 17cqw;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 0.8cqw 0 rgba(0, 0, 0, 0.3);
+  }
+  .pn-card__corner svg {
+    width: 15cqw;
+    height: 15cqw;
+    filter: drop-shadow(0 0.8cqw 0 rgba(0, 0, 0, 0.3));
+  }
+  .pn-card__corner--tl {
+    left: 10cqw;
+    top: 8.5cqw;
+  }
+  .pn-card__corner--br {
+    right: 10cqw;
+    bottom: 8.5cqw;
+    rotate: 180deg;
+  }
+  .pn-card__mini-wild {
+    display: block;
+    width: 10cqw;
+    aspect-ratio: 1;
+    margin: 2.5cqw;
+    rotate: 45deg;
+    border-radius: 2cqw;
+    background: conic-gradient(var(--pn-red) 0 25%, var(--pn-yellow) 0 50%, var(--pn-green) 0 75%, var(--pn-blue) 0 100%);
+    box-shadow: 0 0 0 1.2cqw #ffffff;
+  }
+  /* 6 and 9 get an underline so they read the right way up */
+  .pn-card__underline {
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.08em;
+  }
+
+  /* A light sweep on hover and when selected */
+  .pn-card__sheen {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.26) 46%, transparent 60%);
+    translate: -120% 0;
+    transition: translate 0.6s ease;
+    pointer-events: none;
+  }
+  .pn-card:hover .pn-card__sheen,
+  .pn-card.is-selected .pn-card__sheen {
+    translate: 120% 0;
+  }
+
+  /* Back */
+  .pn-card--back {
+    background: radial-gradient(circle at 50% 40%, #2b2e35 0%, #17191d 74%);
+  }
+  .pn-card--back .pn-card__frame {
+    border-color: rgba(227, 179, 90, 0.55);
+  }
+  .pn-card__ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 66cqw;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: max(1px, 1.4cqw) solid rgba(227, 179, 90, 0.42);
+  }
+  .pn-card__emblem {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
+    gap: 3cqw;
+    width: 36cqw;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    rotate: 45deg;
+  }
+  .pn-card__emblem > span {
+    border-radius: 3.5cqw;
+    box-shadow: inset 0 -1cqw 0 rgba(0, 0, 0, 0.18);
+  }
+  .pn-card__emblem > span:nth-child(1) { background: var(--pn-red); }
+  .pn-card__emblem > span:nth-child(2) { background: var(--pn-yellow); }
+  .pn-card__emblem > span:nth-child(3) { background: var(--pn-blue); }
+  .pn-card__emblem > span:nth-child(4) { background: var(--pn-green); }
+
+  /* States in your hand */
+  .pn-card.is-playable {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 14px 26px rgba(0, 0, 0, 0.5);
+  }
+  .pn-card.is-selected {
+    box-shadow: 0 0 0 4px var(--pn-brass), 0 0 26px color-mix(in oklab, var(--pn-brass) 55%, transparent), 0 16px 30px rgba(0, 0, 0, 0.55);
+  }
+  .pn-card.is-dim {
+    filter: saturate(0.35) brightness(0.72);
+  }
+  /* On the light room, a dark ring reads better than a white one */
+  :root[data-theme="light"] .pn-card.is-playable {
+    box-shadow: 0 0 0 3px rgba(29, 27, 23, 0.8), 0 12px 22px rgba(60, 40, 20, 0.3);
+  }
+}

@@ -15,7 +15,7 @@ export interface Card {
 
 export type RoomStatus = 'lobby' | 'playing' | 'roundOver';
 
-export type GameType = 'uno' | 'bottle' | 'couples' | 'intimacy';
+export type GameType = 'uno' | 'bottle' | 'couples' | 'intimacy' | 'group';
 
 /** Off by default. The host toggles these in the lobby, before a round starts. */
 export interface HouseRules {
@@ -113,6 +113,39 @@ export interface IntimacyView {
   currentPartnerId: string;
   turnId: number;
   card: IntimacyCard | null;
+}
+
+export type GroupCardType = 'normal' | 'spicy' | 'revealing';
+
+export interface GroupCard {
+  cardType: GroupCardType;
+  kind: CouplesKind;
+  /** {left} and {right} already replaced with the real neighbor names of whoever is up. */
+  text: string;
+  /** Seconds for a timed dare — from the built-in deck's text, or a custom card's explicit timer. */
+  timerSeconds: number | null;
+}
+
+export type GroupPickMode = 'order' | 'spin';
+
+/** Everything every player is allowed to know about an online Truth and Dare Group session. */
+export interface GroupView {
+  /** Player ids in seating order. */
+  turnOrder: string[];
+  currentPlayerId: string;
+  turnId: number;
+  /** Card types currently included. At least one is always selected. */
+  types: GroupCardType[];
+  pickMode: GroupPickMode;
+  /** Hides dares tagged as involving touch. */
+  noTouch: boolean;
+  /** Off by default: when off, drink dares are skipped entirely. */
+  drinks: boolean;
+  /** Cosmetic only: the client shows a fun penalty message on Pass; the server doesn't enforce one. */
+  passPenalty: boolean;
+  /** True while waiting for someone to tap Spin (pickMode 'spin' only, between Done and the next card). */
+  awaitingSpin: boolean;
+  card: GroupCard | null;
 }
 
 export interface PublicPlayer {
@@ -232,5 +265,5 @@ export interface ClientState {
    */
   revealedHand: { ownerId: string; cards: Card[] } | null;
   /** Non-UNO game state (Spin the Bottle, Couples, Intimacy Night), or null in a UNO room. */
-  party: BottleView | CouplesView | IntimacyView | null;
+  party: BottleView | CouplesView | IntimacyView | GroupView | null;
 }

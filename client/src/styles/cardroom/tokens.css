@@ -1,0 +1,174 @@
+/*
+ * Party Night "card room" design tokens.
+ * Dark is the default. <html data-theme="light"> switches to the daylight version.
+ * Every color in the app should come from these variables.
+ */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Room (page background) */
+  --pn-room-top: #14161a;
+  --pn-room-bottom: #0e0f12;
+  --pn-lamp: rgba(255, 205, 140, 0.08);
+
+  /* Surfaces */
+  --pn-surface: rgba(20, 22, 25, 0.95);
+  --pn-surface-solid: #16181c;
+  --pn-surface-raised: #1c1f24;
+  --pn-surface-2: rgba(244, 241, 234, 0.07);
+  --pn-surface-2-hover: rgba(244, 241, 234, 0.12);
+  --pn-field: rgba(0, 0, 0, 0.28);
+
+  /* Text and lines */
+  --pn-ink: #f4f1ea;
+  --pn-muted: #b4ada0;
+  --pn-subtle: #8f887b;
+  --pn-line: rgba(244, 241, 234, 0.12);
+  --pn-line-strong: rgba(244, 241, 234, 0.2);
+
+  /* Accents */
+  --pn-brass: #e3b35a;
+  --pn-brass-hover: #f0c572;
+  --pn-on-brass: #1a1406;
+  --pn-brass-text: #e3b35a;
+  --pn-danger: #f08a7a;
+  --pn-success: #5bd39a;
+
+  /* Elevation */
+  --pn-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --pn-shadow-2: 0 10px 24px rgba(0, 0, 0, 0.45);
+  --pn-shadow-3: 0 30px 80px rgba(0, 0, 0, 0.55);
+  --pn-backdrop: rgba(6, 6, 8, 0.62);
+
+  /* Wood */
+  --pn-wood-1: #6e4a33;
+  --pn-wood-2: #4e3222;
+  --pn-wood-3: #38241a;
+  --pn-wood-grain: rgba(0, 0, 0, 0.1);
+
+  /* Felt (green by default, see [data-felt] below) */
+  --pn-felt-1: #1f6b52;
+  --pn-felt-2: #155441;
+  --pn-felt-3: #0e3e30;
+  --pn-felt-lamp: rgba(255, 226, 170, 0.13);
+  --pn-felt-ink: #f4f1ea;
+  --pn-felt-muted: rgba(255, 255, 255, 0.74);
+  --pn-stitch: rgba(255, 255, 255, 0.09);
+  --pn-print: rgba(255, 255, 255, 0.12);
+
+  /* Cards */
+  --pn-red: #e5484d;
+  --pn-red-l: #f07a7d;
+  --pn-red-d: #b3323a;
+  --pn-red-ink: #b02c35;
+  --pn-yellow: #f2b90c;
+  --pn-yellow-l: #ffd24a;
+  --pn-yellow-d: #c99000;
+  --pn-yellow-ink: #9e7200;
+  --pn-green: #2fa36b;
+  --pn-green-l: #55c48c;
+  --pn-green-d: #1e7a4e;
+  --pn-green-ink: #1b6e46;
+  --pn-blue: #2f7fe0;
+  --pn-blue-l: #5e9ef0;
+  --pn-blue-d: #1e5cae;
+  --pn-blue-ink: #1c56a3;
+  --pn-wild: #202026;
+  --pn-wild-l: #3a3a44;
+  --pn-wild-d: #121216;
+  --pn-card-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 10px 22px rgba(0, 0, 0, 0.45);
+
+  /* Avatar tones (the saved avatar number 0-11 picks one) */
+  --pn-tone-0: #9cc5a1;
+  --pn-tone-1: #a9b8e8;
+  --pn-tone-2: #e7a88b;
+  --pn-tone-3: #e8c77a;
+  --pn-tone-4: #c9a5d8;
+  --pn-tone-5: #e7c3a0;
+  --pn-tone-6: #8fd1cf;
+  --pn-tone-7: #f2a7b8;
+  --pn-tone-8: #b7d38a;
+  --pn-tone-9: #d6b38a;
+  --pn-tone-10: #9fb4c7;
+  --pn-tone-11: #e0b0e8;
+  --pn-on-tone: #111315;
+
+  /* Shape and type */
+  --pn-r-sm: 10px;
+  --pn-r-md: 14px;
+  --pn-r-lg: 20px;
+  --pn-r-xl: 28px;
+  --pn-font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", "Manrope Variable", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --pn-font-ui: "Manrope Variable", "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pn-font-serif: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* Layers */
+  --pn-z-seat: 10;
+  --pn-z-hand: 20;
+  --pn-z-header: 30;
+  --pn-z-sheet: 40;
+  --pn-z-modal: 50;
+  --pn-z-toast: 60;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --pn-room-top: #f3eee5;
+  --pn-room-bottom: #e8e1d4;
+  --pn-lamp: rgba(255, 244, 222, 0.7);
+
+  --pn-surface: rgba(255, 255, 255, 0.94);
+  --pn-surface-solid: #ffffff;
+  --pn-surface-raised: #ffffff;
+  --pn-surface-2: rgba(29, 27, 23, 0.05);
+  --pn-surface-2-hover: rgba(29, 27, 23, 0.09);
+  --pn-field: #ffffff;
+
+  --pn-ink: #1d1b17;
+  --pn-muted: #625b50;
+  --pn-subtle: #756d61;
+  --pn-line: rgba(29, 27, 23, 0.12);
+  --pn-line-strong: rgba(29, 27, 23, 0.22);
+
+  --pn-brass: #c9952f;
+  --pn-brass-hover: #d6a33c;
+  --pn-on-brass: #1a1406;
+  --pn-brass-text: #8a6116;
+  --pn-danger: #c2412d;
+  --pn-success: #1e7a4e;
+
+  --pn-shadow-1: 0 1px 2px rgba(60, 40, 20, 0.12);
+  --pn-shadow-2: 0 10px 24px rgba(60, 40, 20, 0.14);
+  --pn-shadow-3: 0 30px 70px rgba(60, 40, 20, 0.22);
+  --pn-backdrop: rgba(40, 30, 20, 0.35);
+
+  --pn-wood-1: #8a6243;
+  --pn-wood-2: #6a4730;
+  --pn-wood-3: #573a28;
+  --pn-felt-lamp: rgba(255, 240, 205, 0.2);
+  --pn-card-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 8px 18px rgba(60, 40, 20, 0.28);
+}
+
+/* Felt colors: put data-felt on the table (or any ancestor) */
+[data-felt="green"] {
+  --pn-felt-1: #1f6b52;
+  --pn-felt-2: #155441;
+  --pn-felt-3: #0e3e30;
+}
+[data-felt="teal"] {
+  --pn-felt-1: #1a6577;
+  --pn-felt-2: #0f4c5c;
+  --pn-felt-3: #0a3542;
+}
+[data-felt="burgundy"] {
+  --pn-felt-1: #74303d;
+  --pn-felt-2: #5a1f2b;
+  --pn-felt-3: #3d131c;
+}
+[data-felt="navy"] {
+  --pn-felt-1: #2c3b63;
+  --pn-felt-2: #1e2a4a;
+  --pn-felt-3: #141c33;
+}

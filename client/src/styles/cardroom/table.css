@@ -1,0 +1,295 @@
+/* The UNO table: wood rim, felt, piles, seats, your controls and hand. */
+@layer components {
+  .pn-table {
+    --pn-table-r: 84px;
+    --pn-rim: 24px;
+    --pn-stitch-inset: 18px;
+    position: relative;
+    box-sizing: border-box;
+    padding: var(--pn-rim);
+    border-radius: var(--pn-table-r);
+    background:
+      repeating-linear-gradient(96deg, var(--pn-wood-grain) 0 2px, transparent 2px 11px),
+      linear-gradient(180deg, var(--pn-wood-1) 0%, var(--pn-wood-2) 52%, var(--pn-wood-3) 100%);
+    box-shadow: var(--pn-shadow-3), inset 0 2px 0 rgba(255, 255, 255, 0.14), inset 0 -3px 0 rgba(0, 0, 0, 0.4);
+  }
+  .pn-table--tablet {
+    --pn-table-r: 64px;
+    --pn-rim: 18px;
+    --pn-stitch-inset: 14px;
+  }
+  .pn-table--compact {
+    --pn-table-r: 44px;
+    --pn-rim: 12px;
+    --pn-stitch-inset: 10px;
+  }
+  .pn-table--mini {
+    --pn-table-r: 28px;
+    --pn-rim: 8px;
+    --pn-stitch-inset: 6px;
+  }
+
+  .pn-felt {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: calc(var(--pn-table-r) - var(--pn-rim));
+    background:
+      radial-gradient(ellipse 60% 55% at 50% 45%, var(--pn-felt-lamp), transparent 70%),
+      radial-gradient(ellipse at 50% 42%, var(--pn-felt-1) 0%, var(--pn-felt-2) 55%, var(--pn-felt-3) 100%);
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.28), inset 0 20px 44px rgba(0, 0, 0, 0.38);
+    color: var(--pn-felt-ink);
+  }
+  /* Stitched edge */
+  .pn-felt::before {
+    content: "";
+    position: absolute;
+    inset: var(--pn-stitch-inset);
+    border: 2px dashed var(--pn-stitch);
+    border-radius: calc(var(--pn-table-r) - var(--pn-rim) - var(--pn-stitch-inset));
+    pointer-events: none;
+  }
+  /* Faint fabric texture */
+  .pn-felt::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+  .pn-felt__center {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(24px, 5vw, 64px);
+  }
+
+  /* Direction of play, printed on the felt. Flip with .is-reversed */
+  .pn-direction {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(560px, 80%);
+    height: min(280px, 70%);
+    translate: -50% -50%;
+    color: var(--pn-print);
+    pointer-events: none;
+    transition: scale 0.4s ease;
+  }
+  .pn-direction.is-reversed {
+    scale: -1 1;
+  }
+
+  .pn-pile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .pn-pile__stack {
+    position: relative;
+    width: var(--pn-card-w, 104px);
+    aspect-ratio: 5 / 7;
+  }
+  .pn-pile__stack > .pn-card {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  .pn-pile__label {
+    color: var(--pn-felt-muted);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  /* The draw pile as a button */
+  .pn-draw {
+    position: relative;
+    padding: 0;
+    border: 0;
+    border-radius: 12%/9%;
+    background: none;
+  }
+  .pn-draw.is-available::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 18px;
+    border: 2px solid color-mix(in oklab, var(--pn-brass) 70%, transparent);
+    pointer-events: none;
+  }
+  .pn-draw.is-available:hover .pn-pile__stack {
+    translate: 0 -3px;
+  }
+
+  /* Seats: put each seat in a slot positioned by JavaScript */
+  .pn-seat-slot {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    z-index: var(--pn-z-seat);
+    translate: -50% -50%;
+  }
+
+  /* Game screen skeleton: top bar, table area, controls, hand */
+  .pn-game {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .pn-game__stage {
+    position: relative;
+    min-height: 0;
+  }
+
+  .pn-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 16px;
+    width: min(960px, 100% - 32px);
+    margin: 0 auto;
+    padding-top: 12px;
+  }
+  .pn-controls__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pn-controls__timer {
+    grid-column: 1 / -1;
+  }
+  .pn-me {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .pn-me__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .pn-me__name {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .pn-me__meta {
+    color: var(--pn-muted);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pn-status {
+    min-width: 0;
+    color: var(--pn-ink);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .pn-status.is-my-turn {
+    color: var(--pn-brass-text);
+  }
+  .pn-seconds {
+    color: var(--pn-ink);
+    font-family: var(--pn-font-display);
+    font-size: 18px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .pn-seconds.is-low {
+    color: var(--pn-danger);
+  }
+
+  /* Phone: status next to you, actions in a full-width row.
+     The same rules apply inside any .pn-compact container. */
+  @media (max-width: 639px) {
+    .pn-controls {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 10px 12px;
+      width: calc(100% - 32px);
+    }
+    .pn-controls .pn-me__text {
+      display: none;
+    }
+    .pn-status {
+      font-size: 15px;
+      text-align: left;
+    }
+    .pn-controls__actions {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .pn-controls__actions .pn-btn {
+      padding: 0 8px;
+    }
+    .pn-controls__timer { order: 1; }
+    .pn-controls__actions { order: 2; }
+  }
+  .pn-compact .pn-controls {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    width: calc(100% - 32px);
+  }
+  .pn-compact .pn-controls .pn-me__text {
+    display: none;
+  }
+  .pn-compact .pn-status {
+    font-size: 15px;
+    text-align: left;
+  }
+  .pn-compact .pn-controls__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .pn-compact .pn-controls__actions .pn-btn {
+    padding: 0 8px;
+  }
+  .pn-compact .pn-controls__timer { order: 1; }
+  .pn-compact .pn-controls__actions { order: 2; }
+
+  .pn-hand {
+    position: relative;
+    width: min(1000px, 100% - 16px);
+    margin: 0 auto;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pn-hand__card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 11%/7.86%;
+    transform-origin: 50% 100%;
+  }
+
+  /* Opponents on phones: a row above the table */
+  .pn-opponents {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(96px, 1fr);
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 12px 8px;
+    scrollbar-width: none;
+  }
+  .pn-opponents::-webkit-scrollbar {
+    display: none;
+  }
+}

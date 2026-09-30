@@ -10,6 +10,7 @@ const WheelPage = lazy(() => import('./pages/WheelPage').then((m) => ({ default:
 const BottlePage = lazy(() => import('./pages/BottlePage').then((m) => ({ default: m.BottlePage })));
 const CouplesPage = lazy(() => import('./pages/CouplesPage').then((m) => ({ default: m.CouplesPage })));
 const IntimacyPage = lazy(() => import('./pages/IntimacyPage').then((m) => ({ default: m.IntimacyPage })));
+const GroupPage = lazy(() => import('./pages/GroupPage').then((m) => ({ default: m.GroupPage })));
 const RoomPage = lazy(() => import('./pages/RoomPage').then((m) => ({ default: m.RoomPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
@@ -25,6 +26,7 @@ export function App() {
             <Route path="/bottle" element={<BottlePage />} />
             <Route path="/couples" element={<CouplesPage />} />
             <Route path="/intimacy" element={<IntimacyPage />} />
+            <Route path="/group" element={<GroupPage />} />
             <Route path="/room/:code" element={<RoomPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -1,0 +1,421 @@
+/* Looks for Spin It (wheel and bottle), Couples, Truth and Dare Group, and the hub tile art. */
+@layer components {
+  /* ------------------------------------------------------------ Spin It */
+  .pn-floor {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 132px),
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 16px),
+      linear-gradient(180deg, var(--pn-wood-2), var(--pn-wood-3));
+    box-shadow: inset 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+  .pn-rug {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(92%, 640px);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, var(--pn-felt-lamp), transparent 65%),
+      radial-gradient(circle, var(--pn-felt-1) 0%, var(--pn-felt-2) 60%, var(--pn-felt-3) 100%);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 0 0 10px rgba(0, 0, 0, 0.14);
+  }
+  .pn-rug::before {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 50%;
+    border: 2px dashed var(--pn-stitch);
+  }
+
+  .pn-wheel {
+    position: relative;
+    width: min(88vw, 520px);
+    aspect-ratio: 1;
+  }
+  .pn-wheel__rim {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 14px;
+    background: conic-gradient(from 20deg, #e3b35a, #a9772a, #f0c572, #a9772a, #e3b35a, #a9772a, #f0c572, #a9772a, #e3b35a);
+    box-shadow: var(--pn-shadow-3), inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+  }
+  .pn-wheel__face {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25);
+  }
+  .pn-wheel__hub {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 22%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #3a3d44, #16181c 75%);
+    box-shadow: 0 0 0 4px #e3b35a, 0 8px 18px rgba(0, 0, 0, 0.5);
+    color: #f4f1ea;
+    font-family: var(--pn-font-display);
+    font-weight: 800;
+    font-size: clamp(12px, 2.4vw, 16px);
+    text-align: center;
+  }
+  .pn-wheel__pointer {
+    position: absolute;
+    left: 50%;
+    top: -6px;
+    z-index: 2;
+    width: 34px;
+    height: 44px;
+    translate: -50% 0;
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    background: linear-gradient(180deg, #f0c572, #b8862e);
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+    transform-origin: 50% 20%;
+  }
+  .pn-wheel__bulb {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #fff4d6;
+    box-shadow: 0 0 8px rgba(255, 220, 150, 0.9);
+  }
+  .pn-wheel__bulb.is-off {
+    background: #8a6a3a;
+    box-shadow: none;
+  }
+  .pn-wheel__stand {
+    width: 44%;
+    height: 22px;
+    margin: -6px auto 0;
+    border-radius: 0 0 16px 16px;
+    background: linear-gradient(180deg, var(--pn-wood-1), var(--pn-wood-3));
+    box-shadow: var(--pn-shadow-2);
+  }
+
+  .pn-bottle {
+    width: 64px;
+    height: 200px;
+    filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.45));
+  }
+
+  .pn-name-list {
+    display: grid;
+    gap: 8px;
+  }
+  .pn-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 8px 0 12px;
+    border-radius: var(--pn-r-md);
+    background: var(--pn-surface-2);
+  }
+  .pn-name-row__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* ------------------------------------------------------------ Couples (candlelit) */
+  .pn-theme-couples {
+    --pn-room-top: #2a0f1e;
+    --pn-room-bottom: #14070f;
+    --pn-lamp: rgba(246, 193, 119, 0.14);
+    --pn-surface: rgba(38, 14, 27, 0.94);
+    --pn-surface-solid: #26101d;
+    --pn-surface-raised: #301425;
+    --pn-surface-2: rgba(248, 233, 224, 0.07);
+    --pn-surface-2-hover: rgba(248, 233, 224, 0.12);
+    --pn-ink: #f8e9e0;
+    --pn-muted: #caa9b0;
+    --pn-subtle: #a88a92;
+    --pn-line: rgba(246, 193, 119, 0.16);
+    --pn-line-strong: rgba(246, 193, 119, 0.28);
+    --pn-brass: #f6c177;
+    --pn-brass-hover: #ffd296;
+    --pn-brass-text: #f6c177;
+    --pn-on-brass: #2a0f1e;
+    --pn-rose: #ff6f91;
+    position: relative;
+    min-height: 100dvh;
+    color: var(--pn-ink);
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255, 111, 145, 0.14), transparent 22%),
+      radial-gradient(circle at 82% 18%, rgba(246, 193, 119, 0.16), transparent 20%),
+      radial-gradient(circle at 70% 80%, rgba(255, 111, 145, 0.1), transparent 24%),
+      radial-gradient(circle at 25% 85%, rgba(246, 193, 119, 0.1), transparent 22%),
+      radial-gradient(ellipse 70% 60% at 50% 40%, var(--pn-lamp), transparent 70%),
+      linear-gradient(180deg, var(--pn-room-top), var(--pn-room-bottom));
+  }
+  :root[data-theme="light"] .pn-theme-couples {
+    --pn-room-top: #fbefef;
+    --pn-room-bottom: #f3dcdd;
+    --pn-lamp: rgba(255, 236, 214, 0.8);
+    --pn-surface: rgba(255, 255, 255, 0.94);
+    --pn-surface-solid: #ffffff;
+    --pn-surface-raised: #ffffff;
+    --pn-surface-2: rgba(58, 20, 38, 0.05);
+    --pn-surface-2-hover: rgba(58, 20, 38, 0.09);
+    --pn-ink: #3a1426;
+    --pn-muted: #7a4b5e;
+    --pn-subtle: #8c6070;
+    --pn-line: rgba(58, 20, 38, 0.12);
+    --pn-line-strong: rgba(58, 20, 38, 0.2);
+    --pn-brass: #c98a3a;
+    --pn-brass-hover: #d69a4c;
+    --pn-brass-text: #8e5a1c;
+    --pn-on-brass: #2a0f1e;
+    --pn-rose: #d9466b;
+  }
+  .pn-theme-couples h1,
+  .pn-theme-couples h2,
+  .pn-theme-couples .pn-serif {
+    font-family: var(--pn-font-serif);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* Tarot-style card. Size with --pn-tarot-w */
+  .pn-tarot {
+    container-type: inline-size;
+    position: relative;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    width: var(--pn-tarot-w, 300px);
+    aspect-ratio: 3 / 4.4;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 6% / 4.1%;
+    background: linear-gradient(160deg, #3b1628 0%, #230c18 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(246, 193, 119, 0.55),
+      inset 0 0 0 7px #230c18,
+      inset 0 0 0 8.5px rgba(246, 193, 119, 0.5),
+      0 30px 60px rgba(0, 0, 0, 0.5),
+      0 0 60px rgba(255, 111, 145, 0.12);
+    color: #f8e9e0;
+    text-align: center;
+  }
+  :root[data-theme="light"] .pn-tarot {
+    background: linear-gradient(160deg, #fffdf8 0%, #f6ece4 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(201, 138, 58, 0.6),
+      inset 0 0 0 7px #fffdf8,
+      inset 0 0 0 8.5px rgba(201, 138, 58, 0.55),
+      0 24px 50px rgba(120, 60, 70, 0.22);
+    color: #3a1426;
+  }
+  .pn-tarot__kind {
+    margin-bottom: 5cqw;
+    color: var(--pn-rose);
+    font-size: 5.6cqw;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .pn-tarot__text {
+    padding: 0 11cqw;
+    font-family: var(--pn-font-serif);
+    font-size: 8.4cqw;
+    font-weight: 600;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+  .pn-tarot__footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 9cqw;
+    display: flex;
+    justify-content: center;
+    gap: 3cqw;
+    color: var(--pn-muted);
+    font-size: 4.6cqw;
+    font-weight: 700;
+  }
+  .pn-tarot--back {
+    background:
+      repeating-conic-gradient(from 45deg at 50% 50%, rgba(246, 193, 119, 0.09) 0 10deg, transparent 10deg 20deg),
+      linear-gradient(160deg, #3b1628 0%, #230c18 100%);
+  }
+  .pn-tarot__seal {
+    width: 30cqw;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: max(1px, 0.8cqw) solid rgba(246, 193, 119, 0.6);
+    display: grid;
+    place-items: center;
+    color: var(--pn-brass);
+  }
+  .pn-tarot__seal svg {
+    width: 45%;
+    height: 45%;
+  }
+
+  /* One-screen couples layout */
+  .pn-couples-screen {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .pn-level {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    width: min(420px, 100% - 32px);
+    margin: 0 auto;
+    color: var(--pn-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .pn-card-stage {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    padding: 8px 16px;
+  }
+  .pn-card-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: min(460px, 100% - 32px);
+    margin: 0 auto;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  /* Countdown ring for timed cards: set --pn-progress 0..1 */
+  .pn-countdown {
+    --pn-progress: 1;
+    display: grid;
+    place-items: center;
+    width: 112px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: conic-gradient(var(--pn-brass) 0 calc(var(--pn-progress) * 1turn), var(--pn-line) 0 1turn);
+  }
+  .pn-countdown__inner {
+    display: grid;
+    place-items: center;
+    width: calc(100% - 12px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--pn-surface-solid);
+    font-family: var(--pn-font-display);
+    font-size: 30px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ------------------------------------------------------------ Truth and Dare Group */
+  .pn-dare-card {
+    --t: var(--pn-green);
+    container-type: inline-size;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    width: var(--pn-dare-w, 320px);
+    aspect-ratio: 5 / 7;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 7% / 5%;
+    background: var(--pn-surface-solid);
+    box-shadow: var(--pn-card-shadow), inset 0 0 0 1px var(--pn-line);
+    color: var(--pn-ink);
+  }
+  .pn-dare-card[data-type="normal"] { --t: var(--pn-green); }
+  .pn-dare-card[data-type="spicy"] { --t: var(--pn-red); }
+  .pn-dare-card[data-type="revealing"] { --t: var(--pn-blue); }
+  .pn-dare-card__band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5cqw 7cqw;
+    background: linear-gradient(160deg, color-mix(in oklab, var(--t) 80%, white), var(--t));
+    color: #ffffff;
+    font-family: var(--pn-font-display);
+    font-size: 6cqw;
+    font-weight: 800;
+  }
+  .pn-dare-card__text {
+    display: grid;
+    place-items: center;
+    padding: 6cqw 8cqw;
+    font-family: var(--pn-font-display);
+    font-size: 8cqw;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .pn-dare-card__foot {
+    padding: 0 7cqw 6cqw;
+    color: var(--pn-muted);
+    font-size: 4.6cqw;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* ------------------------------------------------------------ hub tile art */
+  .pn-art {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  .pn-art--uno {
+    background:
+      repeating-linear-gradient(96deg, var(--pn-wood-grain) 0 2px, transparent 2px 11px),
+      linear-gradient(180deg, var(--pn-wood-1), var(--pn-wood-3));
+    padding: 12px;
+  }
+  .pn-art--uno .pn-felt {
+    width: 100%;
+    border-radius: 18px;
+  }
+  .pn-art--spin {
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 64px),
+      linear-gradient(180deg, var(--pn-wood-2), var(--pn-wood-3));
+  }
+  .pn-art--couples {
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255, 111, 145, 0.35), transparent 30%),
+      radial-gradient(circle at 80% 25%, rgba(246, 193, 119, 0.35), transparent 26%),
+      linear-gradient(160deg, #3b1628, #14070f);
+  }
+  .pn-art--group {
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(255, 226, 170, 0.14), transparent 65%),
+      radial-gradient(ellipse at 50% 42%, #2c3b63 0%, #1e2a4a 55%, #141c33 100%);
+  }
+  .pn-art__fan {
+    position: relative;
+    width: 150px;
+    height: 110px;
+  }
+  .pn-art__fan > * {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform-origin: 50% 100%;
+  }
+}

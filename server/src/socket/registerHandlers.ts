@@ -116,6 +116,15 @@ export function registerSocketHandlers(io: TypedServer, manager: RoomManager, op
       manager.intimacyAddCard(socket.id, p.level, p.category, p.text, p.photo ?? null),
     );
     on('intimacy:onlyOurs', schemas.onlyOurs, buckets.room, (p) => manager.intimacySetOnlyOurs(socket.id, p.value));
+    on('group:choose', schemas.groupChoose, buckets.game, (p) => ({ card: manager.groupChoose(socket.id, p.kind, p.turnId) }));
+    on('group:pass', schemas.turn, buckets.game, (p) => ({ card: manager.groupPass(socket.id, p.turnId) }));
+    on('group:done', schemas.turn, buckets.game, (p) => manager.groupFinishTurn(socket.id, p.turnId));
+    on('group:spin', schemas.turn, buckets.game, (p) => ({ playerId: manager.groupSpin(socket.id, p.turnId) }));
+    on('group:types', schemas.groupTypes, buckets.room, (p) => manager.groupSetTypes(socket.id, p.types));
+    on('group:options', schemas.groupOptions, buckets.room, (p) => manager.groupSetOptions(socket.id, p));
+    on('group:addCard', schemas.groupCard, buckets.room, (p) =>
+      manager.groupAddCard(socket.id, p.cardType, p.kind, p.text, p.timerSeconds ?? null),
+    );
 
     socket.on('disconnect', () => {
       try {

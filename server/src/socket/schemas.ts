@@ -13,6 +13,7 @@ import {
   UUID_REGEX,
   normalizeNickname,
 } from '@shared';
+import { GROUP_CARD_TYPES } from '@shared/games/group/cards';
 import { INTIMACY_CATEGORIES } from '@shared/games/intimacy/decks';
 
 /**
@@ -114,5 +115,21 @@ export const schemas = {
     category: z.enum(INTIMACY_CATEGORIES),
     text: z.string().trim().min(1).max(200),
     photo: photoSchema,
+  }),
+  groupChoose: z.object({ kind: z.enum(['truth', 'dare']), turnId: turnIdSchema }),
+  groupTypes: z.object({ types: z.array(z.enum(GROUP_CARD_TYPES)).min(1).max(GROUP_CARD_TYPES.length) }),
+  groupOptions: z
+    .object({
+      noTouch: z.boolean().optional(),
+      drinks: z.boolean().optional(),
+      passPenalty: z.boolean().optional(),
+      pickMode: z.enum(['order', 'spin']).optional(),
+    })
+    .refine((s) => s.noTouch !== undefined || s.drinks !== undefined || s.passPenalty !== undefined || s.pickMode !== undefined),
+  groupCard: z.object({
+    cardType: z.enum(GROUP_CARD_TYPES),
+    kind: z.enum(['truth', 'dare']),
+    text: z.string().trim().min(1).max(200),
+    timerSeconds: z.number().int().min(1).max(600).nullable().optional(),
   }),
 };

@@ -1,0 +1,29 @@
+/*
+ * Lets Tailwind utilities follow the design tokens, including the theme switch:
+ * bg-surface, text-ink, text-muted, border-line, bg-brass, text-on-brass,
+ * font-display, font-sans, bg-card-red, and so on.
+ * Import this from client/src/index.css right after @import "tailwindcss";
+ */
+@theme inline {
+  --color-room: var(--pn-room-bottom);
+  --color-surface: var(--pn-surface-solid);
+  --color-surface-2: var(--pn-surface-2);
+  --color-ink: var(--pn-ink);
+  --color-muted: var(--pn-muted);
+  --color-subtle: var(--pn-subtle);
+  --color-line: var(--pn-line);
+  --color-line-strong: var(--pn-line-strong);
+  --color-brass: var(--pn-brass);
+  --color-brass-text: var(--pn-brass-text);
+  --color-on-brass: var(--pn-on-brass);
+  --color-danger: var(--pn-danger);
+  --color-success: var(--pn-success);
+  --color-card-red: var(--pn-red);
+  --color-card-yellow: var(--pn-yellow);
+  --color-card-green: var(--pn-green);
+  --color-card-blue: var(--pn-blue);
+  --color-card-wild: var(--pn-wild);
+  --font-display: var(--pn-font-display);
+  --font-sans: var(--pn-font-ui);
+  --font-serif: var(--pn-font-serif);
+}

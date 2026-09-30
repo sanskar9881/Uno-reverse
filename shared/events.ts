@@ -6,6 +6,9 @@ import type {
   CouplesKind,
   CouplesLevel,
   GameType,
+  GroupCard,
+  GroupCardType,
+  GroupPickMode,
   HouseRules,
   IntimacyCard,
   IntimacyCategory,
@@ -110,6 +113,19 @@ export interface ClientToServerEvents {
     ack: Ack,
   ) => void;
   'intimacy:onlyOurs': (payload: { value: boolean }, ack: Ack) => void;
+  'group:choose': (payload: { kind: CouplesKind; turnId: number }, ack: Ack<{ card: GroupCard }>) => void;
+  'group:pass': (payload: { turnId: number }, ack: Ack<{ card: GroupCard }>) => void;
+  'group:done': (payload: { turnId: number }, ack: Ack) => void;
+  'group:spin': (payload: { turnId: number }, ack: Ack<{ playerId: string }>) => void;
+  'group:types': (payload: { types: GroupCardType[] }, ack: Ack) => void;
+  'group:options': (
+    payload: { noTouch?: boolean; drinks?: boolean; passPenalty?: boolean; pickMode?: GroupPickMode },
+    ack: Ack,
+  ) => void;
+  'group:addCard': (
+    payload: { cardType: GroupCardType; kind: CouplesKind; text: string; timerSeconds?: number | null },
+    ack: Ack,
+  ) => void;
 }
 
 export type SessionEndReason = 'kicked' | 'replaced' | 'roomClosed';

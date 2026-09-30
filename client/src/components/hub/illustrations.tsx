@@ -60,6 +60,26 @@ export function WheelIllustration() {
   );
 }
 
+export function GroupIllustration() {
+  const seats = [
+    { x: -40, y: -20, color: 'var(--color-group-violet)' },
+    { x: 40, y: -20, color: 'var(--color-card-yellow)' },
+    { x: -40, y: 40, color: 'var(--color-card-blue)' },
+    { x: 40, y: 40, color: 'var(--color-card-green)' },
+  ];
+  return (
+    <svg viewBox="0 0 160 160" className="h-full w-full" aria-hidden>
+      <circle cx="80" cy="80" r="30" fill="var(--color-night-2)" stroke="var(--color-group-violet)" strokeWidth="3" />
+      {seats.map((s, i) => (
+        <g key={i} transform={`translate(${80 + s.x} ${80 + s.y})`}>
+          <circle r="18" fill={s.color} opacity="0.9" />
+          <circle r="9" fill="var(--color-night)" opacity="0.35" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 export function IntimacyIllustration() {
   return (
     <svg viewBox="0 0 160 160" className="h-full w-full" aria-hidden>

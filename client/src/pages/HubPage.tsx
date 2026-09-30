@@ -2,7 +2,14 @@ import { APP_NAME, ROOM_CODE_LENGTH, ROOM_CODE_REGEX } from '@shared';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BottleIllustration, CouplesIllustration, IntimacyIllustration, UnoIllustration, WheelIllustration } from '../components/hub/illustrations';
+import {
+  BottleIllustration,
+  CouplesIllustration,
+  GroupIllustration,
+  IntimacyIllustration,
+  UnoIllustration,
+  WheelIllustration,
+} from '../components/hub/illustrations';
 import { GameTile } from '../components/hub/GameTile';
 import { ProfileButton } from '../components/hub/ProfileButton';
 import { Button } from '../components/ui/Button';
@@ -40,6 +47,14 @@ const GAMES = [
     badge: '2 players, 18+',
     accent: 'var(--color-couples-rose)',
     illustration: <CouplesIllustration />,
+  },
+  {
+    to: '/group',
+    title: 'Truth and Dare Group',
+    description: 'Pass the phone, or play online. 2 to 12 players.',
+    badge: '2–12 players',
+    accent: 'var(--color-group-violet)',
+    illustration: <GroupIllustration />,
   },
   {
     to: '/intimacy',

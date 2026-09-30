@@ -2,6 +2,7 @@ import type { ClientState, GameEvent, PublicPlayer, RoomView } from '@shared';
 import { buildGameView } from '../game/views';
 import { buildBottleView } from '../games/bottle/engine';
 import { buildCouplesView } from '../games/couples/engine';
+import { buildGroupView } from '../games/group/engine';
 import { buildIntimacyView } from '../games/intimacy/engine';
 import type { Room } from './types';
 
@@ -9,7 +10,8 @@ function buildPartyView(room: Room) {
   if (!room.party) return null;
   if (room.party.kind === 'bottle') return buildBottleView(room.party);
   if (room.party.kind === 'couples') return buildCouplesView(room.party);
-  return buildIntimacyView(room.party);
+  if (room.party.kind === 'intimacy') return buildIntimacyView(room.party);
+  return buildGroupView(room.party);
 }
 
 export function buildRoomView(room: Room): RoomView {

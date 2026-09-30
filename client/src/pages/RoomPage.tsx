@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { OnlineBottleBoard } from '../components/bottle/OnlineBottleBoard';
 import { OnlineCouplesBoard } from '../components/couples/OnlineCouplesBoard';
 import { GameBoard } from '../components/game/GameBoard';
+import { OnlineGroupBoard } from '../components/group/OnlineGroupBoard';
 import { OnlineIntimacyBoard } from '../components/intimacy/OnlineIntimacyBoard';
 import { Lobby } from '../components/lobby/Lobby';
 import { ProfileFields } from '../components/lobby/ProfileFields';
@@ -183,6 +184,8 @@ export function RoomPage() {
           <OnlineCouplesBoard state={state} onLeave={onLeave} />
         ) : state.room.gameType === 'intimacy' ? (
           <OnlineIntimacyBoard state={state} onLeave={onLeave} />
+        ) : state.room.gameType === 'group' ? (
+          <OnlineGroupBoard state={state} onLeave={onLeave} />
         ) : (
           <GameBoard state={state} onLeave={onLeave} />
         )}

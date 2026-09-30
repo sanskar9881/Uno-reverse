@@ -55,6 +55,12 @@
   --color-couples-card-2: #3a0f22;
   --color-couples-card-3: #2a0a18;
   --color-couples-ink: #ffffff;
+  /* Truth and Dare Group accents */
+  --color-group-violet: #a374ff;
+  --color-group-card-1: #2d1b4e;
+  --color-group-card-2: #1c1033;
+  --color-group-card-3: #140a24;
+  --color-group-ink: #ffffff;
   --color-toast-good: #123a33;
   --color-toast-bad: #3d1624;
 
@@ -155,6 +161,10 @@
   --color-couples-card-2: #f8dfe7;
   --color-couples-card-3: #f2d2dc;
   --color-couples-ink: #3a1526;
+  --color-group-card-1: #f1e9fc;
+  --color-group-card-2: #e6d9f8;
+  --color-group-card-3: #dbc8f4;
+  --color-group-ink: #2d1b4e;
   --color-toast-good: #d7f2e8;
   --color-toast-bad: #ffe1e6;
 }
@@ -553,27 +563,27 @@
   }
 
   /*
-   * Intimacy Night's card has no scroll to fall back on, so it must shrink to fit a very
-   * short landscape phone. Text scales with the card's own rendered width (cqw), never the
-   * fixed font sizes .uno-card's siblings use, so a narrow card still fits its own text.
+   * A shared flip card (Intimacy Night, Truth and Dare Group) has no scroll to fall back
+   * on, so it must shrink to fit a very short landscape phone. Text scales with the card's
+   * own rendered width (cqw), never a fixed font size, so a narrow card still fits its text.
    */
-  .intimacy-card {
+  .flip-card {
     container-type: inline-size;
   }
 
-  .intimacy-card__badge {
+  .flip-card__badge {
     font-size: clamp(8px, 5cqw, 13px);
   }
 
-  .intimacy-card__text {
+  .flip-card__text {
     font-size: clamp(10px, 6.4cqw, 20px);
   }
 
-  .intimacy-card__timer {
+  .flip-card__timer {
     font-size: clamp(11px, 7.5cqw, 22px);
   }
 
-  .intimacy-card__emoji {
+  .flip-card__emoji {
     font-size: clamp(24px, 18cqw, 48px);
   }
 }

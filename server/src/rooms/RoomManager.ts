@@ -14,6 +14,9 @@ import {
   type CouplesLevel,
   type GameEvent,
   type GameType,
+  type GroupCard,
+  type GroupCardType,
+  type GroupPickMode,
   type IntimacyCard,
   type IntimacyCategory,
   type JoinResult,
@@ -43,6 +46,18 @@ import {
   setOnlyOurs as setCouplesOnlyOurs,
   type CouplesState,
 } from '../games/couples/engine';
+import {
+  addCustomCard as addGroupCard,
+  chooseCard as chooseGroupCard,
+  createGroupState,
+  finishTurn as finishGroupTurn,
+  passCard as passGroupCard,
+  removePlayer as removeGroupPlayer,
+  setOptions as setGroupOptions,
+  setTypes as setGroupTypes,
+  spinForNext as spinGroupForNext,
+  type GroupState,
+} from '../games/group/engine';
 import {
   addCustomCard as addIntimacyCard,
   createIntimacyState,
@@ -340,7 +355,8 @@ export class RoomManager {
     if (room.gameType === 'uno') this.beginRound(room);
     else if (room.gameType === 'bottle') this.beginBottle(room);
     else if (room.gameType === 'couples') this.beginCouples(room);
-    else this.beginIntimacy(room);
+    else if (room.gameType === 'intimacy') this.beginIntimacy(room);
+    else this.beginGroup(room);
   }
 
   nextRound(socketId: string): void {
@@ -544,6 +560,98 @@ export class RoomManager {
     const { room } = this.requireSession(socketId);
     const party = this.requireIntimacy(room);
     setIntimacyOnlyOurs(party, value);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  // ------------------------------------------------------------------ truth and dare group
+
+  private beginGroup(room: Room): void {
+    const ids = room.players.map((p) => p.id);
+    room.party = createGroupState(ids);
+    room.status = 'playing';
+    this.touch(room);
+    this.store.save(room);
+    logger.info('Truth and Dare Group session started', { room: room.code, players: ids.length });
+    this.notifier.roomUpdated(room, []);
+  }
+
+  private requireGroup(room: Room): GroupState {
+    if (room.status !== 'playing' || !room.party || room.party.kind !== 'group') {
+      throw new GameError('INVALID_STATE', 'No session is being played right now.');
+    }
+    return room.party;
+  }
+
+  private playerNames(room: Room): Record<string, string> {
+    return Object.fromEntries(room.players.map((p) => [p.id, p.nickname]));
+  }
+
+  groupChoose(socketId: string, kind: CouplesKind, turnId: number): GroupCard {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireGroup(room);
+    const card = chooseGroupCard(party, player.id, kind, turnId, this.playerNames(room), this.rng);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    return card;
+  }
+
+  groupPass(socketId: string, turnId: number): GroupCard {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireGroup(room);
+    const card = passGroupCard(party, player.id, turnId, this.playerNames(room), this.rng);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    return card;
+  }
+
+  groupFinishTurn(socketId: string, turnId: number): void {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireGroup(room);
+    finishGroupTurn(party, player.id, turnId);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  groupSpin(socketId: string, turnId: number): string {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireGroup(room);
+    const nextId = spinGroupForNext(party, turnId, this.rng);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    return nextId;
+  }
+
+  groupSetTypes(socketId: string, types: GroupCardType[]): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireGroup(room);
+    setGroupTypes(party, types);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  groupSetOptions(
+    socketId: string,
+    patch: Partial<{ noTouch: boolean; drinks: boolean; passPenalty: boolean; pickMode: GroupPickMode }>,
+  ): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireGroup(room);
+    setGroupOptions(party, patch);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  groupAddCard(socketId: string, cardType: GroupCardType, kind: CouplesKind, text: string, timerSeconds: number | null = null): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireGroup(room);
+    addGroupCard(party, cardType, kind, text, timerSeconds);
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, []);
@@ -913,6 +1021,7 @@ export class RoomManager {
       removeBottlePlayer(room.party, playerId);
       this.syncBottleTurnTimer(room);
     }
+    if (room.party?.kind === 'group') removeGroupPlayer(room.party, playerId);
 
     this.touch(room);
     this.store.save(room);
