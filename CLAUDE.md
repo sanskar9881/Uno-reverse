@@ -39,6 +39,14 @@ UNO Party: a real-time multiplayer UNO-style game. There are three packages. `sh
 - Debug handle: `localStorage['uno-party:debug'] = '1'` exposes `window.__unoParty = { store, socket }`. The browser tests rely on it.
 - Rigged decks for tests use short notation: `r5`, `gS` (skip), `bR` (reverse), `yD` (draw two), `W`, `W4`. See `server/tests/helpers/cards.ts`. Five skips keep the turn in a 2-player game, which makes scripted wins easy.
 
+## Working rules
+
+- Never run `npm run dev` or any server in the foreground. For browser checks use `sh e2e/services.sh start`, and always run `sh e2e/services.sh stop` afterwards.
+- While building, screenshot only the screens you changed, at 390x844 and 1280x800, in both themes. Run the full layout audit and e2e once, at the end of the session.
+- If a command runs longer than 5 minutes, stop it and say which one.
+- Commit after each finished screen. End every session with typecheck, tests, build and the layout audit passing, then `git push`.
+- For UI work, follow `docs/design/DESIGN_GUIDE.md` and match `docs/design/styleguide.html`. No new colors, no new fonts, no emoji avatars. Keep the aria-labels and test selectors the e2e tests use.
+
 ## Conventions
 
 - TypeScript strict everywhere, ES modules, 2-space indentation, single quotes, around 120 columns.
