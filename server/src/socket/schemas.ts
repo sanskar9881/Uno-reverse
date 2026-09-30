@@ -13,6 +13,7 @@ import {
   UUID_REGEX,
   normalizeNickname,
 } from '@shared';
+import { INTIMACY_CATEGORIES } from '@shared/games/intimacy/decks';
 
 /**
  * Every client payload is parsed here before it reaches game logic.
@@ -33,6 +34,14 @@ export const roomCodeSchema = z
 
 const idSchema = z.string().regex(/^[a-z0-9-]{1,32}$/i);
 const turnIdSchema = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
+const levelSchema = z.enum(['sweet', 'flirty', 'spicy']);
+// A resized data URL from Our Deck. The client downscales before sending; this just caps abuse.
+const photoSchema = z
+  .string()
+  .max(200_000)
+  .regex(/^data:image\//)
+  .nullable()
+  .optional();
 
 const profileSchema = z.object({
   nickname: nicknameSchema,
@@ -90,10 +99,20 @@ export const schemas = {
     })
     .refine((s) => s.pack !== undefined || s.canLandOnSelf !== undefined || s.clockwiseTurns !== undefined),
   couplesChoose: z.object({ kind: z.enum(['truth', 'dare']), turnId: turnIdSchema }),
-  couplesLevel: z.object({ level: z.enum(['sweet', 'flirty', 'spicy']) }),
+  couplesLevel: z.object({ level: levelSchema }),
   couplesCard: z.object({
-    level: z.enum(['sweet', 'flirty', 'spicy']),
+    level: levelSchema,
     kind: z.enum(['truth', 'dare']),
     text: z.string().trim().min(1).max(200),
+    photo: photoSchema,
+  }),
+  onlyOurs: z.object({ value: z.boolean() }),
+  intimacyLevel: z.object({ level: levelSchema }),
+  intimacyCategories: z.object({ categories: z.array(z.enum(INTIMACY_CATEGORIES)).min(1).max(INTIMACY_CATEGORIES.length) }),
+  intimacyCard: z.object({
+    level: levelSchema,
+    category: z.enum(INTIMACY_CATEGORIES),
+    text: z.string().trim().min(1).max(200),
+    photo: photoSchema,
   }),
 };

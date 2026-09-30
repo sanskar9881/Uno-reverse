@@ -237,7 +237,9 @@ async def audit_state(page: Page, state_name: str):
 async def audit_hub(browser: Browser):
     ctx, page = await new_page(browser)
     await page.goto(f"{BASE}/")
-    await page.wait_for_timeout(500)
+    # Each tile's entrance spring is delayed by 0.15 + index * 0.1s; wait past the last one
+    # (plus settle time) regardless of how many tiles the hub currently has.
+    await page.wait_for_timeout(1500)
     await audit_state(page, "hub")
     await ctx.close()
 
@@ -419,6 +421,60 @@ async def audit_couples(browser: Browser):
     await ctx.close()
 
 
+async def audit_intimacy(browser: Browser):
+    ctx, page = await new_page(browser)
+    await page.goto(f"{BASE}/intimacy")
+    await page.wait_for_timeout(200)
+    await audit_state(page, "intimacy-agegate")
+
+    await page.get_by_role("button", name="We're both 18+").click()
+    await page.get_by_role("button", name="Play together").click()
+    await page.wait_for_timeout(200)
+    await audit_state(page, "intimacy-together-idle")
+
+    await page.get_by_role("button", name="Draw a card", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "intimacy-together-card")
+
+    await page.get_by_role("button", name="Categories (5)", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "intimacy-categories")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+
+    await page.get_by_role("button", name="Our deck", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "intimacy-ourdeck")
+    await page.get_by_role("button", name="+ Add a card", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "intimacy-ourdeck-composer")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+
+    # Draw (alternating Draw/Done, since Intimacy hands the turn to the other partner every
+    # time) until a timed card turns up. Sweet Touch and massage carries several.
+    found_timer = False
+    for i in range(60):
+        if i > 0:
+            await page.get_by_role("button", name="Done", exact=True).click()
+            await page.wait_for_timeout(60)
+            await page.get_by_role("button", name="Draw a card", exact=True).click()
+        await page.wait_for_timeout(60)
+        if await page.get_by_role("button", name="Start", exact=True).count() > 0:
+            found_timer = True
+            break
+    if not found_timer:
+        print("  warning: no timed intimacy card turned up in 60 draws")
+    await audit_state(page, "intimacy-card-timer-start")
+
+    await page.get_by_role("button", name="Start", exact=True).click()
+    await page.wait_for_timeout(150)
+    await audit_state(page, "intimacy-card-timer-ready")
+    await page.wait_for_timeout(2400)  # let the get-ready countdown finish
+    await audit_state(page, "intimacy-card-timer-running")
+    await ctx.close()
+
+
 async def main():
     async with async_playwright() as pw:
         browser = await pw.chromium.launch()
@@ -428,6 +484,7 @@ async def main():
         await audit_wheel(browser)
         await audit_bottle(browser)
         await audit_couples(browser)
+        await audit_intimacy(browser)
         await browser.close()
 
     print()

@@ -1,4 +1,16 @@
-import type { BottlePartySettings, CardColor, ClientState, CouplesCard, CouplesKind, CouplesLevel, GameType, HouseRules, RoomSettings } from './types';
+import type {
+  BottlePartySettings,
+  CardColor,
+  ClientState,
+  CouplesCard,
+  CouplesKind,
+  CouplesLevel,
+  GameType,
+  HouseRules,
+  IntimacyCard,
+  IntimacyCategory,
+  RoomSettings,
+} from './types';
 
 export type RoomSettingsPatch = Partial<Omit<RoomSettings, 'houseRules'>> & { houseRules?: Partial<HouseRules> };
 
@@ -87,7 +99,17 @@ export interface ClientToServerEvents {
   'couples:pass': (payload: { turnId: number }, ack: Ack<{ card: CouplesCard }>) => void;
   'couples:done': (payload: { turnId: number }, ack: Ack) => void;
   'couples:level': (payload: { level: CouplesLevel }, ack: Ack) => void;
-  'couples:addCard': (payload: { level: CouplesLevel; kind: CouplesKind; text: string }, ack: Ack) => void;
+  'couples:addCard': (payload: { level: CouplesLevel; kind: CouplesKind; text: string; photo?: string | null }, ack: Ack) => void;
+  'couples:onlyOurs': (payload: { value: boolean }, ack: Ack) => void;
+  'intimacy:draw': (payload: { turnId: number }, ack: Ack<{ card: IntimacyCard }>) => void;
+  'intimacy:done': (payload: { turnId: number }, ack: Ack) => void;
+  'intimacy:level': (payload: { level: CouplesLevel }, ack: Ack) => void;
+  'intimacy:categories': (payload: { categories: IntimacyCategory[] }, ack: Ack) => void;
+  'intimacy:addCard': (
+    payload: { level: CouplesLevel; category: IntimacyCategory; text: string; photo?: string | null },
+    ack: Ack,
+  ) => void;
+  'intimacy:onlyOurs': (payload: { value: boolean }, ack: Ack) => void;
 }
 
 export type SessionEndReason = 'kicked' | 'replaced' | 'roomClosed';

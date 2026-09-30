@@ -15,7 +15,7 @@ export interface Card {
 
 export type RoomStatus = 'lobby' | 'playing' | 'roundOver';
 
-export type GameType = 'uno' | 'bottle' | 'couples';
+export type GameType = 'uno' | 'bottle' | 'couples' | 'intimacy';
 
 /** Off by default. The host toggles these in the lobby, before a round starts. */
 export interface HouseRules {
@@ -77,15 +77,42 @@ export interface CouplesCard {
   level: CouplesLevel;
   kind: CouplesKind;
   text: string;
+  /** A data URL, when the card came from Our Deck with a photo attached. */
+  photo?: string | null;
 }
 
 /** Everything both partners are allowed to know about an online Couples session. Fully public to the two of them. */
 export interface CouplesView {
   /** Each partner's own chosen comfort level. The game plays at the lower of the two. */
   levels: Record<string, CouplesLevel>;
+  /** When true, only Our Deck cards are drawn; the built-in deck is skipped. */
+  onlyOurs: boolean;
   currentPartnerId: string;
   turnId: number;
   card: CouplesCard | null;
+}
+
+export type IntimacyCategory = 'kiss' | 'touch' | 'flirtyTalk' | 'mood' | 'romance';
+
+export interface IntimacyCard {
+  level: CouplesLevel;
+  category: IntimacyCategory;
+  text: string;
+  /** A data URL, when the card came from Our Deck with a photo attached. */
+  photo?: string | null;
+}
+
+/** Everything both partners are allowed to know about an online Intimacy Night session. Fully public to the two of them. */
+export interface IntimacyView {
+  /** Each partner's own chosen comfort level. The game plays at the lower of the two. */
+  levels: Record<string, CouplesLevel>;
+  /** Categories currently included, chosen jointly. At least one is always selected. */
+  categories: IntimacyCategory[];
+  /** When true, only Our Deck cards are drawn; the built-in deck is skipped. */
+  onlyOurs: boolean;
+  currentPartnerId: string;
+  turnId: number;
+  card: IntimacyCard | null;
 }
 
 export interface PublicPlayer {
@@ -204,6 +231,6 @@ export interface ClientState {
    * otherwise, and for everyone else.
    */
   revealedHand: { ownerId: string; cards: Card[] } | null;
-  /** Non-UNO game state (Spin the Bottle, Couples), or null in a UNO room. */
-  party: BottleView | CouplesView | null;
+  /** Non-UNO game state (Spin the Bottle, Couples, Intimacy Night), or null in a UNO room. */
+  party: BottleView | CouplesView | IntimacyView | null;
 }

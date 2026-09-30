@@ -14,6 +14,8 @@ import {
   type CouplesLevel,
   type GameEvent,
   type GameType,
+  type IntimacyCard,
+  type IntimacyCategory,
   type JoinResult,
   type ProfilePayload,
   type RoomSettingsPatch,
@@ -32,14 +34,25 @@ import {
   startSpin,
 } from '../games/bottle/engine';
 import {
-  addCustomCard,
+  addCustomCard as addCouplesCard,
   chooseCard,
   createCouplesState,
-  finishTurn,
+  finishTurn as finishCouplesTurn,
   passCard,
-  setLevel,
+  setLevel as setCouplesLevel,
+  setOnlyOurs as setCouplesOnlyOurs,
   type CouplesState,
 } from '../games/couples/engine';
+import {
+  addCustomCard as addIntimacyCard,
+  createIntimacyState,
+  drawCard as drawIntimacyCard,
+  finishTurn as finishIntimacyTurn,
+  setCategories as setIntimacyCategories,
+  setLevel as setIntimacyLevel,
+  setOnlyOurs as setIntimacyOnlyOurs,
+  type IntimacyState,
+} from '../games/intimacy/engine';
 import { MemoryStatsService } from '../services/stats/MemoryStatsService';
 import type { StatsService } from '../services/stats/StatsService';
 import { newPlayerId, newToken, safeEqual } from '../utils/ids';
@@ -326,7 +339,8 @@ export class RoomManager {
     this.assertCanStart(room);
     if (room.gameType === 'uno') this.beginRound(room);
     else if (room.gameType === 'bottle') this.beginBottle(room);
-    else this.beginCouples(room);
+    else if (room.gameType === 'couples') this.beginCouples(room);
+    else this.beginIntimacy(room);
   }
 
   nextRound(socketId: string): void {
@@ -428,7 +442,7 @@ export class RoomManager {
   couplesFinishTurn(socketId: string, turnId: number): void {
     const { room, player } = this.requireSession(socketId);
     const party = this.requireCouples(room);
-    finishTurn(party, player.id, turnId);
+    finishCouplesTurn(party, player.id, turnId);
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, []);
@@ -437,16 +451,99 @@ export class RoomManager {
   couplesSetLevel(socketId: string, level: CouplesLevel): void {
     const { room, player } = this.requireSession(socketId);
     const party = this.requireCouples(room);
-    setLevel(party, player.id, level);
+    setCouplesLevel(party, player.id, level);
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, []);
   }
 
-  couplesAddCard(socketId: string, level: CouplesLevel, kind: CouplesKind, text: string): void {
+  couplesAddCard(socketId: string, level: CouplesLevel, kind: CouplesKind, text: string, photo: string | null = null): void {
     const { room } = this.requireSession(socketId);
     const party = this.requireCouples(room);
-    addCustomCard(party, level, kind, text);
+    addCouplesCard(party, level, kind, text, photo);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  couplesSetOnlyOurs(socketId: string, value: boolean): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireCouples(room);
+    setCouplesOnlyOurs(party, value);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  // ------------------------------------------------------------------ intimacy night
+
+  private beginIntimacy(room: Room): void {
+    const ids = room.players.map((p) => p.id) as [string, string];
+    room.party = createIntimacyState(ids);
+    room.status = 'playing';
+    this.touch(room);
+    this.store.save(room);
+    logger.info('Intimacy Night session started', { room: room.code });
+    this.notifier.roomUpdated(room, []);
+  }
+
+  private requireIntimacy(room: Room): IntimacyState {
+    if (room.status !== 'playing' || !room.party || room.party.kind !== 'intimacy') {
+      throw new GameError('INVALID_STATE', 'No session is being played right now.');
+    }
+    return room.party;
+  }
+
+  intimacyDraw(socketId: string, turnId: number): IntimacyCard {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireIntimacy(room);
+    const card = drawIntimacyCard(party, player.id, turnId, this.rng);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+    return card;
+  }
+
+  intimacyFinishTurn(socketId: string, turnId: number): void {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireIntimacy(room);
+    finishIntimacyTurn(party, player.id, turnId);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  intimacySetLevel(socketId: string, level: CouplesLevel): void {
+    const { room, player } = this.requireSession(socketId);
+    const party = this.requireIntimacy(room);
+    setIntimacyLevel(party, player.id, level);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  intimacySetCategories(socketId: string, categories: IntimacyCategory[]): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireIntimacy(room);
+    setIntimacyCategories(party, categories);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  intimacyAddCard(socketId: string, level: CouplesLevel, category: IntimacyCategory, text: string, photo: string | null = null): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireIntimacy(room);
+    addIntimacyCard(party, level, category, text, photo);
+    this.touch(room);
+    this.store.save(room);
+    this.notifier.roomUpdated(room, []);
+  }
+
+  intimacySetOnlyOurs(socketId: string, value: boolean): void {
+    const { room } = this.requireSession(socketId);
+    const party = this.requireIntimacy(room);
+    setIntimacyOnlyOurs(party, value);
     this.touch(room);
     this.store.save(room);
     this.notifier.roomUpdated(room, []);

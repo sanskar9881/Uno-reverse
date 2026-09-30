@@ -11,17 +11,19 @@ export const UNO_PENALTY_CARDS = 2;
 export const WILD4_CHALLENGE_MS = 10_000;
 export const CUSTOM_RULE_MAX_LENGTH = 120;
 
-export const GAME_TYPES = ['uno', 'bottle', 'couples'] as const;
+export const GAME_TYPES = ['uno', 'bottle', 'couples', 'intimacy'] as const;
 
 export const BOTTLE_MIN_PLAYERS = 2;
 export const BOTTLE_MAX_PLAYERS = 12;
 export const COUPLES_MAX_PLAYERS = 2;
+export const INTIMACY_MAX_PLAYERS = 2;
 
 /** Max seats per room, by game. */
 export const MAX_PLAYERS_BY_GAME = {
   uno: MAX_PLAYERS,
   bottle: BOTTLE_MAX_PLAYERS,
   couples: COUPLES_MAX_PLAYERS,
+  intimacy: INTIMACY_MAX_PLAYERS,
 } as const;
 
 /** [min, max] server-chosen spin duration in ms for the online bottle. */

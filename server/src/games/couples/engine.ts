@@ -1,5 +1,6 @@
 import type { CouplesCard, CouplesKind, CouplesLevel, CouplesView } from '@shared';
-import { couplesPool, drawFromPool, lowerLevel } from '@shared/games/couples/decks';
+import { couplesPool, lowerLevel } from '@shared/games/couples/decks';
+import { drawFromPool, type PoolEntry } from '@shared/games/common';
 import type { Rng } from '../../game/deck';
 import { GameError } from '../../game/errors';
 
@@ -12,11 +13,12 @@ export interface CouplesState {
   kind: 'couples';
   playerIds: [string, string];
   levels: Record<string, CouplesLevel>;
+  onlyOurs: boolean;
   currentPartnerId: string;
   turnId: number;
   card: CouplesCard | null;
   usedByDeck: Record<string, string[]>;
-  customCards: Record<string, string[]>;
+  customCards: Record<string, PoolEntry[]>;
 }
 
 const deckKey = (level: CouplesLevel, kind: CouplesKind): string => `${level}:${kind}`;
@@ -26,6 +28,7 @@ export function createCouplesState(playerIds: [string, string]): CouplesState {
     kind: 'couples',
     playerIds,
     levels: { [playerIds[0]]: 'sweet', [playerIds[1]]: 'sweet' },
+    onlyOurs: false,
     currentPartnerId: playerIds[0],
     turnId: 0,
     card: null,
@@ -40,16 +43,21 @@ export function effectiveLevel(state: CouplesState): CouplesLevel {
   return lowerLevel(state.levels[a] ?? 'sweet', state.levels[b] ?? 'sweet');
 }
 
-function poolFor(state: CouplesState, level: CouplesLevel, kind: CouplesKind): string[] {
-  return [...couplesPool(level, kind), ...(state.customCards[deckKey(level, kind)] ?? [])];
+function poolFor(state: CouplesState, level: CouplesLevel, kind: CouplesKind): PoolEntry[] {
+  const custom = state.customCards[deckKey(level, kind)] ?? [];
+  if (state.onlyOurs) return custom;
+  return [...couplesPool(level, kind).map((text): PoolEntry => ({ text, photo: null })), ...custom];
 }
 
 function drawCard(state: CouplesState, level: CouplesLevel, kind: CouplesKind, rng: Rng): CouplesCard {
   const pool = poolFor(state, level, kind);
+  if (pool.length === 0) {
+    throw new GameError('INVALID_STATE', 'Add some cards to Our deck first, or turn off "Play only our cards".');
+  }
   const key = deckKey(level, kind);
-  const { text, used } = drawFromPool(pool, state.usedByDeck[key] ?? [], rng);
+  const { entry, used } = drawFromPool(pool, state.usedByDeck[key] ?? [], rng);
   state.usedByDeck[key] = used;
-  return { level, kind, text };
+  return { level, kind, text: entry.text, photo: entry.photo ?? null };
 }
 
 function requireTurn(state: CouplesState, playerId: string, turnId: number): void {
@@ -89,14 +97,25 @@ export function setLevel(state: CouplesState, playerId: string, level: CouplesLe
   state.levels[playerId] = level;
 }
 
-export function addCustomCard(state: CouplesState, level: CouplesLevel, kind: CouplesKind, text: string): void {
+export function setOnlyOurs(state: CouplesState, value: boolean): void {
+  state.onlyOurs = value;
+}
+
+export function addCustomCard(
+  state: CouplesState,
+  level: CouplesLevel,
+  kind: CouplesKind,
+  text: string,
+  photo: string | null = null,
+): void {
   const key = deckKey(level, kind);
-  state.customCards[key] = [...(state.customCards[key] ?? []), text];
+  state.customCards[key] = [...(state.customCards[key] ?? []), { text, photo }];
 }
 
 export function buildCouplesView(state: CouplesState): CouplesView {
   return {
     levels: { ...state.levels },
+    onlyOurs: state.onlyOurs,
     currentPartnerId: state.currentPartnerId,
     turnId: state.turnId,
     card: state.card ? { ...state.card } : null,

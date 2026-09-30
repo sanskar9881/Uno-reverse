@@ -69,6 +69,9 @@ export function CardFlip({ card }: { card: CouplesCard | null }) {
               <span className="rounded-full bg-couples-candle/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-couples-candle">
                 {LEVEL_LABEL[card.level]} · {card.kind === 'truth' ? 'Truth' : 'Dare'}
               </span>
+              {card.photo && (
+                <img src={card.photo} alt="" className="max-h-[35%] w-auto rounded-xl object-cover shadow-[0_6px_20px_rgb(0_0_0/0.4)]" />
+              )}
               <p className="font-couples text-xl leading-snug text-couples-ink">{card.text}</p>
               {timer && <Countdown seconds={timer} />}
             </>

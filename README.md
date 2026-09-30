@@ -1,6 +1,6 @@
 # Party Night
 
-A hub of real-time party games, played in the browser: **UNO**, **Spin the Bottle**, **Name Wheel** and **Couples Truth or Dare**. Some games need no server at all (Name Wheel, one-phone Spin the Bottle, Together-mode Couples); the rest run in private rooms where one person creates a room, shares the 6-character code or link, and everyone plays from their own phone or computer. Wherever randomness or turn order matters, the server decides — browsers only send what a player wants to do.
+A hub of real-time party games, played in the browser: **UNO**, **Spin the Bottle**, **Name Wheel**, **Couples Truth or Dare** and **Intimacy Night**. Some games need no server at all (Name Wheel, one-phone Spin the Bottle, Together-mode Couples and Intimacy Night); the rest run in private rooms where one person creates a room, shares the 6-character code or link, and everyone plays from their own phone or computer. Wherever randomness or turn order matters, the server decides — browsers only send what a player wants to do.
 
 Installable as a home-screen app (PWA); the one-phone games work offline once you've visited the site.
 
@@ -16,6 +16,7 @@ Installable as a home-screen app (PWA); the one-phone games work offline once yo
 | **Spin the Bottle** | `/bottle` | One phone (no server) or online room, 2–12 players | Party or Flirty (18+) prompt packs, or the bottle just points. |
 | **Name Wheel** | `/wheel` | Browser only, no server | Any names, shareable via a link, saved wheels. |
 | **Couples Truth or Dare** | `/couples` | Together (one phone) or Long distance (online room, 2 players) | 18+, three consent levels, 240+ cards. |
+| **Intimacy Night** | `/intimacy` | Together (one phone) or Long distance (online room, 2 players) | 18+, no truth-or-dare choice — draw one card at a time, 150+ cards across 5 categories. |
 
 | Wheel | Bottle online | Couples |
 | --- | --- | --- |
@@ -51,8 +52,19 @@ Installable as a home-screen app (PWA); the one-phone games work offline once yo
 - **Together:** one phone, passed back and forth. Each partner picks a comfort level (Sweet / Flirty / Spicy); the game always plays at the lower of the two. Starting Spicy needs both partners to confirm on the shared screen, since there's no way to know who's actually holding the phone.
 - **Long distance:** a private online room (`gameType: 'couples'`, capped at 2 players). Each partner sets their own level from their own device — the server enforces the lower-of-two rule, and lowering a level takes effect on the very next card, from either side.
 - **A turn:** choose Truth or Dare, the card flips (a gentle glow, a soft chime, a light vibration), then Pass (redraw, unlimited, no penalty), Done (turn passes), or ❤️ Heart (save to favourites, stored on-device). Some dares carry a countdown (e.g. "for 60 seconds").
-- **Custom cards:** either partner can write their own, up to 200 characters. In Together mode they're saved on-device; online they live only in the room's memory and disappear when it closes.
+- **Custom cards and Our Deck:** either partner can save their own cards, with an optional photo, to Our Deck — a library stored on-device and shared with Intimacy Night, so nothing is imported twice. "Play only our cards" skips the built-in deck entirely. Online, a saved card can be added into the live room (text and photo both travel to your partner); it then lives only in the room's memory and disappears when the room closes.
 - **Content:** 240+ cards in `shared/games/couples/decks.ts` (40+ truths and dares per level), warm, playful, inclusive, and never explicit even at Spicy.
+
+### Intimacy Night
+
+- **Age gate:** shown once, remembered per device.
+- **Together:** one phone, passed back and forth. No Truth-or-Dare choice — partners take turns drawing one card at a time from a shuffled deck, with a 3D flip. Each partner sets their own comfort level (Sweet / Flirty / Spicy) via a compact slider in the header; the game plays at the lower of the two, same rule as Couples.
+- **Long distance:** a private online room (`gameType: 'intimacy'`, capped at 2 players), reusing the same room-code, lobby and presence system as every other game.
+- **Categories:** Kiss, Touch and massage, Flirty talk, Mood and setting, and Romance and dates. Pick which are in play at any time; at least one always stays selected.
+- **Timed cards:** a card phrased "...for N seconds/minutes" shows a Start button instead of running immediately, so nobody's caught off guard — tapping it runs a get-ready countdown, then the timer, and the screen stays awake for the duration (Screen Wake Lock API, where supported).
+- **Custom cards and Our Deck:** shares the same on-device library as Couples Truth or Dare (text plus an optional photo). "Play only our cards" skips the built-in deck.
+- **Content:** 150+ cards in `shared/games/intimacy/decks.ts` (10+ per level and category), sensual and suggestive, never explicit.
+- **One screen, no scroll:** the card sits upper-middle, the comfort slider lives in the header, and the draw/done action sits below the card — the layout audit checks every viewport from a 320px phone to a short landscape phone, in both themes.
 
 ## Tech stack
 
@@ -111,22 +123,25 @@ party-night/
 │   ├── constants.ts, types.ts, events.ts, rules.ts   Core types, socket contracts, UNO rule helpers
 │   └── games/
 │       ├── bottle/prompts.ts    Party/Flirty prompt packs
-│       └── couples/decks.ts     Truth/Dare decks, level and deck-cycling helpers
+│       ├── couples/decks.ts     Truth/Dare decks, level and deck-cycling helpers
+│       ├── intimacy/decks.ts    Category decks, sharing the level/pool helpers below
+│       └── common.ts            Shared comfort-level, timer-text and deck-cycling helpers
 ├── server/
 │   ├── src/game/         Pure UNO rules engine: deck, turns, scoring, per-player views
 │   ├── src/games/
-│   │   ├── bottle/engine.ts    Pure online Spin the Bottle state machine
-│   │   └── couples/engine.ts   Pure online Couples Truth or Dare state machine
+│   │   ├── bottle/engine.ts     Pure online Spin the Bottle state machine
+│   │   ├── couples/engine.ts    Pure online Couples Truth or Dare state machine
+│   │   └── intimacy/engine.ts   Pure online Intimacy Night state machine
 │   ├── src/rooms/         RoomManager (lifecycle, timers, presence, all game types), RoomStore, room codes
 │   ├── src/socket/        zod schemas, rate limits, event handlers, per-player broadcasting
 │   ├── src/services/      Stats: MongoDB with in-memory fallback
 │   ├── src/routes/        GET /api/stats/:profileId, GET /api/leaderboard
 │   ├── src/server.ts      In production, also serves client/dist (static files + SPA fallback)
-│   └── tests/             Engine, multiplayer, bottle, couples and config/static-serving tests; e2e server
+│   └── tests/             Engine, multiplayer, bottle, couples, intimacy and config/static-serving tests; e2e server
 ├── client/
 │   ├── src/pages/         Hub, per-game pages (lazy-loaded), Room (lobby or table), 404
-│   ├── src/components/    cards/, lobby/, game/ (UNO table), bottle/, couples/, hub/, ui/ (shared design system)
-│   ├── src/game/          Actions, sounds, event feedback, and each game's pure logic under wheel/, bottle/, couples/
+│   ├── src/components/    cards/, lobby/, game/ (UNO table), bottle/, couples/, intimacy/, shared/ (Our Deck), hub/, ui/ (shared design system)
+│   ├── src/game/          Actions, sounds, event feedback, each game's pure logic under wheel/, bottle/, couples/, intimacy/, and ourDeck/ (shared custom-card library)
 │   ├── src/socket/        Typed Socket.IO client, connection and seat lifecycle
 │   └── src/store/         Zustand stores: game state, toasts, effects
 ├── e2e/                   Playwright browser tests and service script
@@ -134,27 +149,27 @@ party-night/
 └── client/vercel.json     Optional: Vercel settings, only if you deploy the client separately
 ```
 
-**How an online move flows** (UNO, Spin the Bottle and Couples all follow this shape)
+**How an online move flows** (UNO, Spin the Bottle, Couples and Intimacy Night all follow this shape)
 
 1. The browser emits an event, e.g. `game:play { turnId, cardId, chosenColor }` or `bottle:spin { turnId }`, and waits for an acknowledgement.
 2. The server checks the payload shape (zod), the rate limit and the seat, then the relevant pure engine checks the turn, the `turnId`, and the rules.
 3. The engine updates its state and returns what changed. RoomManager restarts any timers involved (a UNO turn timer, a bottle spin/landing timer) and records UNO stats when a round ends.
-4. Every player receives their own `state` snapshot: public table info, their own hand only (UNO), and the relevant `party` state (Spin the Bottle or Couples, both fully public to their room). Then the acknowledgement is sent.
+4. Every player receives their own `state` snapshot: public table info, their own hand only (UNO), and the relevant `party` state (Spin the Bottle, Couples or Intimacy Night, all fully public to their room). Then the acknowledgement is sent.
 5. The browser replaces its state and turns it into sounds, toasts, haptics and animations.
 
 ## Multiplayer architecture
 
 - **Server authoritative.** Clients never compute outcomes. The shared rule/logic helpers are only used for UI hints (playable UNO cards, wheel physics, prompt draws in one-phone modes); the pure engines in `server/src/game/` and `server/src/games/*` decide for every online game.
-- **One room, one of three game types.** `Room.gameType` is `'uno' | 'bottle' | 'couples'`. UNO's state lives in `room.game`, exactly where it always has; Spin the Bottle and Couples share a `room.party: BottleState | CouplesState | null` discriminated union, so adding a game type never touches another one's code path.
+- **One room, one of four game types.** `Room.gameType` is `'uno' | 'bottle' | 'couples' | 'intimacy'`. UNO's state lives in `room.game`, exactly where it always has; the other three share a `room.party: BottleState | CouplesState | IntimacyState | null` discriminated union, so adding a game type never touches another one's code path.
 - **Snapshots, not diffs.** After each change every player gets a full personalized snapshot (a few KB). There's no client-side reconciliation, a reconnecting player is instantly correct, and one player's view can never contain another player's UNO hand.
 - **Identity.** Joining returns a `playerId` and a random 48-character seat token, stored in `sessionStorage`, so each tab is one seat and a refresh reclaims it. The nickname, avatar and an anonymous profile ID are stored in `localStorage` for stats.
-- **Stale and duplicate actions.** Every turn has a `turnId`, in UNO, Spin the Bottle and Couples alike. Actions for an old turn are rejected, so double clicks, lag and a timer firing at the same moment can't apply twice.
+- **Stale and duplicate actions.** Every turn has a `turnId`, in UNO, Spin the Bottle, Couples and Intimacy Night alike. Actions for an old turn are rejected, so double clicks, lag and a timer firing at the same moment can't apply twice.
 - **Presence.** Disconnects start a grace timer (60 s in a game, 15 s in the lobby). A reconnect cancels it, and when it expires the seat is released. If the current bottle spinner disconnects before spinning, their turn passes after 10 s, the same pattern as a UNO turn timing out.
 - **Scaling.** Active games are held in memory behind a `RoomStore` interface, and room state is plain JSON, so a Redis store can replace it. To run several server instances you'd also add the Socket.IO Redis adapter and route each room to one instance (turn and spin timers run in-process). The current deployment is a single instance, which comfortably handles thousands of rooms.
 
 ## Progressive Web App
 
-Built with `vite-plugin-pwa`: a manifest, a maskable + regular icon, and a service worker that precaches the built app shell. Once you've loaded the site once, Name Wheel, one-phone Spin the Bottle and Together-mode Couples all work fully offline — verified by loading each route with the network disabled. Online rooms still need a live connection to the game server, same as before.
+Built with `vite-plugin-pwa`: a manifest, a maskable + regular icon, and a service worker that precaches the built app shell. Once you've loaded the site once, Name Wheel, one-phone Spin the Bottle and Together-mode Couples and Intimacy Night all work fully offline — verified by loading each route with the network disabled. Online rooms still need a live connection to the game server, same as before.
 
 ## Testing
 

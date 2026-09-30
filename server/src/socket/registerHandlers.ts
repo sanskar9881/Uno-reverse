@@ -104,7 +104,18 @@ export function registerSocketHandlers(io: TypedServer, manager: RoomManager, op
     on('couples:pass', schemas.turn, buckets.game, (p) => ({ card: manager.couplesPass(socket.id, p.turnId) }));
     on('couples:done', schemas.turn, buckets.game, (p) => manager.couplesFinishTurn(socket.id, p.turnId));
     on('couples:level', schemas.couplesLevel, buckets.room, (p) => manager.couplesSetLevel(socket.id, p.level));
-    on('couples:addCard', schemas.couplesCard, buckets.room, (p) => manager.couplesAddCard(socket.id, p.level, p.kind, p.text));
+    on('couples:addCard', schemas.couplesCard, buckets.room, (p) =>
+      manager.couplesAddCard(socket.id, p.level, p.kind, p.text, p.photo ?? null),
+    );
+    on('couples:onlyOurs', schemas.onlyOurs, buckets.room, (p) => manager.couplesSetOnlyOurs(socket.id, p.value));
+    on('intimacy:draw', schemas.turn, buckets.game, (p) => ({ card: manager.intimacyDraw(socket.id, p.turnId) }));
+    on('intimacy:done', schemas.turn, buckets.game, (p) => manager.intimacyFinishTurn(socket.id, p.turnId));
+    on('intimacy:level', schemas.intimacyLevel, buckets.room, (p) => manager.intimacySetLevel(socket.id, p.level));
+    on('intimacy:categories', schemas.intimacyCategories, buckets.room, (p) => manager.intimacySetCategories(socket.id, p.categories));
+    on('intimacy:addCard', schemas.intimacyCard, buckets.room, (p) =>
+      manager.intimacyAddCard(socket.id, p.level, p.category, p.text, p.photo ?? null),
+    );
+    on('intimacy:onlyOurs', schemas.onlyOurs, buckets.room, (p) => manager.intimacySetOnlyOurs(socket.id, p.value));
 
     socket.on('disconnect', () => {
       try {

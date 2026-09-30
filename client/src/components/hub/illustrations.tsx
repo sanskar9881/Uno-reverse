@@ -60,6 +60,24 @@ export function WheelIllustration() {
   );
 }
 
+export function IntimacyIllustration() {
+  return (
+    <svg viewBox="0 0 160 160" className="h-full w-full" aria-hidden>
+      {[-24, 24].map((x, i) => (
+        <g key={i} transform={`translate(${80 + x} 110)`}>
+          <rect x={-7} y={-46} width={14} height={46} rx={4} fill="var(--color-couples-candle)" opacity="0.85" />
+          <path
+            d={`M0 -46 c-7 -10 -11 -18 -3 -27 c1 8 5 12 8 16 c4 5 3 12 -5 11z`}
+            fill="var(--color-couples-rose)"
+          />
+          <ellipse cx={0} cy={-52} rx={16} ry={20} fill="var(--color-couples-candle)" opacity="0.18" />
+        </g>
+      ))}
+      <ellipse cx="80" cy="130" rx="56" ry="8" fill="var(--color-couples-wine)" opacity="0.5" />
+    </svg>
+  );
+}
+
 export function CouplesIllustration() {
   return (
     <svg viewBox="0 0 160 160" className="h-full w-full" aria-hidden>

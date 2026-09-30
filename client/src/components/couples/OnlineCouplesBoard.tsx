@@ -1,10 +1,11 @@
 import type { ClientState, CouplesKind, CouplesView } from '@shared';
 import { useState } from 'react';
-import { couplesAddCard, couplesChoose, couplesDone, couplesPass, couplesSetLevel } from '../../game/actions';
+import { couplesAddCard, couplesChoose, couplesDone, couplesPass, couplesSetLevel, couplesSetOnlyOurs } from '../../game/actions';
 import { addFavorite, confirmAge, isAgeConfirmed, loadFavorites } from '../../game/couples/storage';
 import { useGameStore } from '../../store/gameStore';
 import { toast } from '../../store/toastStore';
 import { copyText } from '../../utils/clipboard';
+import { OurDeckPanel } from '../shared/OurDeckPanel';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Sheet } from '../ui/Sheet';
@@ -14,14 +15,17 @@ import { Surface } from '../ui/Surface';
 import { CardFlip } from './CardFlip';
 import { LevelPicker } from './LevelPicker';
 
+const COUPLES_SLOTS = [
+  { value: 'truth', label: 'Truth' },
+  { value: 'dare', label: 'Dare' },
+];
+
 export function OnlineCouplesBoard({ state, onLeave }: { state: ClientState; onLeave: () => void }) {
   const party = state.party as CouplesView;
   const busy = useGameStore((s) => s.busy);
   const [ageConfirmed, setAgeConfirmed] = useState(() => isAgeConfirmed());
   const [favorites, setFavorites] = useState(() => loadFavorites());
   const [composerOpen, setComposerOpen] = useState(false);
-  const [composerText, setComposerText] = useState('');
-  const [composerKind, setComposerKind] = useState<CouplesKind>('truth');
 
   const partner = state.room.players.find((p) => p.id !== state.selfId);
   const isMyTurn = party.currentPartnerId === state.selfId;
@@ -128,45 +132,24 @@ export function OnlineCouplesBoard({ state, onLeave }: { state: ClientState; onL
 
       <div className="mt-4 flex gap-2">
         <Button variant="ghost" size="sm" onClick={() => setComposerOpen(true)}>
-          Add a custom card
+          Our deck
         </Button>
         <span className="self-center text-sm text-muted">Favourites: {favorites.length}</span>
       </div>
 
-      <Sheet open={composerOpen} onClose={() => setComposerOpen(false)} label="Add a custom card">
-        <h2 className="mb-4 font-couples text-xl">Add a custom card</h2>
-        <p className="mb-3 text-sm text-muted">Shared with your partner for this session only.</p>
-        <div className="flex flex-col gap-3">
-          <div className="flex gap-2">
-            <Button variant={composerKind === 'truth' ? 'primary' : 'secondary'} size="sm" onClick={() => setComposerKind('truth')}>
-              Truth
-            </Button>
-            <Button variant={composerKind === 'dare' ? 'primary' : 'secondary'} size="sm" onClick={() => setComposerKind('dare')}>
-              Dare
-            </Button>
-          </div>
-          <textarea
-            value={composerText}
-            onChange={(e) => setComposerText(e.target.value.slice(0, 200))}
-            rows={3}
-            placeholder="Write your own..."
-            className="w-full resize-none rounded-2xl bg-night p-4 text-ink ring-1 ring-line placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-couples-rose"
-          />
-          <p className="text-right text-xs text-muted">{composerText.length}/200</p>
-          <Button
-            disabled={!composerText.trim() || busy}
-            onClick={async () => {
-              const res = await couplesAddCard(myLevel, composerKind, composerText.trim());
-              if (res.ok) {
-                setComposerText('');
-                setComposerOpen(false);
-                toast('Added to the deck', 'good');
-              }
-            }}
-          >
-            Add to deck
-          </Button>
-        </div>
+      <Sheet open={composerOpen} onClose={() => setComposerOpen(false)} label="Our deck">
+        <OurDeckPanel
+          game="couples"
+          level={myLevel}
+          slots={COUPLES_SLOTS}
+          busy={busy}
+          onlyOurs={party.onlyOurs}
+          onToggleOnlyOurs={(value) => void couplesSetOnlyOurs(value)}
+          onUseInGame={async (entry) => {
+            const res = await couplesAddCard(entry.level, entry.slot as 'truth' | 'dare', entry.text, entry.photo);
+            if (res.ok) toast('Added to this room', 'good');
+          }}
+        />
       </Sheet>
     </main>
   );

@@ -1,4 +1,4 @@
-import type { CouplesCard, CouplesKind, CouplesLevel } from '@shared';
+import type { CouplesCard, CouplesLevel } from '@shared';
 
 const AGE_KEY = 'uno-party:couples-age-confirmed';
 const TOGETHER_KEY = 'uno-party:couples-together';
@@ -9,7 +9,6 @@ export interface TogetherState {
   levelB: CouplesLevel;
   currentPartner: 0 | 1;
   usedByDeck: Record<string, string[]>;
-  customCards: Record<string, string[]>;
 }
 
 const DEFAULT_TOGETHER: TogetherState = {
@@ -17,7 +16,6 @@ const DEFAULT_TOGETHER: TogetherState = {
   levelB: 'sweet',
   currentPartner: 0,
   usedByDeck: {},
-  customCards: {},
 };
 
 function read<T>(key: string): T | null {
@@ -71,4 +69,4 @@ export function removeFavorite(text: string): CouplesCard[] {
   return next;
 }
 
-export const deckKey = (level: CouplesLevel, kind: CouplesKind): string => `${level}:${kind}`;
+export const deckKey = (level: CouplesLevel, kind: string): string => `${level}:${kind}`;

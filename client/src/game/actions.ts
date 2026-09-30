@@ -1,4 +1,4 @@
-import type { BottlePartySettings, CardColor, CouplesKind, CouplesLevel, RoomSettingsPatch } from '@shared';
+import type { BottlePartySettings, CardColor, CouplesKind, CouplesLevel, IntimacyCategory, RoomSettingsPatch } from '@shared';
 import { request, type ClientErrorCode, type RequestResult } from '../socket/socket';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
@@ -65,8 +65,21 @@ export const couplesChoose = (kind: CouplesKind) => send(() => request('couples:
 export const couplesPass = () => send(() => request('couples:pass', { turnId: partyTurnId() }));
 export const couplesDone = () => send(() => request('couples:done', { turnId: partyTurnId() }));
 export const couplesSetLevel = (level: CouplesLevel) => send(() => request('couples:level', { level }), { allowWhileBusy: true });
-export const couplesAddCard = (level: CouplesLevel, kind: CouplesKind, text: string) =>
-  send(() => request('couples:addCard', { level, kind, text }));
+export const couplesAddCard = (level: CouplesLevel, kind: CouplesKind, text: string, photo: string | null = null) =>
+  send(() => request('couples:addCard', { level, kind, text, photo }));
+export const couplesSetOnlyOurs = (value: boolean) =>
+  send(() => request('couples:onlyOurs', { value }), { allowWhileBusy: true });
+
+export const intimacyDraw = () => send(() => request('intimacy:draw', { turnId: partyTurnId() }));
+export const intimacyDone = () => send(() => request('intimacy:done', { turnId: partyTurnId() }));
+export const intimacySetLevel = (level: CouplesLevel) => send(() => request('intimacy:level', { level }), { allowWhileBusy: true });
+export const intimacySetCategories = (categories: IntimacyCategory[]) =>
+  send(() => request('intimacy:categories', { categories }), { allowWhileBusy: true });
+export const intimacyAddCard = (level: CouplesLevel, category: IntimacyCategory, text: string, photo: string | null = null) =>
+  send(() => request('intimacy:addCard', { level, category, text, photo }));
+export const intimacySetOnlyOurs = (value: boolean) =>
+  send(() => request('intimacy:onlyOurs', { value }), { allowWhileBusy: true });
+
 export const nextRound = () => send(() => request('game:nextRound', {}));
 export const rematch = () => send(() => request('game:rematch', {}));
 export const updateSettings = (patch: RoomSettingsPatch) => send(() => request('room:settings', patch));

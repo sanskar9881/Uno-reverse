@@ -1,37 +1,33 @@
-import { ROOM_CODE_LENGTH, ROOM_CODE_REGEX, nicknameProblem, type CouplesKind } from '@shared';
+import { ROOM_CODE_LENGTH, ROOM_CODE_REGEX, nicknameProblem, type IntimacyCard } from '@shared';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { CardFlip } from '../components/couples/CardFlip';
-import { LevelPicker } from '../components/couples/LevelPicker';
+import { CategoryPicker } from '../components/intimacy/CategoryPicker';
+import { IntensitySlider } from '../components/intimacy/IntensitySlider';
+import { IntimacyCardFlip } from '../components/intimacy/IntimacyCardFlip';
 import { OurDeckPanel } from '../components/shared/OurDeckPanel';
 import { ProfileFields } from '../components/lobby/ProfileFields';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Sheet } from '../components/ui/Sheet';
+import { SoundToggle } from '../components/ui/SoundToggle';
 import { Surface } from '../components/ui/Surface';
-import { drawTogetherCard, nextPartner, togetherEffectiveLevel } from '../game/couples/logic';
-import {
-  addFavorite,
-  confirmAge,
-  isAgeConfirmed,
-  loadFavorites,
-  loadTogetherState,
-  removeFavorite,
-  saveTogetherState,
-  type TogetherState,
-} from '../game/couples/storage';
+import { drawTogetherCard, nextPartner, togetherEffectiveLevel } from '../game/intimacy/logic';
+import { confirmAge, isAgeConfirmed, loadTogetherState, saveTogetherState, type IntimacyTogetherState } from '../game/intimacy/storage';
 import { loadOnlyOurs, saveOnlyOurs } from '../game/ourDeck/storage';
 import { createRoom, joinRoom } from '../socket/lifecycle';
 import { useGameStore } from '../store/gameStore';
 import { toast } from '../store/toastStore';
 
-const COUPLES_SLOTS = [
-  { value: 'truth', label: 'Truth' },
-  { value: 'dare', label: 'Dare' },
+const INTIMACY_SLOTS = [
+  { value: 'kiss', label: 'Kiss' },
+  { value: 'touch', label: 'Touch and massage' },
+  { value: 'flirtyTalk', label: 'Flirty talk' },
+  { value: 'mood', label: 'Mood and setting' },
+  { value: 'romance', label: 'Romance and dates' },
 ];
 
-function OnlineCouplesEntry() {
+function OnlineIntimacyEntry() {
   const navigate = useNavigate();
   const profile = useGameStore((s) => s.profile);
   const updateProfile = useGameStore((s) => s.updateProfile);
@@ -50,7 +46,7 @@ function OnlineCouplesEntry() {
   const onCreate = async () => {
     if (!ok() || busy) return;
     setBusy(true);
-    const res = await createRoom(profile, 'couples');
+    const res = await createRoom(profile, 'intimacy');
     setBusy(false);
     if (res.ok) navigate(`/room/${res.roomCode}`);
     else toast(res.error.message, 'bad');
@@ -162,47 +158,34 @@ function AgeGate({ onConfirm }: { onConfirm: () => void }) {
   );
 }
 
-function TogetherMode() {
-  const [state, setState] = useState<TogetherState>(() => loadTogetherState());
-  const [card, setCard] = useState<{ level: TogetherState['levelA']; kind: CouplesKind; text: string; photo?: string | null } | null>(
-    null,
-  );
-  const [spicyConfirmed, setSpicyConfirmed] = useState(false);
-  const [confirmSpicy, setConfirmSpicy] = useState<CouplesKind | null>(null);
-  const [favoritesOpen, setFavoritesOpen] = useState(false);
-  const [favorites, setFavorites] = useState(() => loadFavorites());
-  const [composerOpen, setComposerOpen] = useState(false);
-  const [onlyOurs, setOnlyOurs] = useState(() => loadOnlyOurs('couples'));
+function TogetherMode({ onLeave }: { onLeave: () => void }) {
+  const [state, setState] = useState<IntimacyTogetherState>(() => loadTogetherState());
+  const [card, setCard] = useState<IntimacyCard | null>(null);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [deckOpen, setDeckOpen] = useState(false);
+  const [onlyOurs, setOnlyOurs] = useState(() => loadOnlyOurs('intimacy'));
 
   const level = togetherEffectiveLevel(state);
-  const persist = (next: TogetherState) => {
+  const persist = (next: IntimacyTogetherState) => {
     setState(next);
     saveTogetherState(next);
   };
-
   const toggleOnlyOurs = (value: boolean) => {
     setOnlyOurs(value);
-    saveOnlyOurs('couples', value);
+    saveOnlyOurs('intimacy', value);
   };
 
-  const draw = (kind: CouplesKind) => {
-    if (level === 'spicy' && !spicyConfirmed) {
-      setConfirmSpicy(kind);
-      return;
-    }
-    const result = drawTogetherCard(state, level, kind, onlyOurs);
+  const activeLevel = state.currentPartner === 0 ? state.levelA : state.levelB;
+  const setActiveLevel = (next: typeof activeLevel) =>
+    persist(state.currentPartner === 0 ? { ...state, levelA: next } : { ...state, levelB: next });
+  const partnerLabel = state.currentPartner === 0 ? 'Partner A' : 'Partner B';
+
+  const draw = () => {
+    const result = drawTogetherCard(state, level, onlyOurs);
     if (!result) {
       toast('Add some cards to Our deck first, or turn off "Play only our cards".', 'bad');
       return;
     }
-    persist(result.state);
-    setCard(result.card);
-  };
-
-  const pass = () => {
-    if (!card) return;
-    const result = drawTogetherCard(state, card.level, card.kind, onlyOurs);
-    if (!result) return;
     persist(result.state);
     setCard(result.card);
   };
@@ -212,114 +195,61 @@ function TogetherMode() {
     persist(nextPartner(state));
   };
 
-  const heart = () => {
-    if (!card) return;
-    setFavorites(addFavorite(card));
-    toast('Saved to favourites', 'good', '❤️');
-  };
-
-  const partnerLabel = state.currentPartner === 0 ? 'Partner A' : 'Partner B';
-
   return (
-    <div className="flex flex-col gap-4">
-      <Surface className="p-5">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <LevelPicker label="Partner A's comfort level" value={state.levelA} onChange={(levelA) => persist({ ...state, levelA })} />
-          <LevelPicker label="Partner B's comfort level" value={state.levelB} onChange={(levelB) => persist({ ...state, levelB })} />
-        </div>
-        <p className="mt-3 text-sm text-muted">Playing at: {level === 'sweet' ? 'Sweet' : level === 'flirty' ? 'Flirty' : 'Spicy'}</p>
-      </Surface>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden px-4 pb-[env(safe-area-inset-bottom)] pt-[max(0.5rem,env(safe-area-inset-top))]">
+      <header className="flex shrink-0 items-center justify-between gap-2 py-1.5">
+        <button
+          type="button"
+          onClick={onLeave}
+          aria-label="Back"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-ink hover:bg-veil/10"
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </button>
+        <IntensitySlider label={`${partnerLabel}'s comfort level`} value={activeLevel} onChange={setActiveLevel} />
+        <SoundToggle />
+      </header>
 
-      <CardFlip card={card} />
-
-      <p className="text-center font-semibold text-muted">{partnerLabel}'s turn</p>
-
-      {!card ? (
-        <div className="grid grid-cols-2 gap-3">
-          <Button size="lg" onClick={() => draw('truth')}>
-            Truth
-          </Button>
-          <Button size="lg" onClick={() => draw('dare')}>
-            Dare
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-2">
-          <Button className="min-w-0" variant="secondary" onClick={pass}>
-            Pass
-          </Button>
-          <Button className="min-w-0" onClick={done}>
-            Done
-          </Button>
-          <Button className="min-w-0 px-2" variant="ghost" onClick={heart}>
-            <span className="truncate">❤️ Heart</span>
-          </Button>
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <Button variant="ghost" size="sm" onClick={() => setComposerOpen(true)}>
-          Our deck
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => setFavoritesOpen(true)}>
-          Favourites ({favorites.length})
-        </Button>
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1.5 py-1">
+        <IntimacyCardFlip card={card} />
+        <p className="shrink-0 text-center text-sm font-semibold text-muted">{partnerLabel}'s turn</p>
       </div>
 
-      <Modal open={confirmSpicy !== null} onClose={() => setConfirmSpicy(null)} label="Confirm Spicy" className="max-w-sm text-center">
-        <h2 className="font-couples text-2xl">Ready for Spicy?</h2>
-        <p className="mt-2 text-muted">Both of you should agree before continuing.</p>
-        <div className="mt-6 grid grid-cols-2 gap-2">
-          <Button variant="secondary" onClick={() => setConfirmSpicy(null)}>
-            Not yet
+      <div className="shrink-0 pb-2">
+        {!card ? (
+          <Button size="lg" className="w-full" onClick={draw}>
+            Draw a card
           </Button>
-          <Button
-            onClick={() => {
-              const kind = confirmSpicy!;
-              setSpicyConfirmed(true);
-              setConfirmSpicy(null);
-              const result = drawTogetherCard(state, 'spicy', kind, onlyOurs);
-              if (!result) return;
-              persist(result.state);
-              setCard(result.card);
-            }}
-          >
-            We're ready
+        ) : (
+          <Button size="lg" className="w-full" onClick={done}>
+            Done
           </Button>
+        )}
+        <div className="mt-2 flex justify-center gap-4">
+          <button type="button" onClick={() => setCategoriesOpen(true)} className="text-sm font-semibold text-muted hover:text-ink">
+            Categories ({state.categories.length})
+          </button>
+          <button type="button" onClick={() => setDeckOpen(true)} className="text-sm font-semibold text-muted hover:text-ink">
+            Our deck
+          </button>
         </div>
-      </Modal>
+      </div>
 
-      <Sheet open={composerOpen} onClose={() => setComposerOpen(false)} label="Our deck">
-        <OurDeckPanel game="couples" level={level} slots={COUPLES_SLOTS} onlyOurs={onlyOurs} onToggleOnlyOurs={toggleOnlyOurs} />
+      <Sheet open={categoriesOpen} onClose={() => setCategoriesOpen(false)} label="Categories">
+        <CategoryPicker categories={state.categories} onChange={(categories) => persist({ ...state, categories })} />
       </Sheet>
 
-      <Sheet open={favoritesOpen} onClose={() => setFavoritesOpen(false)} label="Favourites">
-        <h2 className="mb-4 font-couples text-xl">Favourites</h2>
-        {favorites.length === 0 ? (
-          <p className="text-muted">Tap Heart on a card to save it here.</p>
-        ) : (
-          <ul className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
-            {favorites.map((f) => (
-              <li key={f.text} className="flex items-start justify-between gap-2 rounded-xl bg-veil/5 p-3">
-                <span className="text-sm text-ink">{f.text}</span>
-                <button
-                  type="button"
-                  className="shrink-0 text-muted hover:text-card-red"
-                  onClick={() => setFavorites(removeFavorite(f.text))}
-                  aria-label="Remove favourite"
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+      <Sheet open={deckOpen} onClose={() => setDeckOpen(false)} label="Our deck">
+        <OurDeckPanel game="intimacy" level={level} slots={INTIMACY_SLOTS} onlyOurs={onlyOurs} onToggleOnlyOurs={toggleOnlyOurs} />
       </Sheet>
     </div>
   );
 }
 
-export function CouplesPage() {
+export function IntimacyPage() {
+  const navigate = useNavigate();
   const [ageConfirmed, setAgeConfirmed] = useState(() => isAgeConfirmed());
   const [mode, setMode] = useState<'select' | 'together'>('select');
 
@@ -334,23 +264,30 @@ export function CouplesPage() {
     );
   }
 
+  if (mode === 'together') {
+    return <TogetherMode onLeave={() => setMode('select')} />;
+  }
+
   return (
     <main className="mx-auto flex min-h-full max-w-2xl flex-col px-4 pb-10 pt-2">
-      <PageHeader title="Couples Truth or Dare" />
-      {mode === 'select' ? (
-        <div className="mt-2 flex flex-col gap-4">
-          <Surface className="p-5">
-            <h2 className="font-couples text-xl">Together</h2>
-            <p className="mt-1 text-sm text-muted">One phone, passed back and forth. No server.</p>
-            <Button className="mt-4" onClick={() => setMode('together')}>
-              Play together
-            </Button>
-          </Surface>
-          <OnlineCouplesEntry />
-        </div>
-      ) : (
-        <TogetherMode />
-      )}
+      <PageHeader title="Intimacy Night" backTo="/" />
+      <div className="mt-2 flex flex-col gap-4">
+        <Surface className="p-5">
+          <h2 className="font-couples text-xl">Together</h2>
+          <p className="mt-1 text-sm text-muted">One phone, passed back and forth. No server.</p>
+          <Button className="mt-4" onClick={() => setMode('together')}>
+            Play together
+          </Button>
+        </Surface>
+        <OnlineIntimacyEntry />
+      </div>
+      <button
+        type="button"
+        onClick={() => navigate('/')}
+        className="mt-6 self-center text-sm font-semibold text-muted hover:text-ink"
+      >
+        Back to the start
+      </button>
     </main>
   );
 }

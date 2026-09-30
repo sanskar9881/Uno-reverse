@@ -1,23 +1,11 @@
 import type { CouplesKind, CouplesLevel } from '../../types';
+import { COMFORT_LEVEL_RANK, COMFORT_LEVELS, lowerLevel, timerSecondsFor } from '../common';
 
 export type { CouplesKind, CouplesLevel };
+export { lowerLevel, timerSecondsFor };
 
-export const COUPLES_LEVELS: readonly CouplesLevel[] = ['sweet', 'flirty', 'spicy'];
-export const COUPLES_LEVEL_RANK: Record<CouplesLevel, number> = { sweet: 0, flirty: 1, spicy: 2 };
-
-/** The lower of two chosen levels, so a session never plays above what either partner picked. */
-export function lowerLevel(a: CouplesLevel, b: CouplesLevel): CouplesLevel {
-  return COUPLES_LEVEL_RANK[a] <= COUPLES_LEVEL_RANK[b] ? a : b;
-}
-
-/** A dare phrased "...for N seconds/minutes" gets an on-screen countdown for that long. */
-export function timerSecondsFor(text: string): number | null {
-  const seconds = text.match(/for (\d+) seconds?/i);
-  if (seconds) return Number(seconds[1]);
-  const minutes = text.match(/for a?n? ?(\d+)[- ]minute/i);
-  if (minutes) return Number(minutes[1]) * 60;
-  return null;
-}
+export const COUPLES_LEVELS = COMFORT_LEVELS;
+export const COUPLES_LEVEL_RANK = COMFORT_LEVEL_RANK;
 
 const SWEET_TRUTHS = [
   "What's a small thing I do that makes your day better?",
@@ -285,20 +273,4 @@ export const COUPLES_DECKS: Record<CouplesLevel, Record<CouplesKind, string[]>> 
 
 export function couplesPool(level: CouplesLevel, kind: CouplesKind): readonly string[] {
   return COUPLES_DECKS[level][kind];
-}
-
-/** Draws one card from `pool`, never repeating until every card has been seen, then reshuffles. */
-export function drawFromPool(
-  pool: readonly string[],
-  used: readonly string[],
-  randomIndex: (n: number) => number,
-): { text: string; used: string[] } {
-  let remaining = pool.filter((p) => !used.includes(p));
-  let base = used;
-  if (remaining.length === 0) {
-    base = [];
-    remaining = [...pool];
-  }
-  const text = remaining[randomIndex(remaining.length)];
-  return { text, used: [...base, text] };
 }

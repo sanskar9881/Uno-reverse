@@ -2,7 +2,7 @@ import { APP_NAME, ROOM_CODE_LENGTH, ROOM_CODE_REGEX } from '@shared';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BottleIllustration, CouplesIllustration, UnoIllustration, WheelIllustration } from '../components/hub/illustrations';
+import { BottleIllustration, CouplesIllustration, IntimacyIllustration, UnoIllustration, WheelIllustration } from '../components/hub/illustrations';
 import { GameTile } from '../components/hub/GameTile';
 import { ProfileButton } from '../components/hub/ProfileButton';
 import { Button } from '../components/ui/Button';
@@ -40,6 +40,14 @@ const GAMES = [
     badge: '2 players, 18+',
     accent: 'var(--color-couples-rose)',
     illustration: <CouplesIllustration />,
+  },
+  {
+    to: '/intimacy',
+    title: 'Intimacy Night',
+    description: 'Draw a card together. Sensual, never explicit.',
+    badge: '2 players, 18+',
+    accent: 'var(--color-couples-candle)',
+    illustration: <IntimacyIllustration />,
   },
 ];
 

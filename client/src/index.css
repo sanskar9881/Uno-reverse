@@ -551,6 +551,31 @@
     border: 0.6cqw solid rgb(255 255 255 / 0.22);
     box-shadow: 0 0 0 3.5cqw rgb(255 255 255 / 0.05);
   }
+
+  /*
+   * Intimacy Night's card has no scroll to fall back on, so it must shrink to fit a very
+   * short landscape phone. Text scales with the card's own rendered width (cqw), never the
+   * fixed font sizes .uno-card's siblings use, so a narrow card still fits its own text.
+   */
+  .intimacy-card {
+    container-type: inline-size;
+  }
+
+  .intimacy-card__badge {
+    font-size: clamp(8px, 5cqw, 13px);
+  }
+
+  .intimacy-card__text {
+    font-size: clamp(10px, 6.4cqw, 20px);
+  }
+
+  .intimacy-card__timer {
+    font-size: clamp(11px, 7.5cqw, 22px);
+  }
+
+  .intimacy-card__emoji {
+    font-size: clamp(24px, 18cqw, 48px);
+  }
 }
 
 @layer utilities {
