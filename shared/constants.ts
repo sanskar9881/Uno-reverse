@@ -11,7 +11,9 @@ export const UNO_PENALTY_CARDS = 2;
 export const WILD4_CHALLENGE_MS = 10_000;
 export const CUSTOM_RULE_MAX_LENGTH = 120;
 
-export const GAME_TYPES = ['uno', 'bottle', 'couples', 'intimacy', 'group'] as const;
+export const GAME_TYPES = ['uno', 'spin', 'couples', 'intimacy', 'group'] as const;
+/** Accepted alongside GAME_TYPES when creating a room, for clients still sending the old name. */
+export const LEGACY_GAME_TYPES = ['bottle'] as const;
 
 export const BOTTLE_MIN_PLAYERS = 2;
 export const BOTTLE_MAX_PLAYERS = 12;
@@ -19,11 +21,14 @@ export const COUPLES_MAX_PLAYERS = 2;
 export const INTIMACY_MAX_PLAYERS = 2;
 export const GROUP_MIN_PLAYERS = 2;
 export const GROUP_MAX_PLAYERS = 12;
+/** Names in a Spin It list: the wheel takes up to 100, the bottle up to SPIN_BOTTLE_MAX_NAMES. */
+export const SPIN_WHEEL_MAX_NAMES = 100;
+export const SPIN_BOTTLE_MAX_NAMES = BOTTLE_MAX_PLAYERS;
 
 /** Max seats per room, by game. */
 export const MAX_PLAYERS_BY_GAME = {
   uno: MAX_PLAYERS,
-  bottle: BOTTLE_MAX_PLAYERS,
+  spin: BOTTLE_MAX_PLAYERS,
   couples: COUPLES_MAX_PLAYERS,
   intimacy: INTIMACY_MAX_PLAYERS,
   group: GROUP_MAX_PLAYERS,

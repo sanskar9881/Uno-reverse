@@ -4,6 +4,7 @@ import {
   CARD_COLORS,
   CUSTOM_RULE_MAX_LENGTH,
   GAME_TYPES,
+  LEGACY_GAME_TYPES,
   NICKNAME_MAX_LENGTH,
   NICKNAME_MIN_LENGTH,
   NICKNAME_PATTERN,
@@ -55,7 +56,14 @@ const profileSchema = z.object({
 });
 
 export const schemas = {
-  create: profileSchema.extend({ gameType: z.enum(GAME_TYPES).optional() }),
+  create: profileSchema.extend({
+    // Older clients still send 'bottle'; normalize it to 'spin' (bottle mode) right here so
+    // nothing downstream ever needs to know the old name existed.
+    gameType: z
+      .union([z.enum(GAME_TYPES), z.enum(LEGACY_GAME_TYPES)])
+      .transform((v) => (v === 'bottle' ? 'spin' : v))
+      .optional(),
+  }),
   join: profileSchema.extend({ roomCode: roomCodeSchema }),
   rejoin: z.object({ roomCode: roomCodeSchema, token: z.string().regex(/^[a-f0-9]{48}$/) }),
   empty: z.object({}),
@@ -94,11 +102,14 @@ export const schemas = {
   jumpIn: z.object({ cardId: idSchema, chosenColor: z.enum(CARD_COLORS).optional(), targetPlayerId: idSchema.optional() }),
   bottleSettings: z
     .object({
+      mode: z.enum(['wheel', 'bottle']).optional(),
       pack: z.enum(['off', 'party', 'flirty']).optional(),
       canLandOnSelf: z.boolean().optional(),
       clockwiseTurns: z.boolean().optional(),
     })
-    .refine((s) => s.pack !== undefined || s.canLandOnSelf !== undefined || s.clockwiseTurns !== undefined),
+    .refine(
+      (s) => s.mode !== undefined || s.pack !== undefined || s.canLandOnSelf !== undefined || s.clockwiseTurns !== undefined,
+    ),
   couplesChoose: z.object({ kind: z.enum(['truth', 'dare']), turnId: turnIdSchema }),
   couplesLevel: z.object({ level: levelSchema }),
   couplesCard: z.object({

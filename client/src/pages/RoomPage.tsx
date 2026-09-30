@@ -1,7 +1,7 @@
 import { ROOM_CODE_REGEX, nicknameProblem } from '@shared';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { OnlineBottleBoard } from '../components/bottle/OnlineBottleBoard';
+import { OnlineSpinBoard } from '../components/spin/OnlineSpinBoard';
 import { OnlineCouplesBoard } from '../components/couples/OnlineCouplesBoard';
 import { GameBoard } from '../components/game/GameBoard';
 import { OnlineGroupBoard } from '../components/group/OnlineGroupBoard';
@@ -178,8 +178,8 @@ export function RoomPage() {
       <>
         {state.room.status === 'lobby' ? (
           <Lobby state={state} onLeave={onLeave} />
-        ) : state.room.gameType === 'bottle' ? (
-          <OnlineBottleBoard state={state} onLeave={onLeave} />
+        ) : state.room.gameType === 'spin' ? (
+          <OnlineSpinBoard state={state} onLeave={onLeave} />
         ) : state.room.gameType === 'couples' ? (
           <OnlineCouplesBoard state={state} onLeave={onLeave} />
         ) : state.room.gameType === 'intimacy' ? (

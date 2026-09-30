@@ -46,7 +46,7 @@ describe('targetRotation / landingIndex', () => {
 
 describe('wheel share links', () => {
   it('round-trips a wheel through the URL hash encoding', () => {
-    const wheel = { title: "Riya's party", names: ['Sanskar', 'Riya', 'Amit', 'Zoya'] };
+    const wheel = { title: "Harsh's party", names: ['Sanskar', 'Harsh', 'Amit', 'Zoya'] };
     const encoded = encodeWheelShare(wheel);
     expect(encoded).not.toBeNull();
     expect(decodeWheelShare(encoded!)).toEqual(wheel);

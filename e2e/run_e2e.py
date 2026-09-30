@@ -32,7 +32,7 @@ SHOTS.mkdir(exist_ok=True)
 DESKTOP = {"width": 1280, "height": 800}
 MOBILE = {"width": 390, "height": 844}
 WINNING_HAND = "rS rS gS gS bS b1 b2"  # five skips keep the turn in a 2-player game
-AVATARS = {"Sanskar": 1, "Riya": 2, "Amit": 3, "Zoya": 5, "Neel": 4, "Tab Two": 6, "Host": 10}
+AVATARS = {"Sanskar": 1, "Harsh": 2, "Amit": 3, "Zoya": 5, "Neel": 4, "Tab Two": 6, "Host": 10}
 
 page_errors: list[str] = []
 results: list[tuple[str, bool, str, float]] = []
@@ -146,30 +146,30 @@ async def four_player_game(browser: Browser):
     await host.shot("01-landing-desktop", settle=900)
     code = await host.create()
 
-    riya = await Player.open(browser, "Riya", path=f"/room/{code}")
-    await riya.shot("04-invite-link-join", settle=300)
-    await riya.join_from_link(code)
+    harsh = await Player.open(browser, "Harsh", path=f"/room/{code}")
+    await harsh.shot("04-invite-link-join", settle=300)
+    await harsh.join_from_link(code)
     amit = await Player.open(browser, "Amit")
     await amit.join_from_landing(code)
     zoya = await Player.open(browser, "Zoya", viewport=MOBILE, mobile=True)
     await zoya.shot("02-landing-mobile", settle=900)
     await zoya.join_from_landing(code)
-    for p in (host, riya, amit, zoya):
+    for p in (host, harsh, amit, zoya):
         await p.wait("s.room.players.length === 4")
     await expect(host.page.get_by_text("Zoya joined")).to_be_visible()
 
     # Host changes a setting; everyone sees it. Guests can't start.
     await host.page.get_by_role("radio", name="45s").click()
     await zoya.wait("s.room.settings.turnSeconds === 45")
-    assert await riya.page.get_by_role("button", name="Start Game").count() == 0
-    await expect(riya.page.get_by_text("Waiting for Sanskar to start the game")).to_be_visible()
+    assert await harsh.page.get_by_role("button", name="Start Game").count() == 0
+    await expect(harsh.page.get_by_text("Waiting for Sanskar to start the game")).to_be_visible()
     await host.shot("03-lobby-host", settle=400)
     await zoya.shot("03b-lobby-mobile", settle=200)
 
-    # Seats: Sanskar, Riya, Amit, Zoya (clockwise). Sanskar starts on a red 5.
+    # Seats: Sanskar, Harsh, Amit, Zoya (clockwise). Sanskar starts on a red 5.
     rig(["rS b2 b3 b4 b6 b7 b8", "rD y1 y2 y3 y4 y6 y7", "rR W4 y8 y9 r3 r4 r6", "W g1 g2 y5 r7 r8 r9"])
     await host.page.get_by_role("button", name="Start Game").click()
-    for p in (host, riya, amit, zoya):
+    for p in (host, harsh, amit, zoya):
         await p.wait('s.room.status === "playing" && s.hand.length === 7')
     await host.shot("05-board-desktop-4p", settle=1200)
     await zoya.shot("07-board-mobile", settle=300)
@@ -177,7 +177,7 @@ async def four_player_game(browser: Browser):
 
     # Hidden information: nobody's snapshot contains another player's cards.
     host_json = json.dumps(await host.state())
-    for other in (riya, amit, zoya):
+    for other in (harsh, amit, zoya):
         for c in (await other.state())["hand"]:
             assert c["id"] not in host_json, "another player's card leaked"
 
@@ -189,19 +189,19 @@ async def four_player_game(browser: Browser):
         "game:play", "{ turnId: s.game.turnId, cardId: s.hand.find(c => c.color === 'blue' && c.value === '3').id }"
     )
     assert res["ok"] is False and res["error"]["code"] == "INVALID_PLAY", res
-    res = await riya.forged("game:play", "{ turnId: s.game.turnId, cardId: s.hand[0].id }")
+    res = await harsh.forged("game:play", "{ turnId: s.game.turnId, cardId: s.hand[0].id }")
     assert res["error"]["code"] == "NOT_YOUR_TURN", res
-    res = await riya.forged("room:settings", "{ turnSeconds: 15 }")
+    res = await harsh.forged("room:settings", "{ turnSeconds: 15 }")
     assert res["error"]["code"] == "NOT_HOST", res
 
-    # Skip: Riya is skipped, Amit plays.
+    # Skip: Harsh is skipped, Amit plays.
     await host.play("Red Skip")
     await amit.wait("s.game.currentPlayerId === s.selfId")
-    # Reverse: play goes back to Riya.
+    # Reverse: play goes back to Harsh.
     await amit.play("Red Reverse")
-    await riya.wait("s.game.direction === -1 && s.game.currentPlayerId === s.selfId")
+    await harsh.wait("s.game.direction === -1 && s.game.currentPlayerId === s.selfId")
     # Draw two: Sanskar draws 2 and is skipped, Zoya is next.
-    await riya.play(r"Red \+2")
+    await harsh.play(r"Red \+2")
     await zoya.wait("s.game.currentPlayerId === s.selfId")
     await host.wait("s.hand.length === 8")
     # Wild (on the phone): color picker, green.
@@ -211,14 +211,14 @@ async def four_player_game(browser: Browser):
     await zoya.shot("06-color-picker-mobile", settle=400)
     await zoya.page.get_by_role("dialog", name="Choose a color").get_by_role("button", name=re.compile("^green")).click()
     await amit.wait('s.game.currentColor === "green" && s.game.currentPlayerId === s.selfId')
-    # Wild +4 (Amit has no green): Amit plays it, then Riya accepts (the next player always
+    # Wild +4 (Amit has no green): Amit plays it, then Harsh accepts (the next player always
     # gets to accept or challenge, per the official rules).
     await amit.play(r"Wild \+4", color="blue")
-    await riya.wait('s.game.pendingDraw !== null && s.game.currentColor === "blue"')
-    await expect(riya.page.get_by_role("button", name=re.compile("^Accept"))).to_be_visible()
-    await riya.page.get_by_role("button", name=re.compile("^Accept")).click()
+    await harsh.wait('s.game.pendingDraw !== null && s.game.currentColor === "blue"')
+    await expect(harsh.page.get_by_role("button", name=re.compile("^Accept"))).to_be_visible()
+    await harsh.page.get_by_role("button", name=re.compile("^Accept")).click()
     await host.wait('s.game.currentPlayerId === s.selfId && s.game.currentColor === "blue"')
-    await riya.wait("s.hand.length === 10")
+    await harsh.wait("s.hand.length === 10")
     await host.play("Blue 2")
     # Draw: Zoya draws a dead card and the turn passes automatically.
     await zoya.wait("s.game.currentPlayerId === s.selfId")
@@ -227,23 +227,23 @@ async def four_player_game(browser: Browser):
     await zoya.wait("s.hand.length === 7")
     await host.shot("08-board-midgame", settle=600)
 
-    # Reconnect: Riya refreshes and gets the same seat and cards back.
-    before = sorted(c["id"] for c in (await riya.state())["hand"])
-    await riya.page.reload()
-    await riya.wait(f"s.hand.length === {len(before)}")
-    after = sorted(c["id"] for c in (await riya.state())["hand"])
+    # Reconnect: Harsh refreshes and gets the same seat and cards back.
+    before = sorted(c["id"] for c in (await harsh.state())["hand"])
+    await harsh.page.reload()
+    await harsh.wait(f"s.hand.length === {len(before)}")
+    after = sorted(c["id"] for c in (await harsh.state())["hand"])
     assert before == after, "hand changed after reconnect"
-    await expect(host.page.get_by_text("Riya is back")).to_be_visible()
+    await expect(host.page.get_by_text("Harsh is back")).to_be_visible()
 
     # Disconnect: Amit closes his browser on his turn. The seat is held, the turn auto-passes,
     # then after the grace period he's removed and the game carries on with three.
     await amit.ctx.close()
     await host.wait('s.room.players.some(p => p.nickname === "Amit" && !p.connected)')
     await host.shot("09-player-offline", settle=300)
-    await riya.wait("s.game.currentPlayerId === s.selfId", timeout=8000)  # Amit's turn timed out
+    await harsh.wait("s.game.currentPlayerId === s.selfId", timeout=8000)  # Amit's turn timed out
     await host.wait('!s.room.players.some(p => p.nickname === "Amit")', timeout=15000)
     await host.wait("s.game.turnOrder.length === 3")
-    for p in (host, riya, zoya):
+    for p in (host, harsh, zoya):
         await p.ctx.close()
 
 
@@ -251,9 +251,9 @@ async def two_player_rounds(browser: Browser):
     """UNO call, missed-UNO catch, winning, scoring, next round, leaving mid-round (forfeit), stats."""
     host = await Player.open(browser, "Sanskar")
     code = await host.create()
-    riya = await Player.open(browser, "Riya")
-    await riya.join_from_landing(code)
-    host_id, riya_id = await host.self_id(), await riya.self_id()
+    harsh = await Player.open(browser, "Harsh")
+    await harsh.join_from_landing(code)
+    host_id, harsh_id = await host.self_id(), await harsh.self_id()
 
     rig([WINNING_HAND, "y1 y2 y3 y4 y6 y7 W"])
     await host.page.get_by_role("button", name="Start Game").click()
@@ -264,41 +264,41 @@ async def two_player_rounds(browser: Browser):
     uno = host.page.get_by_role("button", name="Call UNO")
     await expect(uno).to_be_enabled()
     await uno.click(force=True)  # it pulses for attention, so it's never 'stable'
-    await riya.wait(f's.game.unoDeclared.includes("{host_id}")')
-    await expect(riya.page.get_by_text("Sanskar called UNO!")).to_be_visible()
+    await harsh.wait(f's.game.unoDeclared.includes("{host_id}")')
+    await expect(harsh.page.get_by_text("Sanskar called UNO!")).to_be_visible()
     await host.shot("10-uno-called", settle=300)
     await host.play("Blue 1")
-    await riya.wait("s.game.currentPlayerId === s.selfId")
-    await riya.page.get_by_role("button", name="Draw card").click()
+    await harsh.wait("s.game.currentPlayerId === s.selfId")
+    await harsh.page.get_by_role("button", name="Draw card").click()
     await host.wait("s.game.currentPlayerId === s.selfId")
     await host.play("Blue 2")
 
     await host.wait('s.room.status === "roundOver"')
-    await riya.wait('s.room.status === "roundOver"')
+    await harsh.wait('s.room.status === "roundOver"')
     await expect(host.page.get_by_role("heading", name="You win round 1!")).to_be_visible()
-    await expect(riya.page.get_by_text("Waiting for Sanskar to start the next round")).to_be_visible()
+    await expect(harsh.page.get_by_text("Waiting for Sanskar to start the next round")).to_be_visible()
     state = await host.state()
     assert state["room"]["lastRound"]["points"] == 1 + 2 + 3 + 4 + 6 + 7 + 50 + 9, state["room"]["lastRound"]
     await host.shot("11-round-over-winner", settle=700)
-    await riya.shot("11b-round-over-other", settle=200)
+    await harsh.shot("11b-round-over-other", settle=200)
 
-    # Next round: Riya starts (the first seat rotates) and forgets to call UNO.
+    # Next round: Harsh starts (the first seat rotates) and forgets to call UNO.
     rig(["y1 y2 y3 y4 y6 y7 y8", WINNING_HAND])
     await host.page.get_by_role("button", name="Next Round").click()
-    await riya.wait("s.room.roundNumber === 2 && s.game.currentPlayerId === s.selfId")
+    await harsh.wait("s.room.roundNumber === 2 && s.game.currentPlayerId === s.selfId")
     for label in ("Red Skip", "Red Skip", "Green Skip", "Green Skip", "Blue Skip", "Blue 1"):
-        await riya.play(label)
-    await host.wait(f's.game.unoVulnerableId === "{riya_id}"')
+        await harsh.play(label)
+    await host.wait(f's.game.unoVulnerableId === "{harsh_id}"')
     await expect(host.page.get_by_role("button", name=re.compile("Catch")).first).to_be_visible()
     await host.shot("12-catch-button", settle=300)
     await host.page.get_by_role("button", name=re.compile("Catch")).first.click(force=True)  # it wiggles
-    await riya.wait("s.hand.length === 3")
-    await expect(riya.page.get_by_text("Sanskar caught you without UNO. Draw 2.")).to_be_visible()
+    await harsh.wait("s.hand.length === 3")
+    await expect(harsh.page.get_by_text("Sanskar caught you without UNO. Draw 2.")).to_be_visible()
 
-    # Riya leaves mid-round: Sanskar wins by default.
-    await riya.page.get_by_role("button", name="Leave", exact=True).click()
-    await riya.page.get_by_role("button", name="Leave game").click()
-    await riya.page.wait_for_url(BASE + "/uno")
+    # Harsh leaves mid-round: Sanskar wins by default.
+    await harsh.page.get_by_role("button", name="Leave", exact=True).click()
+    await harsh.page.get_by_role("button", name="Leave game").click()
+    await harsh.page.wait_for_url(BASE + "/uno")
     await host.wait('s.room.status === "roundOver" && s.room.lastRound.reason === "forfeit"')
     await expect(host.page.get_by_role("heading", name="You win by default")).to_be_visible()
     await host.shot("13-forfeit", settle=500)
@@ -311,7 +311,7 @@ async def two_player_rounds(browser: Browser):
     await expect(host.page.get_by_role("heading", name="Most wins")).to_be_visible()
     await host.shot("14-landing-with-stats", settle=900)
     await host.ctx.close()
-    await riya.ctx.close()
+    await harsh.ctx.close()
 
 
 async def lobby_and_tabs(browser: Browser):
@@ -356,7 +356,7 @@ async def lobby_and_tabs(browser: Browser):
 async def name_wheel_spin(browser: Browser):
     """Name Wheel: add names, spin, and see a winner."""
     p = await Player.open(browser, "Wheeler", path="/wheel")
-    await p.page.fill("#wheel-names", "Riya\nSanskar\nAmit\nZoya")
+    await p.page.fill("#wheel-names", "Harsh\nSanskar\nAmit\nZoya")
     await p.page.wait_for_timeout(200)
     await p.page.get_by_role("button", name="Spin", exact=True).click()
     await p.page.wait_for_selector("text=The wheel says", timeout=15000)
@@ -373,11 +373,11 @@ async def bottle_online_three_players(browser: Browser):
     await host.page.wait_for_url(re.compile(r"/room/[A-Z0-9]{6}$"))
     code = host.page.url.rsplit("/", 1)[1]
 
-    riya = await Player.open(browser, "Riya", path=f"/room/{code}")
-    await riya.join_from_link(code)
+    harsh = await Player.open(browser, "Harsh", path=f"/room/{code}")
+    await harsh.join_from_link(code)
     amit = await Player.open(browser, "Amit", path=f"/room/{code}")
     await amit.join_from_link(code)
-    players = (host, riya, amit)
+    players = (host, harsh, amit)
     for p in players:
         await p.wait("s.room.players.length === 3")
 

@@ -15,9 +15,11 @@ interface ResultSheetProps {
   onRemoveAndSpinAgain: () => void;
   onClose: () => void;
   canRemove: boolean;
+  /** A prompt drawn from the pack (Party/Flirty), when one is on. */
+  prompt?: string | null;
 }
 
-export function ResultSheet({ open, winner, history, onSpinAgain, onRemoveAndSpinAgain, onClose, canRemove }: ResultSheetProps) {
+export function ResultSheet({ open, winner, history, onSpinAgain, onRemoveAndSpinAgain, onClose, canRemove, prompt }: ResultSheetProps) {
   useEffect(() => {
     if (!open || !winner || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     confetti({ particleCount: 140, spread: 90, origin: { y: 0.4 }, colors: CONFETTI_COLORS, zIndex: 60 });
@@ -34,6 +36,8 @@ export function ResultSheet({ open, winner, history, onSpinAgain, onRemoveAndSpi
         <span className="text-sm font-semibold text-muted">The wheel says</span>
         <h2 className="font-display text-3xl">{winner}</h2>
       </div>
+
+      {prompt && <p className="mt-4 text-center font-semibold text-ink">{prompt}</p>}
 
       <div className="mt-5 grid grid-cols-2 gap-2">
         <Button onClick={onSpinAgain}>Spin again</Button>

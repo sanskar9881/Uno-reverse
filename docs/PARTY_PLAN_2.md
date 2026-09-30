@@ -127,7 +127,7 @@ Add `e2e/layout_audit.py` (Playwright), runnable with `npm run audit:layout`.
 
 **Unique names in every group.** Compare names after trimming, normalizing and ignoring case. This is the same `normalizeNickname` rule the server already uses for UNO.
 
-- **Online rooms (every game):** the server rejects a name that's taken and returns a free suggestion, such as "Riya 2". The join screen shows the error inline with a one-tap "Use Riya 2" button.
+- **Online rooms (every game):** the server rejects a name that's taken and returns a free suggestion, such as "Harsh 2". The join screen shows the error inline with a one-tap "Use Harsh 2" button.
 - **One-phone groups:** this covers Spin the Bottle players and Couples partner names. A name that's already in the group shows an inline message and isn't added.
 - **Name Wheel:** entries may repeat, because people use repeats as extra chances. Show a small note when there are duplicates.
 

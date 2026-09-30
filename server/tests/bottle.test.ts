@@ -48,9 +48,26 @@ const bottleParty = (s: ClientState) => s.party as BottleView | null;
 const current = (s: ClientState) => bottleParty(s)?.spinnerId;
 
 describe('spin the bottle online', () => {
-  it('creates a bottle room with the right game type and player cap', async () => {
+  it('creates a room with gameType "spin" from a "bottle" request (older clients)', async () => {
     const table = await bottleLobby(2);
-    expect(table.players[0].state.room.gameType).toBe('bottle');
+    expect(table.players[0].state.room.gameType).toBe('spin');
+  });
+
+  it('also accepts gameType "spin" directly, defaulting to bottle mode', async () => {
+    ts = await startTestServer(FAST);
+    const host = await ts.client();
+    const created = await host.ok<JoinResult>('room:create', { ...profile('Host'), gameType: 'spin' });
+    expect(created.roomCode).toMatch(/^[A-Z0-9]{6}$/);
+    await host.waitFor((s) => s.room.gameType === 'spin');
+    expect(host.state.room.partySettings).toMatchObject({ mode: 'bottle' });
+  });
+
+  it('switches to wheel mode and back without losing the room', async () => {
+    const table = await bottleLobby(2);
+    await table.players[0].ok('bottle:settings', { mode: 'wheel' });
+    await Promise.all(table.players.map((p) => p.waitFor((s) => s.room.partySettings.mode === 'wheel')));
+    await table.players[0].ok('bottle:settings', { mode: 'bottle' });
+    await Promise.all(table.players.map((p) => p.waitFor((s) => (s.room.partySettings as { mode: string }).mode === 'bottle')));
   });
 
   it('only the current spinner can spin', async () => {

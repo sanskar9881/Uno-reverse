@@ -76,7 +76,7 @@ import { InMemoryRoomStore, type RoomStore } from './RoomStore';
 import { uniqueRoomCode } from './roomCode';
 import type { PlayerRecord, Room } from './types';
 
-const DEFAULT_PARTY_SETTINGS: BottlePartySettings = { pack: 'party', canLandOnSelf: false, clockwiseTurns: false };
+const DEFAULT_PARTY_SETTINGS: BottlePartySettings = { mode: 'bottle', pack: 'party', canLandOnSelf: false, clockwiseTurns: false };
 /** How long a Wild +4 challenge reveal stays visible to the challenger. */
 const WILD4_REVEAL_MS = 5000;
 
@@ -353,7 +353,7 @@ export class RoomManager {
     if (room.status !== 'lobby') throw new GameError('INVALID_STATE', 'The game has already started.');
     this.assertCanStart(room);
     if (room.gameType === 'uno') this.beginRound(room);
-    else if (room.gameType === 'bottle') this.beginBottle(room);
+    else if (room.gameType === 'spin') this.beginBottle(room);
     else if (room.gameType === 'couples') this.beginCouples(room);
     else if (room.gameType === 'intimacy') this.beginIntimacy(room);
     else this.beginGroup(room);

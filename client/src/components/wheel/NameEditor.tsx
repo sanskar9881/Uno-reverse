@@ -85,7 +85,7 @@ export function NameEditor({ names, onChange, title, onTitleChange }: NameEditor
           value={text}
           onChange={(e) => sync(e.target.value)}
           rows={8}
-          placeholder={'Sanskar\nRiya\nAmit\nZoya'}
+          placeholder={'Sanskar\nHarsh\nAmit\nZoya'}
           className="w-full resize-y rounded-2xl bg-night p-4 font-semibold text-ink ring-1 ring-line placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-wheel-gold"
         />
       </div>

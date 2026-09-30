@@ -239,7 +239,7 @@ Pile card width is `clamp(78, viewportHeight × 0.13, 118)` on desktop and `clam
 ### Truth and Dare Group `/group`
 
 - Use the same one-screen layout as Couples, without the candlelit theme.
-- The card is `<PnDareCard type="normal|spicy|revealing" kind="Truth|Dare" text=... foot="Riya's turn" />`.
+- The card is `<PnDareCard type="normal|spicy|revealing" kind="Truth|Dare" text=... foot="Harsh's turn" />`.
 - The type toggles are `.pn-switch` rows, and the options (No-touch, Drinks) are `.pn-switch` too.
 
 ### Profile sheet

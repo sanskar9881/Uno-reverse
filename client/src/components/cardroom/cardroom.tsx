@@ -391,7 +391,7 @@ export function PnGameArt({ game }: { game: 'uno' | 'spin' | 'couples' | 'group'
     <div className="pn-art pn-art--group" aria-hidden>
       <div style={{ display: 'grid', justifyItems: 'center', gap: 10 }}>
         <div style={{ display: 'flex', gap: 6 }}>
-          {['Riya', 'Amit', 'Zoya', 'Kabir'].map((n, i) => (
+          {['harsh', 'Amit', 'Zoya', 'Kabir'].map((n, i) => (
             <PnAvatar key={n} name={n} tone={i * 2} size={30} />
           ))}
         </div>

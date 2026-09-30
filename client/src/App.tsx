@@ -4,10 +4,10 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { FlyingCards } from './components/game/FlyingCards';
 import { Toaster } from './components/ui/Toaster';
 import { HubPage } from './pages/HubPage';
+import { LegacyRedirect } from './pages/LegacyRedirect';
 
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
-const WheelPage = lazy(() => import('./pages/WheelPage').then((m) => ({ default: m.WheelPage })));
-const BottlePage = lazy(() => import('./pages/BottlePage').then((m) => ({ default: m.BottlePage })));
+const SpinPage = lazy(() => import('./pages/SpinPage').then((m) => ({ default: m.SpinPage })));
 const CouplesPage = lazy(() => import('./pages/CouplesPage').then((m) => ({ default: m.CouplesPage })));
 const IntimacyPage = lazy(() => import('./pages/IntimacyPage').then((m) => ({ default: m.IntimacyPage })));
 const GroupPage = lazy(() => import('./pages/GroupPage').then((m) => ({ default: m.GroupPage })));
@@ -22,8 +22,9 @@ export function App() {
           <Routes>
             <Route path="/" element={<HubPage />} />
             <Route path="/uno" element={<LandingPage />} />
-            <Route path="/wheel" element={<WheelPage />} />
-            <Route path="/bottle" element={<BottlePage />} />
+            <Route path="/spin" element={<SpinPage />} />
+            <Route path="/wheel" element={<LegacyRedirect mode="wheel" />} />
+            <Route path="/bottle" element={<LegacyRedirect mode="bottle" />} />
             <Route path="/couples" element={<CouplesPage />} />
             <Route path="/intimacy" element={<IntimacyPage />} />
             <Route path="/group" element={<GroupPage />} />

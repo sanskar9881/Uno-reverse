@@ -288,10 +288,10 @@ async def audit_uno(browser: Browser):
     ctx2, page2 = await new_page(browser)
     code = page.url.rsplit("/", 1)[1]
     await page2.goto(f"{BASE}/room/{code}")
-    await set_nickname(page2, "Riya")
+    await set_nickname(page2, "Harsh")
     await page2.get_by_role("button", name="Join Game").click()
     await page.wait_for_function("() => window.__unoParty.store.getState().state?.room.players.length === 2")
-    await page.wait_for_timeout(3200)  # let the "Riya joined" toast auto-dismiss before auditing steady-state UI
+    await page.wait_for_timeout(3200)  # let the "Harsh joined" toast auto-dismiss before auditing steady-state UI
     await audit_state(page, "uno-lobby")
 
     # A Wild is always playable regardless of the top card, so dealing one straight into the
@@ -324,7 +324,7 @@ async def audit_uno(browser: Browser):
 
     ctx2, page2 = await new_page(browser)
     await page2.goto(f"{BASE}/room/{code}")
-    await set_nickname(page2, "Riya")
+    await set_nickname(page2, "Harsh")
     await page2.get_by_role("button", name="Join Game").click()
     await page.wait_for_function("() => window.__unoParty.store.getState().state?.room.players.length === 2")
 
@@ -344,7 +344,7 @@ async def audit_uno(browser: Browser):
     await page.wait_for_timeout(200)
     await play("Blue 1")
     await page.wait_for_timeout(300)
-    # Riya can't play blue 2, so she draws a dead card; then the host's last card wins the round.
+    # Harsh can't play blue 2, so she draws a dead card; then the host's last card wins the round.
     await page2.get_by_role("button", name="Draw card").click()
     await page.wait_for_timeout(300)
     await play("Blue 2")
@@ -360,7 +360,7 @@ async def audit_wheel(browser: Browser):
     ctx, page = await new_page(browser)
     await page.goto(f"{BASE}/wheel")
     await page.wait_for_timeout(200)
-    await page.fill("#wheel-names", "Riya\nSanskar")
+    await page.fill("#wheel-names", "Harsh\nSanskar")
     await page.wait_for_timeout(150)
     await audit_state(page, "wheel-2-names")
 
@@ -369,7 +369,7 @@ async def audit_wheel(browser: Browser):
     await page.wait_for_timeout(150)
     await audit_state(page, "wheel-100-names")
 
-    await page.fill("#wheel-names", "Riya\nSanskar\nAmit")
+    await page.fill("#wheel-names", "Harsh\nSanskar\nAmit")
     await page.wait_for_timeout(150)
     await page.get_by_role("button", name="Spin", exact=True).click()
     await page.wait_for_selector("text=The wheel says", timeout=15000)
@@ -389,7 +389,7 @@ async def audit_bottle(browser: Browser):
     await page.wait_for_timeout(150)
     await audit_state(page, "bottle-setup")
 
-    for n in ("Riya", "Sanskar"):
+    for n in ("Harsh", "Sanskar"):
         await page.fill('input[placeholder="Player name"]', n)
         await page.get_by_role("button", name="Add").click()
     await page.get_by_role("button", name="Start").click()
@@ -408,10 +408,10 @@ async def audit_bottle(browser: Browser):
 
     ctx2, page2 = await new_page(browser)
     await page2.goto(f"{BASE}/room/{code}")
-    await set_nickname(page2, "Riya")
+    await set_nickname(page2, "Harsh")
     await page2.get_by_role("button", name="Join Game").click()
     await page1.wait_for_function("() => window.__unoParty.store.getState().state?.room.players.length === 2")
-    await page1.wait_for_timeout(3200)  # let the "Riya joined" toast auto-dismiss before auditing steady-state UI
+    await page1.wait_for_timeout(3200)  # let the "Harsh joined" toast auto-dismiss before auditing steady-state UI
     await audit_state(page1, "bottle-online-lobby")
 
     await page1.get_by_role("button", name="Start Game").click()

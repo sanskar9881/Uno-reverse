@@ -234,8 +234,16 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
             <HouseRuleChips houseRules={room.settings.houseRules} className="mt-3" />
           </div>
         </section>
-      ) : room.gameType === 'bottle' ? (
+      ) : room.gameType === 'spin' ? (
         <section className="mt-6 flex flex-col gap-4 rounded-3xl bg-night-2/70 p-5 ring-1 ring-line">
+          <SegmentedControl
+            label="Wheel or bottle"
+            options={['wheel', 'bottle'] as const}
+            value={room.partySettings.mode}
+            onChange={(mode) => setBottleSetting({ mode })}
+            format={(v) => (v === 'wheel' ? 'Wheel' : 'Bottle')}
+            disabled={!isHost || busy}
+          />
           <SegmentedControl
             label="Prompt pack"
             options={['off', 'party', 'flirty'] as const satisfies readonly BottlePromptPack[]}
@@ -245,7 +253,7 @@ export function Lobby({ state, onLeave }: { state: ClientState; onLeave: () => v
             disabled={!isHost || busy}
           />
           <label className="flex items-center justify-between gap-3">
-            <span className="text-sm font-semibold text-muted">Who spins next: whoever the bottle points to</span>
+            <span className="text-sm font-semibold text-muted">Who goes next: whoever it points to</span>
             <input
               type="checkbox"
               checked={!room.partySettings.clockwiseTurns}

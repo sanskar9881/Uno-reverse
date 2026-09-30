@@ -15,7 +15,7 @@ export interface Card {
 
 export type RoomStatus = 'lobby' | 'playing' | 'roundOver';
 
-export type GameType = 'uno' | 'bottle' | 'couples' | 'intimacy' | 'group';
+export type GameType = 'uno' | 'spin' | 'couples' | 'intimacy' | 'group';
 
 /** Off by default. The host toggles these in the lobby, before a round starts. */
 export interface HouseRules {
@@ -43,7 +43,11 @@ export interface RoomSettings {
 
 export type BottlePromptPack = 'off' | 'party' | 'flirty';
 
+/** "Spin It": Wheel or Bottle, switchable at any time without losing the shared name list. */
+export type SpinMode = 'wheel' | 'bottle';
+
 export interface BottlePartySettings {
+  mode: SpinMode;
   pack: BottlePromptPack;
   canLandOnSelf: boolean;
   clockwiseTurns: boolean;

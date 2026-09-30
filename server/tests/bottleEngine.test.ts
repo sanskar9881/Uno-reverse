@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { secureRng } from '../src/game/deck';
 import { createBottleState, startSpin } from '../src/games/bottle/engine';
 
-const SETTINGS = { pack: 'off' as const, canLandOnSelf: false, clockwiseTurns: false };
+const SETTINGS = { mode: 'bottle' as const, pack: 'off' as const, canLandOnSelf: false, clockwiseTurns: false };
 
 describe('bottle engine: startSpin targeting', () => {
   it('never targets the spinner unless canLandOnSelf is set', () => {

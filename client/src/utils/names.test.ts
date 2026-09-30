@@ -3,27 +3,27 @@ import { isDuplicateName } from './names';
 
 describe('isDuplicateName', () => {
   it('is false against an empty or unrelated group', () => {
-    expect(isDuplicateName([], 'Riya')).toBe(false);
-    expect(isDuplicateName(['Amit', 'Zoya'], 'Riya')).toBe(false);
+    expect(isDuplicateName([], 'Harsh')).toBe(false);
+    expect(isDuplicateName(['Amit', 'Zoya'], 'Harsh')).toBe(false);
   });
 
   it('catches an exact match', () => {
-    expect(isDuplicateName(['Riya'], 'Riya')).toBe(true);
+    expect(isDuplicateName(['Harsh'], 'Harsh')).toBe(true);
   });
 
   it('ignores case and surrounding whitespace', () => {
-    expect(isDuplicateName(['Riya'], 'riya')).toBe(true);
-    expect(isDuplicateName(['Riya'], 'RIYA')).toBe(true);
-    expect(isDuplicateName(['Riya'], '  Riya  ')).toBe(true);
-    expect(isDuplicateName(['  Riya  '], 'riya')).toBe(true);
+    expect(isDuplicateName(['Harsh'], 'harsh')).toBe(true);
+    expect(isDuplicateName(['Harsh'], 'HARSH')).toBe(true);
+    expect(isDuplicateName(['Harsh'], '  Harsh  ')).toBe(true);
+    expect(isDuplicateName(['  Harsh  '], 'harsh')).toBe(true);
   });
 
   it('collapses internal whitespace like normalizeNickname does', () => {
-    expect(isDuplicateName(['Riya   Sharma'], 'riya sharma')).toBe(true);
+    expect(isDuplicateName(['Harsh   Sharma'], 'harsh sharma')).toBe(true);
   });
 
   it('does not flag names that only look similar', () => {
-    expect(isDuplicateName(['Riya'], 'Riyaa')).toBe(false);
-    expect(isDuplicateName(['Riya'], 'Riy')).toBe(false);
+    expect(isDuplicateName(['Harsh'], 'Harsha')).toBe(false);
+    expect(isDuplicateName(['Harsh'], 'Har')).toBe(false);
   });
 });

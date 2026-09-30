@@ -55,7 +55,7 @@ function OnlineBottleEntry() {
   const onCreate = async () => {
     if (!profileOk() || busy) return;
     setBusy(true);
-    const res = await createRoom(profile, 'bottle');
+    const res = await createRoom(profile, 'spin');
     setBusy(false);
     if (res.ok) navigate(`/room/${res.roomCode}`);
     else toast(res.error.message, 'bad');
@@ -235,7 +235,7 @@ export function BottlePage() {
   const takeOnline = async () => {
     if (takingOnline) return;
     setTakingOnline(true);
-    const res = await createRoom(profile, 'bottle');
+    const res = await createRoom(profile, 'spin');
     if (!res.ok) {
       setTakingOnline(false);
       toast(res.error.message, 'bad');
